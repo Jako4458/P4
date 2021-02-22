@@ -45,7 +45,7 @@
     read
 
 ## Logical operators
-    and, or, xor
+    and, or, xor, not
     >=, >, <=, <, ==, !=
 
 ## Arithmetic operators
