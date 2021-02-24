@@ -60,17 +60,22 @@ Switch evaluates a value and navigates to the corresponding case. Case fallthrou
 
 ## Iterative control structures
     for
-    for each
+    foreach
     do while
     while
     
-
+For iterative control structures the language will provide four methods; namely for, foreach, do while, and while.
+For will use an iterator to iterator for certain values.
+Foreach will iterate over all elements of an array.
+Do while will perform certain actions once, and then continue to do so depending on a condition.
+While will perform certain actions while a certain condition is held.
 
 ## Flow control
     break
     continue
     return
 
+Flow control are keywords for controlling the flow of the code.
 Break will stop the for/while loop or stop a case fallthrough in a switch.
 Continue will skip the current iteration of a for/while loop.
 Return will stop a function and return the appropriate value to the place it was called.
@@ -83,23 +88,36 @@ Read will read a byte array from a file containing the information.
 ## Logical operators
     and, or, xor, not
     >=, >, <=, <, ==, !=
-    a < b < c
+    a <> (b, c)
 
 These operators hold the usual logical/mathematical meaning. 
+The final "a <> (b, c)" will return true if a is in the range defined by b and c.
 
 ## Arithmetic operators
     +, -, *, /, POW, SQRT, %
 
+These operators can be used for mathematical expressions.
+They will in the case of a fraction return the nearest even number by convention.
+
 ## Compound assignment
     -=, +=, *=, /=, %=
+
+Compound assignment can be used to alter a variable without having to use an assignment with an arithmetic operator involving the variable itself. 
 
 ## Escape character
     $ for MCFunction
     \ for string escape
     
+Escape characters will be used escaping a certain context, and using functionality not usually accessible in the context.
+One will be for MCFunctions, as the language will allow the user to define an MCFunction as defined for that language.
+Another will be to escape from strings to use another functionality than the string literal of the character. 
+
 ## Other
     Method overloading
     Standard library (no escape character)
+
+The language will support method overloading, where two functions can share name given that they do not share return type or parameters. 
+The language will support a standard built-in library with functionality often used for building.
 
 ## MCFunction
 The features presented here are functionality that are usable in MCFunction, but contains a significant amount of overhaed to be used as mcfunction commands. The language will represent these as a type of built in standard library. This will give access to the following features.
@@ -160,6 +178,34 @@ Outside of MCFunction
         return <val>
     endanon
 
+Non-compiled functions (not having @mc) can either return a value of <ret_type> or not return anything.
+@mc functions will be compiled directly to MCFunction functions. These cannot have a return type, or a return statement.
+Anon functions are non-compiled functions without a name. 
+Other than that the syntax remains (except for using anon instead of func).
+ 
+Examples:
+
+    func Add(num a, num b) -> num do
+        return a + b
+    endfunc
+
+    func Print(num a, num b) do
+        Say(a + b)      % Say will be part of the standard built-in library, which will print something to the chat in Minecraft
+    endfunc
+
+    @mc
+    func BuiltCastle(num numOfTowers, block material) do
+        ...             % Statements for bulding a castle
+    endfunc
+
+    anon (num a, num b) -> boolean do
+        return a == b
+    endanon
+
+    anon (block mat) do
+        Say(mat)         % States the block type of material    
+    endanon
+
 ## Variables
     <access> <id>: <type>               
         where <access> ∈ {var}, <type> ∈ Variables
@@ -172,6 +218,17 @@ Outside of MCFunction
 
     <id> = <assigned>
         where <id> is already initialised, <assigned> is either <val>, <id>, or <expr>
+
+Variables can be declared and initialised in the same statement. 
+Const variables cannot be declared and not initiliased. 
+Multi-variable declarations are seperated by commas.
+
+Examples:
+
+    var a: num, b: num
+    var c: boolean = true
+    const TEM: num = 100
+    
 
 ## Data types
     num     --> n
@@ -212,6 +269,40 @@ Outside of MCFunction
         ...
     endif
 
+    switch <val>
+        case <val>:
+            <statement>
+            ...
+            break;
+        ...
+        default:
+            <statement>
+            ...
+
+If-statements have three types; if, elseif, else.
+If can be followed by elseif or else
+Elseif can be followed by elseif or else
+Switch evaluates over a number value to match to cases. Fallthrough will happen if break is not directly used
+
+Examples:
+
+    if true do
+        Say(5)
+    elseif false do
+        Say(4)
+    else do
+        Say(3)
+
+    switch 5
+    case 3: 
+        Say(3)
+        break
+    case 5:
+        Say(5)
+        break
+    default:
+        Say(0)
+
 ## Iterative control structures
     for <temp_id> <assign> <num> until <temp_id> <log_op> <num> where <id> <comp_assign> <num> do
         <statement>
@@ -233,6 +324,34 @@ Outside of MCFunction
         ...
     endwhile
 
+For loops uses an implicitly declared iterator which can be given an id not currently in use.
+The for loops uses *until* to describe under which boolean expression related to the iterator should the loop terminate.
+Finally it also describes which change to the value should be applied to the iterator after each iteration.
+Foreach implicitly declares a temporary variable which can be given an id not currently in use. 
+The foreach loop will go through all elements of an array, in the order they appear within the array.
+Do while will perform a number of statements once, and a while expression (of type boolean) evaluates whether the loop should persist.
+While is the same as do while, but the while expression is evaulated before any statements are performed. 
+
+Examples:
+
+    for i = 0 until i == 5 where i += 1 do
+        Say(i)
+    endfor
+
+    var array: int[] = [0, 1, 2]
+    foreach ele in array do
+        Say(ele)
+    endforeach
+
+    do
+        Say(1)
+    while (true == false) enddow
+
+    while (true == false) do
+        Say(1)
+    endwhile
+
+
 ## Flow control
     break
     continue
@@ -250,6 +369,24 @@ Outside of MCFunction
     
     <num> <> (<num>, <num>) 
 
+Logical operator are split into those that use boolean operands and those which uses numerical operands.
+The boolean operators are and, or, xor, not. And, or, xor are binary and uses two binary operands. Not is unary and takes only one operand.
+The numerical operators are all binary taking two num operands. 
+The expression will be of boolean value for both types.
+The final one is <num> <> (<num>, <num>) which indicates whether a number is in a certain range. 
+
+Examples:
+
+    var a: boolean = true, b: boolean = false
+
+    a or b          % the value of this expression is true
+
+    var a: num = 3, b: num = 4
+
+    a >= b          % the value of this expression is false
+
+    a <> (2, 5)     % the value of this expression is true
+
 ## Arithmetic operators
     <num> <op> <num> -> <num>
         where <op> ∈ {+, -, *, /, POW, %}
@@ -257,10 +394,27 @@ Outside of MCFunction
     <op> <num> -> <num>
         where <op> ∈ {SQRT}
     
+There are two types of arithmetic operators: binary and unary. 
+Binary operators will use two operands, where unary operators will only use one operand.
+The only unary operator is SQRT which takes the square root of an operand.
+All operands must be initialised and declared before used for these operators. 
+
+Examples:
+
+    var a: num = 2, b: num = 3, c: num = 4
+
+    a + b       % the two operands a and b are added
+    SQRT c      % the expression will attain the value of the square root of the operand c
+
 ## Compound assignment
     <id> <comp_assign> <num>
         where <comp_assign> ∈ {-=, +=, *=, /=, %=}
 
+Compund assignments will on the left side have an id of an initliased and declared number variable.
+Following this a compound assignment will be used to match the desired effect.
+Finally a number expression will be on the right side, for which the arithmetic operator matching the compound assignment will use. 
 
-
-
+Example:
+    
+    var a: num = 5
+    a *= 2      % a is now equal to 2 * 5 = 10
