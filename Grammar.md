@@ -66,12 +66,11 @@ Switch evaluates a value and navigates to the corresponding case. Case fallthrou
     
 
 
-## Other control structures
+## Flow control
     break
     continue
     return
 
-These control structures are more so just keywords for certain actions.
 Break will stop the for/while loop or stop a case fallthrough in a switch.
 Continue will skip the current iteration of a for/while loop.
 Return will stop a function and return the appropriate value to the place it was called.
@@ -84,11 +83,14 @@ Read will read a byte array from a file containing the information.
 ## Logical operators
     and, or, xor, not
     >=, >, <=, <, ==, !=
+    a < b < c
 
 These operators hold the usual logical/mathematical meaning. 
 
 ## Arithmetic operators
     +, -, *, /, POW, SQRT, %
+
+## Compound assignment
     -=, +=, *=, /=, %=
 
 ## Escape character
@@ -128,15 +130,45 @@ Outside of MCFunction
 
 # Syntax 
 
+## Functions
+    func <id>(<param_type> <param_id>, ...) -> <ret_type> do
+        <statement>
+        ...
+        return <val>
+    endfunc
+
+    func <id>(<param_type> <param_id>, ...) do
+        <statement>
+        ...
+    endfunc
+
+    @mc
+    func <id>(<param_type> <param_id>, ...) do
+        <statement>
+        ...
+    endfunc
+
+    anon (<param>, ...) -> <ret_type> do 
+        <statement>
+        ...
+        return <val>
+    endanon
+
+    anon (<param>, ...) do 
+        <statement>
+        ...
+        return <val>
+    endanon
+
 ## Variables
-    <scope> <id>: <type>               
-        where <scope> ∈ {var}, <type> ∈ {num, vec2, vec3, bool, block}
+    <access> <id>: <type>               
+        where <access> ∈ {var}, <type> ∈ Variables
     
-    <scope> <id>: <type> = <val>                  
-        where <scope> ∈ {var, const}, <type> ∈ {num, vec2, vec3, bool, block}
+    <access> <id>: <type> = <val>                  
+        where <access> ∈ {var, const}, <type> ∈ Variables
     
-    <scope> <id>: <type> = <val>, <id>: <type> = <val>     
-        where <scope> ∈ {var, const}, <type> ∈ {num, vec2, vec3, bool, block}
+    <access> <id>: <type> = <val>, <id>: <type> = <val>     
+        where <access> ∈ {var, const}, <type> ∈ Variables
 
     <id> = <assigned>
         where <id> is already initialised, <assigned> is either <val>, <id>, or <expr>
@@ -154,7 +186,80 @@ Outside of MCFunction
         <val> ∈ {true, false}
 
 ## Conditional control structures
+    ||do <statement> if <expression> 
 
+    if <expression> do
+        <then>
+        ...
+    endif
+
+    if <expression> do
+        <then>
+        ...
+    else do
+        <else>
+        ...
+    endif
+
+    if <expression> do
+        <then>
+        ...
+    elseif <expression> do
+        <else-then>
+        ...
+    else do
+        <else>
+        ...
+    endif
+
+## Iterative control structures
+    for <temp_id> <assign> <num> until <temp_id> <log_op> <num> where <id> <comp_assign> <num> do
+        <statement>
+        ...
+    endfor
+
+    foreach <temp_id> in <id> do
+        <statement>
+        ...
+    endforeach
+
+    do
+        <statement>
+        ...
+    while <expression> enddow
+
+    while <expression> do
+        <statement>
+        ...
+    endwhile
+
+## Flow control
+    break
+    continue
+    return  <opt_val>
+
+## File management
+    read <file>
+
+## Logical operators
+    <expression> <log_op> <expression> -> <expression> 
+        where <log_op> ∈ {and, or, xor, not}
+    
+    <num> <num_op> <num> -> <expression>
+        where <num_op> ∈ {>=, >, <=, <, ==, !=} 
+    
+    <num> <> (<num>, <num>) 
+
+## Arithmetic operators
+    <num> <op> <num> -> <num>
+        where <op> ∈ {+, -, *, /, POW, %}
+    
+    <op> <num> -> <num>
+        where <op> ∈ {SQRT}
+    
+## Compound assignment
+    <id> <comp_assign> <num>
+        where <comp_assign> ∈ {-=, +=, *=, /=, %=}
 
 
 
