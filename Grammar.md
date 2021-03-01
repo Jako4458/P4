@@ -269,7 +269,7 @@ Examples:
         ...
     endif
 
-    switch <val>
+    switch <val> do
         case <val>:
             <statement>
             ...
@@ -278,6 +278,7 @@ Examples:
         default:
             <statement>
             ...
+    endswitch
 
 If-statements have three types; if, elseif, else.
 If can be followed by elseif or else
@@ -312,12 +313,12 @@ Examples:
     foreach <temp_id> in <id> do
         <statement>
         ...
-    endforeach
+    endfor
 
     do
         <statement>
         ...
-    while <expression> enddow
+    while <expression> endwhile
 
     while <expression> do
         <statement>
