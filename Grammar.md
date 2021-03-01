@@ -227,7 +227,7 @@ Examples:
 
     var a: num, b: num
     var c: boolean = true
-    const TEMP: num = 100
+    const TEM: num = 100
     
 
 ## Data types
