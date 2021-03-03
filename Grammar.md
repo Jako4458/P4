@@ -87,11 +87,13 @@ Read will read a byte array from a file containing the information.
 
 ## Logical operators
     and, or, xor, not
-    >=, >, <=, <, ==, !=
-    a <> (b, c)
 
 These operators hold the usual logical/mathematical meaning. 
 The final "a <> (b, c)" will return true if a is in the range defined by b and c.
+
+## Relational operators
+    >=, >, <=, <, ==, !=
+    a <> (b, c)
 
 ## Arithmetic operators
     +, -, *, /, POW, SQRT, %
