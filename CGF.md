@@ -1,8 +1,8 @@
 # EBNF
 
-    Prog    -> Blocks Newline MCFunc Newline Blocks €             // Force 1 MCFunc in the grammar
+    Prog    -> {Blocks} €             // A program 
 
-    Blocks  -> ResStmnt Newline Blocks
+    Blocks  -> Stmnts Blocks
             |  MCFunc Newline Blocks 
             |  Func Newline Blocks
             |  λ
@@ -16,102 +16,51 @@
 
     Param   -> 'id' : Type                                           // A parameter should declare a type and an id
 
-    FuncBody-> 'do' [Newline Stmnts] [Newline RetVal] Newline 'endfunc'      // FuncBody consists of optional statements
-                                                                             // Optional RetVal
+    FuncBody-> 'do' [Newline Stmnts] [RetVal] Newline 'endfunc'      // FuncBody consists of optional statements
+                                                                             // Optional RetVal which must be the last line in FuncBody
 
-    RetVal  -> 'return' [Expr | 'id' | Literal]                              // A return statement.
+    RetVal  -> 'return' [Expr]                              // A return statement.
                                                                              // Can simply be return or followed by value
 
-    Stmnts  -> Stmnt [Newline Stmnts]               // Statements consists of a statement and then optinally statements seperated by newline
+    FuncCall -> 'id''('[Expr {',' Expr}]')'
+
+    Stmnts  -> Stmnt {Stmnt}                // Statements consists of a statement and then optinally statements seperated by newline
         
-    Stmnt   -> Dcls                 // A statement can be: declarations, an assignment, an expression, or an instansiation
-            |  Assign
-            |  Expr
-            |  Instan
-
-    ResStmnt  -> Dcls               // A restricted statement is the same as a statement, but with no expressions, and the possibility 
-            |  Assign               // of the empty production. This ensures that no loops, if-statements, or other expressions
-            |  Instan               // can appear outside of a function.
-            |  λ
-
-    
+    Stmnt   -> (Dcls |  Assign |  Instan |  If-stmnt |  Loop | MCStmnt | FuncCall) Newline         
+        // A statement can be: declarations, an assignment, an expression, or an instansiation
+            
     Dcls    -> 'var' 'id' ':' Type {',' 'id' ':' Type}                      // Declare variable without value
 
-    Assign  -> 'id' ('=' | CompAssign) ValExpr                              // Assignment of a variable
-t
+    Assign  -> 'id' ('=' | CompAssign) Expr                              // Assignment of a variable
+
     CompAssign -> ('%=' | '*=' | '/=' | '+=' | '-=')                        // Compound assignment operators
 
-    Instan  -> Access 'id' ':' Type '=' ValExpr {',' 'id' ':' Type '=' ValExpr}   // Declare variable or constant and assign value
+    Instan  -> Access 'id' ':' Type '=' Expr {',' 'id' ':' Type '=' Expr}   // Declare variable or constant and assign value
 
     Access  -> 'const'              // An access modifier can either be var (variable) or const (constant).
             |  'var'                // A the value of a var can be changed, the value of a const cannot.
 
-    Expr    -> Loop                 // An expression can either be: a loop, an if-expression, a MC-expression, or a value-expression
-            |  IfExpr
-            |  MCExpr
-            |  ValExpr
+    Expr    -> [Expr ('+' | '-' | 'or')] L1Expr
 
-    ValExpr -> NumExpr                  // A value-expression can either be a numerical-expression or a boolean-expression
-            |  BoolExpr                 // since these are the only types of expressions yielding 
+    L1Expr  -> [L1Expr ('*' | '/' | '%' | 'and')] L2Expr
 
-    NumExpr -> NumExpr '+' Term         // Number expression starts with determining '+' and '-' to indicate lowest precedence
-            |  NumExpr '-' Term
-            |  Term
+    L2Expr  -> [L2Expr ('Pow' | '>=' | '<=' | '<' | '>' | '==' | '!=')] Factor
 
-    Term    -> Term '*' Expo            // Term expression determines '*', '/', and '%' as these are next in terms of precedence
-            |  Term '/' Expo
-            |  Term '%' Expo
-            |  Expo
+    Factor  -> ['not'] ('('Expr')' | 'id' | Number_literal | Boolean_literal | FuncCall)
+
+    IfExpr  -> 'if' Expr 'do' Newline [Stmnts] {'elif' Expr 'do' Newline [Stmnts]} ['else' do Newline [Stmnts]] 'endif
     
-    //Term    -> [Term ('*' | '/' | '%')] Expo
+    Loop    -> (For | Foreach | While | DoWhile)
 
-    Expo    -> Expo 'Pow' Factor        // Expo expression expresses a number to the power of Factor. Has higher precedence than Term
-            | Factor
+    For     -> 'for' Assign 'until' Expr 'where' Assign 'do' Newline [Stmnts] 'endfor'
+
+    Foreach ->  'foreach' Type 'id' 'in' Expr 'do' Newline [Stmnts] 'endfor'
     
-    Factor  -> '(' NumExpr ')'          // A factor can be a new numerical expression with parentheses indicating highest precedence
-            |  'id'                     // or just an id or a number literal.
-            |  Number_literal
+    While   -> 'while' Expr do Newline [Stmnts] endwhile
 
-    BoolExpr -> LogicalExpr             // Boolean expression can either be logical or relational expressions
-             |  RelationExpr
-
-    LogicalExpr -> LogicalExpr 'or' OrExpr  // Logical expressions establishes the 'or' operator since this has the lowest precedence
-                |  OrExpr                   
-
-    OrExpr -> OrExpr 'and' AndExpr          // Or-expressions establishes the 'and' operator since this has the lowest precedence after 'or'
-           |  AndExpr
+    DoWhile -> 'do' Newline [Stmnts] 'while' Expr 'endwhile'
     
-    AndExpr -> ['not'] '(' BoolExpr ')'     // And-expression can either be another bool-expression with parentheses to force higher precedence.
-            |  ['not'] 'id'                 // It can also be an id or boolean. 
-            |  ['not'] Boolean_literal      // It can also have an optional 'not' operator in front of it
-
-    RelationExpr -> NumExpr RelationOp NumExpr      // Relational expressions relates numerical expressions and yields a boolean result
-
-    RelationOp -> 
-
-    IfExpr  -> 'if' BoolExpr 'do' [Newline Stmnts] Newline Elif Newline 'endif'
-            |  'if' BoolExpr 'do' [Newline Stmnts] [Newline Else] Newline 'endif'
-
-    Elif    -> 'elif' BoolExpr 'do' [Newline Stmnts] Newline Elif
-            |  'elif' BoolExpr do [Newline Stmnts] [Newline Else] 
-   
-    Loop    -> For
-            |  Foreach
-            |  While
-            |  DoWhile
-
-    Else    -> 'else' 'do' [Newline Stmnts]
-
-    For     -> 'for' Assign 'until' BoolExpr 'where' Assign 'do' [Newline Stmnts] Newline 'endfor'
-
-    Foreach ->  'foreach' Type 'id' 'in' 'id' 'do' [Newline Stmnts] Newline 'endfor'
-    
-    While   -> 'while' BoolExpr do [Newline Stmnts] Newline endwhile
-
-    DoWhile -> 'do' [Newline Stmnts] Newline 'while' BoolExpr 'endwhile'
-    
-    # unused 
-    MCExpr  -> $<function already defined in mcfunction> Newline              // Line that will be directly written into the MCFunc file
+    MCStmnt  -> $<function already defined in mcfunction>               // Line that will be directly written into the MCFunc file
     
     # unused
     Keyword -> 'if'       |  'elif'     |  'else'     |  'endif'    |  'until'
@@ -120,14 +69,17 @@ t
             |  'for'      |  'while'    |  'do'       |  'endfor'   |  'vector3'
             |  'endwhile' |  'true'     |  'false'    |  'anon'     |  'endanon' 
 
-    Type -> 'num'     | 'num[]'               // Each type and their array equivalent 
-         |  'block'   | 'block[]'
-         |  'bool'    | 'bool[]' 
-         |  'string'  | 'string[]'
-         |  'byte'    | 'byte[]'              // FOR LATER possibly
-         |  'file'    | 'file[]'              // FOR LATER possibly
-         |  'vector2'  | 'vector2[]'
-         |  'vector3'  | 'vector3[]'          
+    Type    -> PrimitiveType
+            |  PrimitiveType'['']'
+
+    PrimitiveType   -> 'num'                     
+                    |  'block'   
+                    |  'bool'     
+                    |  'string'  
+                    |  'byte'                  
+                    |  'file'                  
+                    |  'vector2'  
+                    |  'vector3'          
 
 /* All possible literals */
 
