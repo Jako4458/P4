@@ -1,15 +1,15 @@
 grammar minespeak;
 
-prog : 'startprog' Newlines (blocks)? 'endprog'
+prog : 'startprog' (blocks)? 'endprog'
      ;
 
 blocks : stmnts blocks
-       | mcFunc Newlines blocks
-       | func Newlines blocks
+       | mcFunc blocks
+       | func blocks
        |
        ;
 
-mcFunc: '@mc' Newlines func;
+mcFunc: '@mc' func;
 
 func : 'func' ID '(' params ')' ('->' type)? 'do' funcBody 'endfunc'
       ;
@@ -20,33 +20,33 @@ params : param (',' param)*
 
 param : ID ':' type;
 
-funcBody: (Newlines stmnts)? (retVal Newlines)? ;
+funcBody: (stmnts)? (retVal)? ;
 
 retVal : 'return' (expr)?
        ;
 
-stmnts : (stmnt Newlines?)+
+stmnts : (stmnt)+
        ;
 
-stmnt : (dcls |  assign |  instan |  ifStmnt |  loop | MCStmnt | funcCall) Newlines
+stmnt : (dcls |  assign |  instan |  ifStmnt |  loop | MCStmnt | funcCall)
       ;
 
 loop : (for | foreach | while | doWhile)
      ;
 
-doWhile : 'do' Newlines (stmnts)? 'while' expr 'endwhile'
+doWhile : 'do' (stmnts)? 'while' expr 'endwhile'
         ;
 
-while : 'while' expr 'do' Newlines (stmnts)? 'endwhile'
+while : 'while' expr 'do' (stmnts)? 'endwhile'
       ;
 
-foreach : 'foreach' type ID 'in' expr 'do' Newlines (stmnts)? 'endfor'
+foreach : 'foreach' type ID 'in' expr 'do' (stmnts)? 'endfor'
         ;
 
-for : 'for' assign 'until' expr 'where' assign 'do' Newlines (stmnts)?
+for : 'for' assign 'until' expr 'where' assign 'do' (stmnts)?
     ;
 
-ifStmnt : 'if' expr 'do' Newlines (stmnts)? ('elif' expr 'do' Newlines (stmnts)?)* ('else' 'do' Newlines (stmnts)?)? 'endif'
+ifStmnt : 'if' expr 'do' (stmnts)? ('elif' expr 'do' (stmnts)?)* ('else' 'do' (stmnts)?)? 'endif'
         ;
 
 Access : 'const'
@@ -155,7 +155,7 @@ vector3Literal : '<' (numberLiteral | ID) ',' (numberLiteral | ID) ',' (numberLi
 ID         : [a-zA-Z_][a-zA-Z_0-9]*
            ;
 
-Newlines : ('\n' | '\r' | '\r\n')+
+Newlines : [\n\r] + -> skip
         ;
 
 Whitespace : [ \t] + -> skip
