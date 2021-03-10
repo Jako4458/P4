@@ -1,26 +1,52 @@
 grammar minespeak;
 
-stmnts : stmnt+
+prog : 'startprog' Newlines (blocks)? 'endprog'
+     ;
+
+blocks : stmnts blocks
+       | mcFunc Newlines blocks
+       | func Newlines blocks
+       |
        ;
 
-stmnt: (dcls |  assign |  instan |  ifStmnt |  loop | MCStmnt | funcCall) Newline+ ;
+mcFunc: '@mc' Newlines func;
+
+func : 'func' ID '(' params ')' ('->' type)? 'do' funcBody 'endfunc'
+      ;
+
+params : param (',' param)*
+       |
+       ;
+
+param : ID ':' type;
+
+funcBody: (Newlines stmnts)? (retVal Newlines)? ;
+
+retVal : 'return' (expr)?
+       ;
+
+stmnts : (stmnt Newlines?)+
+       ;
+
+stmnt : (dcls |  assign |  instan |  ifStmnt |  loop | MCStmnt | funcCall) Newlines
+      ;
 
 loop : (for | foreach | while | doWhile)
      ;
 
-doWhile : 'do' Newline (stmnts)? 'while' expr 'endwhile'
+doWhile : 'do' Newlines (stmnts)? 'while' expr 'endwhile'
         ;
 
-while : 'while' expr 'do' Newline (stmnts)? 'endwhile'
+while : 'while' expr 'do' Newlines (stmnts)? 'endwhile'
       ;
 
-foreach : 'foreach' type ID 'in' expr 'do' Newline (stmnts)? 'endfor'
+foreach : 'foreach' type ID 'in' expr 'do' Newlines (stmnts)? 'endfor'
         ;
 
-for : 'for' assign 'until' expr 'where' assign 'do' Newline (stmnts)?
+for : 'for' assign 'until' expr 'where' assign 'do' Newlines (stmnts)?
     ;
 
-ifStmnt : 'if' expr 'do' Newline (stmnts)? ('elif' expr 'do' Newline (stmnts)?)* ('else' 'do' Newline (stmnts)?)* 'endif'
+ifStmnt : 'if' expr 'do' Newlines (stmnts)? ('elif' expr 'do' Newlines (stmnts)?)* ('else' 'do' Newlines (stmnts)?)? 'endif'
         ;
 
 Access : 'const'
@@ -66,7 +92,7 @@ exponentExpr : exponentExpr 'Pow' exponentExpr
 unaryExpr : ('not')? factor
        ;
 
-factor : ('('expr')' | 'id' | numberLiteral | BooleanLiteral | funcCall)
+factor : ('('expr')' | ID | numberLiteral | BooleanLiteral | funcCall)
        ;
 
 funcCall : ID '('(expr {',' expr})?')'
@@ -129,7 +155,7 @@ vector3Literal : '<' (numberLiteral | ID) ',' (numberLiteral | ID) ',' (numberLi
 ID         : [a-zA-Z_][a-zA-Z_0-9]*
            ;
 
-Newline : '\n' | '\r' | '\r\n'
+Newlines : ('\n' | '\r' | '\r\n')+
         ;
 
 Whitespace : [ \t] + -> skip
