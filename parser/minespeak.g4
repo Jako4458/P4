@@ -1,10 +1,9 @@
 grammar minespeak;
 
-prog : 'minespeak' newlines blocks newlines 'closespeak'
-     | 'minespeak' newlines 'closespeak'
+prog : 'minespeak' newlines blocks? 'closespeak'
      ;
 
-blocks : block+
+blocks : (block newlines?)+
        ;
 
 block : stmnts
@@ -14,8 +13,8 @@ block : stmnts
 
 mcFunc: '@mc' Newline func;
 
-func : 'func' ID '(' params ')' ('->' type)? 'do' newlines funcBody newlines? 'endfunc'
-      ;
+func : 'func' ID '(' params ')' ('->' type)? 'do' newlines funcBody newlines? 'endfunc' Newline
+     ;
 
 params : param (',' param)*
        |
@@ -46,7 +45,7 @@ while : 'while' expr 'do' (stmnts)? 'endwhile'
 foreach : 'foreach' type ID 'in' expr 'do' (stmnts)? 'endfor'
         ;
 
-for : 'for' assign 'until' expr 'where' assign 'do' (stmnts)? 'endfor'
+for : 'for' assign 'until' expr 'where' assign 'do' newlines (stmnts)? 'endfor'
     ;
 
 ifStmnt : 'if' expr 'do' newlines (stmnts)? ('elif' expr 'do' newlines (stmnts)?)* ('else' 'do' newlines (stmnts)?)? 'endif'
