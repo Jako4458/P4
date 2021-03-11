@@ -33,19 +33,19 @@ stmnts : (stmnt newlines)+
 stmnt : (dcls |  assign |  instan |  ifStmnt |  loop | MCStmnt | funcCall)
       ;
 
-loop : (for | foreach | while | doWhile)
+loop : (forStmnt | foreach | whileStmnt | doWhile)
      ;
 
 doWhile : 'do' (stmnts)? 'while' expr 'endwhile'
         ;
 
-while : 'while' expr 'do' (stmnts)? 'endwhile'
+whileStmnt : 'while' expr 'do' (stmnts)? 'endwhile'
       ;
 
 foreach : 'foreach' type ID 'in' expr 'do' (stmnts)? 'endfor'
         ;
 
-for : 'for' assign 'until' expr 'where' assign 'do' newlines (stmnts)? 'endfor'
+forStmnt : 'for' assign 'until' expr 'where' assign 'do' newlines (stmnts)? 'endfor'
     ;
 
 ifStmnt : 'if' expr 'do' newlines (stmnts)? ('elif' expr 'do' newlines (stmnts)?)* ('else' 'do' newlines (stmnts)?)? 'endif'
