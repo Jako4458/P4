@@ -49,7 +49,7 @@ foreach : 'foreach' type ID 'in' expr 'do' (stmnts)? 'endfor'
 for : 'for' assign 'until' expr 'where' assign 'do' (stmnts)? 'endfor'
     ;
 
-ifStmnt : 'if' expr 'do' (stmnts)? ('elif' expr 'do' (stmnts)?)* ('else' 'do' (stmnts)?)? 'endif'
+ifStmnt : 'if' expr 'do' newlines (stmnts)? ('elif' expr 'do' newlines (stmnts)?)* ('else' 'do' newlines (stmnts)?)? 'endif'
         ;
 
 Access : 'const'
@@ -62,7 +62,18 @@ dcls : Access ID ':' type (',' ID ':' type)*
 instan : Access ID ':' type '=' expr (',' ID ':' type '=' expr)*
        ;
 
+expr : ('not')? factor
+     | expr 'Pow' expr
+     | expr ('*' | '/' | '%') expr
+     | expr ('+' | '-') expr
+     | expr ('<' | '>' | '<=' | '>=') expr
+     | expr ('==' | '!=') expr
+     | expr 'and' expr
+     | expr 'or' expr
+     ;
 
+
+/* OLD VERSION.
 expr : expr 'or' expr
      | andExpr
      ; //l1Expr
@@ -94,6 +105,7 @@ exponentExpr : exponentExpr 'Pow' exponentExpr
 
 unaryExpr : ('not')? factor
        ;
+*/
 
 factor : ('('expr')' | ID | literal | funcCall)
        ;
