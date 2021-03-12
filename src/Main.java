@@ -11,6 +11,8 @@ import java.nio.file.Path;
 
 public class Main {
     public static void main(String[] args) throws IOException {
+        String filePath = new File("").getAbsolutePath();
+        System.out.println(filePath);
 //        CharStream charStream = CharStreams.fromFileName("/home/steven/Desktop/P4/parser/test/test1.ms");
 //        minespeakLexer minespeakLexer = new minespeakLexer(charStream);
 //        CommonTokenStream commonTokenStream = new CommonTokenStream(minespeakLexer);
