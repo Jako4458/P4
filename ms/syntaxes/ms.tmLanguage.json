@@ -13,7 +13,7 @@
 		"keywords": {
 			"patterns": [{
 				"name": "keyword.control.ms",
-				"match": "\\b(minespeak|closespeak|if|while|for|return)\\b"
+				"match": "\\b(minespeak|closespeak|if|endif|do|while|endwhile|for|endfor|func|endfunc|in|foreach|elif|else|until|var|const|return)\\b"
 			}]
 		},
 		"strings": {
