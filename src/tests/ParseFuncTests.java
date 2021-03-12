@@ -14,14 +14,14 @@ public class ParseFuncTests {
 
     /* Terminal symbols */
     @RepeatedTest(7)
-    void missingTerminalSymbols(RepetitionInfo rI) throws IOException {
-        helper.setupFromFile("/parser/test/parser/func/func_missing_terminal_symbol" + rI.getCurrentRepetition() + ".ms");
+    void wrongTerminalSymbols(RepetitionInfo rI) throws IOException {
+        helper.setupFromFile("/parser/test/parser/func/func_terminal_symbol_wrong" + rI.getCurrentRepetition() + ".ms");
         assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
     }
 
     @RepeatedTest(2)
     void correctTerminalSymbols(RepetitionInfo rI) throws IOException {
-        helper.setupFromFile("/parser/test/parser/func/func_correct_terminal_symbol" + rI.getCurrentRepetition() + ".ms");
+        helper.setupFromFile("/parser/test/parser/func/func_terminal_symbol_correct" + rI.getCurrentRepetition() + ".ms");
         assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
     }
     /* ------- */
@@ -29,13 +29,13 @@ public class ParseFuncTests {
     /* Params */
     @RepeatedTest(4)
     void wrongParams(RepetitionInfo rI) throws IOException {
-        helper.setupFromFile("/parser/test/parser/func/func_wrong_params" + rI.getCurrentRepetition() + ".ms");
+        helper.setupFromFile("/parser/test/parser/func/func_params_wrong" + rI.getCurrentRepetition() + ".ms");
         assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
     }
 
     @RepeatedTest(3)
     void correctParams(RepetitionInfo rI) throws IOException {
-        helper.setupFromFile("/parser/test/parser/func/func_correct_params" + rI.getCurrentRepetition() + ".ms");
+        helper.setupFromFile("/parser/test/parser/func/func_params_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.func());
     }
     /* ------- */
@@ -43,13 +43,13 @@ public class ParseFuncTests {
     /* Names */
     @RepeatedTest(3)
     void wrongName(RepetitionInfo rI) throws IOException {
-        helper.setupFromFile("/parser/test/parser/func/func_wrong_name" + rI.getCurrentRepetition() + ".ms");
+        helper.setupFromFile("/parser/test/parser/func/func_name_wrong" + rI.getCurrentRepetition() + ".ms");
         assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
     }
 
     @RepeatedTest(2)
     void correctName(RepetitionInfo rI) throws IOException {
-        helper.setupFromFile("/parser/test/parser/func/func_correct_name" + rI.getCurrentRepetition() + ".ms");
+        helper.setupFromFile("/parser/test/parser/func/func_name_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.func());
     }
     /* ------- */
@@ -57,13 +57,13 @@ public class ParseFuncTests {
     /* Newlines */
     @RepeatedTest(4)
     void wrongNewlines(RepetitionInfo rI) throws IOException {
-        helper.setupFromFile("/parser/test/parser/func/func_wrong_newlines" + rI.getCurrentRepetition() + ".ms");
+        helper.setupFromFile("/parser/test/parser/func/func_newlines_wrong" + rI.getCurrentRepetition() + ".ms");
         assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
     }
 
     @RepeatedTest(2)
     void correctNewlines(RepetitionInfo rI) throws IOException {
-        helper.setupFromFile("/parser/test/parser/func/func_correct_newlines" + rI.getCurrentRepetition() + ".ms");
+        helper.setupFromFile("/parser/test/parser/func/func_newlines_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.func());
     }
     /* ------- */
@@ -71,35 +71,14 @@ public class ParseFuncTests {
     /* Return */
     @RepeatedTest(2)
     void wrongReturn(RepetitionInfo rI) throws IOException {
-        helper.setupFromFile("/parser/test/parser/func/func_wrong_return" + rI.getCurrentRepetition() + ".ms");
+        helper.setupFromFile("/parser/test/parser/func/func_return_wrong" + rI.getCurrentRepetition() + ".ms");
         assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
     }
 
     @RepeatedTest(2)
     void correctReturn(RepetitionInfo rI) throws IOException {
-        helper.setupFromFile("/parser/test/parser/func/func_correct_return" + rI.getCurrentRepetition() + ".ms");
+        helper.setupFromFile("/parser/test/parser/func/func_return_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.func());
     }
     /* ------- */
-
-    /* NoneFiles */
-
-
-    @Test
-    void returnType() {
-        helper.setupFromString("func ID() -> num do \n endfunc \n");
-        assertDoesNotThrow(() -> helper.minespeakParser.func());
-    }
-
-    @Test
-    void returnNoType() {
-        helper.setupFromString("func ID() -> do \n endfunc \n");
-        assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
-    }
-
-    @Test
-    void returnTypeNoArrow() {
-        helper.setupFromString("func ID() num do \n endfunc \n");
-        assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
-    }
 }
