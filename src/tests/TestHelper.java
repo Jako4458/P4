@@ -1,6 +1,7 @@
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ConsoleErrorListener;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +27,9 @@ public class TestHelper {
 
         minespeakParser = new minespeakParser(commonTokenStream);
         TestsErrorListener listener = new TestsErrorListener();
+
+        minespeakParser.removeErrorListener(ConsoleErrorListener.INSTANCE);
+        minespeakLexer.removeErrorListener(ConsoleErrorListener.INSTANCE);
 
         minespeakParser.addErrorListener(listener);
         minespeakLexer.addErrorListener(listener);
