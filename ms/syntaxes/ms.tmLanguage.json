@@ -9,6 +9,9 @@
 			"include": "#strings"
 		},
 		{
+			"include": "expressions"
+		},
+		{
 			"include": "#types"
 		}
 	],
@@ -27,6 +30,14 @@
 				{
 					"name": "constant.character.escape.ms",
 					"match": "\\\\."
+				}
+			]
+		},
+		"expression": {
+			"patterns": [
+				{
+					"name": "keyword.operator.ms",
+					"match": "\\b(:|=|not|Pow|*|/|%|+|-|<|>|<=|>=|==|!=|and|or)\\b."
 				}
 			]
 		},
