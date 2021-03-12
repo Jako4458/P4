@@ -7,6 +7,9 @@
 		},
 		{
 			"include": "#strings"
+		},
+		{
+			"include": "#types"
 		}
 	],
 	"repository": {
@@ -24,6 +27,14 @@
 				{
 					"name": "constant.character.escape.ms",
 					"match": "\\\\."
+				}
+			]
+		},
+		"types": {
+			"patterns": [
+				{
+					"name": "variable.other",
+					"match": "(\\b(num|block|bool|string|byte|file|vector2|vector3)\\b)."
 				}
 			]
 		}
