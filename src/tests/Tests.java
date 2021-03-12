@@ -15,6 +15,6 @@ public class Tests {
     @Test
     public void TestTest() throws Exception{
         helper.setupFromFile("/parser/test/test1.ms");
-        helper.minespeakParser.prog();
+        assertDoesNotThrow(() -> helper.minespeakParser.prog());
     }
 }
