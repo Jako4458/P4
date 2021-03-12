@@ -7,18 +7,25 @@
     },
     // symbols used as brackets
     "brackets": [
-        ["minespeak\n", "\nclosespeak"],
-        ["func\n", "\nendfunc"],
-        ["while\n", "\nendwhile"],
-        ["for\n", "\nminendfor"],
+        ["{", "}"],
+        ["[", "]"],
+        ["(", ")"],
+        ["minespeak", "closespeak"],
+        ["func", "endfunc"],
+        ["while", "endwhile"],
+        ["for", "endfor"],
     ],
     // symbols that are auto closed when typing
     "autoClosingPairs": [
-        ["minespeak", "\n\t\nclosespeak"],
-        ["func", "\n\t\nendfunc"],
-        ["while", "\n\t\nendwhile"],
-        ["for", "\n\t\nendfor"],
-        ["'", "'"]
+        ["{", "}"],
+        ["[", "]"],
+        ["(", ")"],
+        ["\"", "\""],
+        ["'", "'"],
+        ["minespeak", "closespeak"],
+        ["func", "endfunc"],
+        ["while", "endwhile"],
+        ["for", "endfor"],
     ],
     // symbols that can be used to surround a selection
     "surroundingPairs": [
@@ -26,6 +33,10 @@
         ["[", "]"],
         ["(", ")"],
         ["\"", "\""],
-        ["'", "'"]
+        ["'", "'"],
+        ["minespeak", "closespeak"],
+        ["func", "endfunc"],
+        ["while", "endwhile"],
+        ["for", "endfor"],
     ]
 }
