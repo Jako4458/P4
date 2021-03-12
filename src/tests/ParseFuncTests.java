@@ -1,6 +1,8 @@
 import static org.junit.jupiter.api.Assertions.*;
 
 import exceptions.SyntaxErrorException;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.RepetitionInfo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -10,108 +12,73 @@ import java.io.IOException;
 public class ParseFuncTests {
     private TestHelper helper = new TestHelper();
 
-    @ParameterizedTest
-    @ValueSource(strings = {"func_wrong_params1.ms", "func_wrong_params2.ms"})
-    void WrongParams(String file) throws IOException {
-        helper.setupFromFile("/parser/test/lexer/func/" + file);
+    /* Terminal symbols */
+    @RepeatedTest(7)
+    void wrongTerminalSymbols(RepetitionInfo rI) throws IOException {
+        helper.setupFromFile("/parser/test/parser/func/func_terminal_symbol_wrong" + rI.getCurrentRepetition() + ".ms");
         assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
     }
 
+    @RepeatedTest(2)
+    void correctTerminalSymbols(RepetitionInfo rI) throws IOException {
+        helper.setupFromFile("/parser/test/parser/func/func_terminal_symbol_correct" + rI.getCurrentRepetition() + ".ms");
+        assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
+    }
+    /* ------- */
 
-    /* NoneFiles */
-    @Test
-    void NoParam() {
-        helper.setupFromString("func ID() do \n endfunc \n");
+    /* Params */
+    @RepeatedTest(4)
+    void wrongParams(RepetitionInfo rI) throws IOException {
+        helper.setupFromFile("/parser/test/parser/func/func_params_wrong" + rI.getCurrentRepetition() + ".ms");
+        assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
+    }
+
+    @RepeatedTest(3)
+    void correctParams(RepetitionInfo rI) throws IOException {
+        helper.setupFromFile("/parser/test/parser/func/func_params_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.func());
     }
+    /* ------- */
 
-    @Test
-    void FunctionKeywordNotFunc() {
-        helper.setupFromString("function ID() do \n endfunc \n");
+    /* Names */
+    @RepeatedTest(3)
+    void wrongName(RepetitionInfo rI) throws IOException {
+        helper.setupFromFile("/parser/test/parser/func/func_name_wrong" + rI.getCurrentRepetition() + ".ms");
         assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
     }
 
-    @Test
-    void FuncNoNewlineAfterDo() {
-        helper.setupFromString("func ID() do endfunc \n");
-        assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
-    }
-
-    @Test
-    void FuncNoNewlineAfterEndfunc() {
-        helper.setupFromString("func ID() do \n endfunc");
-        assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
-    }
-
-    @Test
-    void NoID() {
-        helper.setupFromString("func () do \n endfunc \n");
-        assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
-    }
-
-    @Test
-    void OneParam() {
-        helper.setupFromString("func ID(param1: num) do \n endfunc \n");
+    @RepeatedTest(2)
+    void correctName(RepetitionInfo rI) throws IOException {
+        helper.setupFromFile("/parser/test/parser/func/func_name_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.func());
     }
+    /* ------- */
 
-    @Test
-    void MoreParams() {
-        helper.setupFromString("func ID(param1: num, param2: num) do \n endfunc \n");
+    /* Newlines */
+    @RepeatedTest(4)
+    void wrongNewlines(RepetitionInfo rI) throws IOException {
+        helper.setupFromFile("/parser/test/parser/func/func_newlines_wrong" + rI.getCurrentRepetition() + ".ms");
+        assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
+    }
+
+    @RepeatedTest(2)
+    void correctNewlines(RepetitionInfo rI) throws IOException {
+        helper.setupFromFile("/parser/test/parser/func/func_newlines_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.func());
     }
+    /* ------- */
 
-    @Test
-    void NoTypeForParam() {
-        helper.setupFromString("func ID(param1: ) do \n endfunc \n");
+    /* Return */
+    @RepeatedTest(2)
+    void wrongReturn(RepetitionInfo rI) throws IOException {
+        helper.setupFromFile("/parser/test/parser/func/func_return_wrong" + rI.getCurrentRepetition() + ".ms");
         assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
     }
 
-    @Test
-    void NoIDForParam() {
-        helper.setupFromString("func ID(: num) do \n endfunc \n");
-        assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
-    }
-
-    @Test
-    void NoCommaBetweenParams() {
-        helper.setupFromString("func ID(param1: num param2: num ) do \n endfunc \n");
-        assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
-    }
-
-    @Test
-    void NoDo() {
-        helper.setupFromString("func ID() \n endfunc \n");
-        assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
-    }
-
-    @Test
-    void NoEndfunc() {
-        helper.setupFromString("func ID() do \n \n");
-        assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
-    }
-
-    @Test
-    void NoParamsAndNoParentheses() {
-        helper.setupFromString("func ID do \n endfunc \n");
-        assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
-    }
-
-    @Test
-    void ReturnType() {
-        helper.setupFromString("func ID() -> num do \n endfunc \n");
+    @RepeatedTest(2)
+    void correctReturn(RepetitionInfo rI) throws IOException {
+        helper.setupFromFile("/parser/test/parser/func/func_return_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.func());
     }
-
-    @Test
-    void ReturnNoType() {
-        helper.setupFromString("func ID() -> do \n endfunc \n");
-        assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
-    }
-
-    @Test
-    void ReturnTypeNoArrow() {
-        helper.setupFromString("func ID() num do \n endfunc \n");
-        assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
-    }
+    /* ------- */
 }
