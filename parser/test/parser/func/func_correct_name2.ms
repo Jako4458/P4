@@ -1,0 +1,2 @@
+func CorrectName() do
+endfunc
