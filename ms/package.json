@@ -1,0 +1,25 @@
+{
+    "name": "ms",
+    "displayName": "minespeak",
+    "description": "",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.54.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "ms",
+            "aliases": ["MineSpeak", "ms"],
+            "extensions": [".ms"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "ms",
+            "scopeName": "source.ms",
+            "path": "./syntaxes/ms.tmLanguage.json"
+        }]
+    }
+}
