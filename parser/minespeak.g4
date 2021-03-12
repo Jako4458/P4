@@ -61,7 +61,7 @@ dcls : Access ID ':' type (',' ID ':' type)*
 instan : Access ID ':' type '=' expr (',' ID ':' type '=' expr)*
        ;
 
-expr : ('not')? factor
+expr : ('not' | '-')? factor
      | expr 'Pow' expr
      | expr ('*' | '/' | '%') expr
      | expr ('+' | '-') expr
