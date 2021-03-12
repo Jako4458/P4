@@ -1,3 +1,4 @@
+import exceptions.SyntaxErrorException;
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.RecognitionException;
@@ -12,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class TestsErrorListener implements ANTLRErrorListener {
     @Override
     public void syntaxError(Recognizer<?, ?> recognizer, Object o, int i, int i1, String s, RecognitionException e) {
-        fail();
+        throw new SyntaxErrorException();
     }
 
     @Override
