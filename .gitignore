@@ -27,3 +27,4 @@ hs_err_pid*
 # Ignore auto generated files1
 /parser/gen/*
 /out/
+ms/ms-0.0.1.vsix
