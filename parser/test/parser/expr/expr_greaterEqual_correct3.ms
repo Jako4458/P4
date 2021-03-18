@@ -1,0 +1,1 @@
+5 >= num_smaller_than_five_smaller_than_one >= 1
