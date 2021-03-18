@@ -49,6 +49,10 @@ public class MSValue implements Comparable<MSValue> {
         }
     }
 
+    public int getValueAsInt(){
+        return Integer.parseInt(this.value.toString());
+    }
+
 
 
     @Override

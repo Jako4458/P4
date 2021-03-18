@@ -1,4 +1,5 @@
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import utils.Function;
 import utils.MSValue;
@@ -218,8 +219,20 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
 
     @Override
     public MSValue visitAddSub(MinespeakParser.AddSubContext ctx) {
+        MSValue lhand = this.visit(ctx.expr(0));
+        MSValue rhand = this.visit(ctx.expr(1));
+        MSValue result = MSValue.ERROR;
+        switch (ctx.op.getType()){
+            case MinespeakLexer.Add:
+                result = new MSValue(lhand.getValueAsInt() + rhand.getValueAsInt());
+                break;
+            case MinespeakLexer.Sub:
+                result = new MSValue(lhand.getValueAsInt() - rhand.getValueAsInt());
+            default:
+                break;
+        }
 
-        return super.visitAddSub(ctx);
+        return result;
     }
 
     @Override
@@ -263,15 +276,29 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
         if(scope.lookup(id) == null)
             return MSValue.ERROR;
 
+        TerminalNode compAssignNode = ctx.CompAssign();
         MSValue expr = this.visit(ctx.expr());
 
-        if(ctx.CompAssign() != null) {
-            // do stuff
+        if(compAssignNode != null) {
+            String symbol = compAssignNode.getSymbol().getText();
+            MSValue left = scope.lookup(id);
+            switch (compAssignNode.getSymbol().getText()) {
+                case "+=":
+                    break;
+                case "-=":
+                    break;
+                case "%=":
+                    break;
+                case "/=":
+                    break;
+                case "*=":
+                    break;
+            }
         } else {
             scope.reAssign(id, expr);
         }
 
-        return MSValue.VOID;
+        return expr;
     }
 
     @Override
