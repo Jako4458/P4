@@ -5,6 +5,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import utils.Function;
 import utils.Scope;
@@ -17,7 +18,7 @@ import java.util.HashMap;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        String testString = "minespeak \n func Test(param1 : num) -> num do \n var n : num = 5\n n = 2 \n endfunc \n\n\n\n closespeak";
+        String testString = "minespeak \n func Test(param1 : num) -> num do \n var n : num = 5\n n = 5 - 4\n endfunc \n\n\n\n closespeak";
         CharStream charStream = CharStreams.fromString(testString);
 
         MinespeakLexer minespeakLexer = new MinespeakLexer(charStream);
@@ -31,7 +32,7 @@ public class Main {
         Scope scope = new Scope();
         ScopeVisitor visitor = new ScopeVisitor(scope);
         visitor.visit(tree);
-
+        
         System.out.println("n is: " + visitor.getScope().lookup("n").getValue());
 
     }

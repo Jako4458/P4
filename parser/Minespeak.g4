@@ -70,12 +70,15 @@ instan : Access ID ':' type '=' expr (',' ID '=' expr)*
 expr : op=('not' | '-')? factor                     # NotNegFac
      | <assoc=right> expr 'Pow' expr                # Pow
      | expr op=('*' | '/' | '%') expr               # MulDivMod
-     | expr op=('+' | '-') expr                     # AddSub
+     | expr op=(Add | Sub) expr                     # AddSub
      | expr op=('<' | '>' | '<=' | '>=') expr       # relations
      | expr op=('==' | '!=') expr                   # equality
      | expr 'and' expr                              # and
      | expr 'or' expr                               # or
      ;
+
+Add : '+';
+Sub : '-';
 
 
 /* OLD VERSION.
@@ -121,7 +124,7 @@ funcCall : ID '('expr (',' expr)*')'
 assign : ID ('=' | CompAssign) expr
        ;
 
-CompAssign : ('%=' | '*=' | '/=' | '+=' | '-=')
+CompAssign : op=('%=' | '*=' | '/=' | '+=' | '-=')
            ;
 
 
