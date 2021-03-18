@@ -65,7 +65,12 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
         ParseTree body = ctx.funcBody();
         String id = ctx.ID().getText();
         functions.put(id, new Function(scope, params, body));
-        System.out.println(ctx.type().getText());
+
+        this.scope = new Scope(this.scope);
+        this.visit(ctx.params());
+        this.scope = new Scope(this.scope);
+        MSValue returnVal = this.visit(ctx.funcBody()); // Used for typechecking later on
+
         if (ctx.type() == null)
             return MSValue.VOID;
         if (ctx.type().PrimitiveType() == null)
@@ -81,7 +86,8 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
 
     @Override
     public MSValue visitParam(MinespeakParser.ParamContext ctx) {
-        return super.visitParam(ctx);
+        this.scope.addVariable(ctx.ID().getText(), MSValue.generateValueFromType(ctx.type().getText()));
+        return MSValue.VOID;
     }
 
     @Override
@@ -89,17 +95,17 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
         this.visit(ctx.stmnts());
         if (ctx.retVal() == null)
             return MSValue.VOID;
-        return this.visit(ctx.retVal().expr());
+        return this.visit(ctx.retVal());
     }
 
     @Override
     public MSValue visitRetVal(MinespeakParser.RetValContext ctx) {
-        return super.visitRetVal(ctx);
+        return this.visit(ctx.expr());
     }
 
     @Override
     public MSValue visitStmnts(MinespeakParser.StmntsContext ctx) {
-        ctx.stmnt().forEach(stmnt -> {this.visit(stmnt);});
+        ctx.stmnt().forEach(this::visit);
         return MSValue.VOID;
     }
 
@@ -120,6 +126,10 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
 
     @Override
     public MSValue visitIfStmntStmnt(MinespeakParser.IfStmntStmntContext ctx) {
+        
+
+
+
         return this.visit(ctx.ifStmnt());
     }
 
@@ -178,7 +188,6 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
     public MSValue visitInstan(MinespeakParser.InstanContext ctx) {
         System.out.println("I got here");
         for (int i = 0; i < ctx.ID().size(); i++) {
-            System.out.println("ID is: " + ctx.ID(i).getText());//+ ", expr is: " +this.visit(ctx.expr(i)).getValue()
             scope.addVariable(ctx.ID(i).getText(), this.visit(ctx.expr(i)));
         }
         return MSValue.generateValueFromType(ctx.type().PrimitiveType().getText());
@@ -227,6 +236,8 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
 
     @Override
     public MSValue visitFactor(MinespeakParser.FactorContext ctx) {
+        if (ctx.literal() != null)
+            return new MSValue(ctx.literal().getText());
         return new MSValue(ctx.expr());
     }
 
@@ -267,6 +278,6 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
 
     @Override
     public MSValue visitNewlines(MinespeakParser.NewlinesContext ctx) {
-        return super.visitNewlines(ctx);
+        return MSValue.VOID;
     }
 }
