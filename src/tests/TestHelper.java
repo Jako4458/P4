@@ -7,8 +7,8 @@ import java.io.File;
 import java.io.IOException;
 
 public class TestHelper {
-    public minespeakLexer minespeakLexer;
-    public minespeakParser minespeakParser;
+    public MinespeakLexer minespeakLexer;
+    public MinespeakParser minespeakParser;
     static String filePath = new File("").getAbsolutePath();
 
     public void setupFromFile(String file) throws IOException {
@@ -22,10 +22,10 @@ public class TestHelper {
     private void setup(CharStream stream) {
         CharStream charStream = stream;
 
-        minespeakLexer = new minespeakLexer(charStream);
+        minespeakLexer = new MinespeakLexer(charStream);
         CommonTokenStream commonTokenStream = new CommonTokenStream(minespeakLexer);
 
-        minespeakParser = new minespeakParser(commonTokenStream);
+        minespeakParser = new MinespeakParser(commonTokenStream);
         TestsErrorListener listener = new TestsErrorListener();
 
         minespeakParser.removeErrorListener(ConsoleErrorListener.INSTANCE);
