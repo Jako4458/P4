@@ -1,4 +1,4 @@
-grammar minespeak;
+grammar Minespeak;
 
 prog : 'minespeak' newlines blocks? 'closespeak'
      ;
@@ -6,8 +6,7 @@ prog : 'minespeak' newlines blocks? 'closespeak'
 blocks : (block newlines?)+
        ;
 
-block : stmnts
-      | mcFunc
+block : mcFunc
       | func
       ;
 
@@ -30,7 +29,13 @@ retVal : 'return' (expr)?
 stmnts : (stmnt newlines)+
        ;
 
-stmnt : (dcls |  assign |  instan |  ifStmnt |  loop | MCStmnt | funcCall)
+stmnt : dcls            # dclsStmnt
+      | assign          # assignStmnt
+      | instan          # instanStmnt
+      | ifStmnt         # ifStmntStmnt
+      | loop            # loopStmnt
+      | MCStmnt         # MCStmntStmnt
+      | funcCall        # funcCallStmnt
       ;
 
 loop : (forStmnt | foreach | whileStmnt | doWhile)
@@ -55,20 +60,21 @@ Access : 'const'
        | 'var'
        ;
 
+// Maybe remove : type
 dcls : Access ID ':' type (',' ID ':' type)*
      ;
 
-instan : Access ID ':' type '=' expr (',' ID ':' type '=' expr)*
+instan : Access ID ':' type '=' expr (',' ID '=' expr)*
        ;
 
-expr : ('not' | '-')? factor
-     | expr 'Pow' expr
-     | expr ('*' | '/' | '%') expr
-     | expr ('+' | '-') expr
-     | expr ('<' | '>' | '<=' | '>=') expr
-     | expr ('==' | '!=') expr
-     | expr 'and' expr
-     | expr 'or' expr
+expr : op=('not' | '-')? factor                     # NotNegFac
+     | <assoc=right> expr 'Pow' expr                # Pow
+     | expr op=('*' | '/' | '%') expr               # MulDivMod
+     | expr op=('+' | '-') expr                     # AddSub
+     | expr op=('<' | '>' | '<=' | '>=') expr       # relations
+     | expr op=('==' | '!=') expr                   # equality
+     | expr 'and' expr                              # and
+     | expr 'or' expr                               # or
      ;
 
 
@@ -175,7 +181,7 @@ Whitespace : [ \t] + -> skip
 newlines : Newline+ //-> skip
          ;
 
-Newline : ('\n' | '\r\n' | '\r')
+Newline : ('\n' | '\r\n' | '\r') //-> skip
         ;
 
 
