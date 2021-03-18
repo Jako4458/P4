@@ -30,3 +30,21 @@ public class Scope {
         variables.replace(id, value);
     }
 }
+
+/*
+
+minespeak
+
+func Test() do
+    var n: num = 2
+    if true do
+        n = 3
+    else do
+        n = 4
+    endif
+
+endfunc
+
+closespeak
+
+ */
