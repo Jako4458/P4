@@ -65,12 +65,12 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
         ParseTree body = ctx.funcBody();
         String id = ctx.ID().getText();
         functions.put(id, new Function(scope, params, body));
-
+        
         this.scope = new Scope(this.scope);
         this.visit(ctx.params());
         this.scope = new Scope(this.scope);
         MSValue returnVal = this.visit(ctx.funcBody()); // Used for typechecking later on
-
+        
         if (ctx.type() == null)
             return MSValue.VOID;
         if (ctx.type().PrimitiveType() == null)
@@ -126,10 +126,6 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
 
     @Override
     public MSValue visitIfStmntStmnt(MinespeakParser.IfStmntStmntContext ctx) {
-        
-
-
-
         return this.visit(ctx.ifStmnt());
     }
 
@@ -236,7 +232,7 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
 
     @Override
     public MSValue visitFactor(MinespeakParser.FactorContext ctx) {
-        if (ctx.literal() != null)
+         if (ctx.literal() != null)
             return new MSValue(ctx.literal().getText());
         return new MSValue(ctx.expr());
     }
@@ -248,8 +244,21 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
 
     @Override
     public MSValue visitAssign(MinespeakParser.AssignContext ctx) {
-        return super.visitAssign(ctx);
-    }
+        String id = ctx.ID().getText();
+
+        if(scope.lookup(id) == null)
+            return MSValue.ERROR;
+
+        MSValue expr = this.visit(ctx.expr());
+
+        if(ctx.CompAssign() != null) {
+            // do stuff
+        } else {
+            scope.reAssign(id, expr);
+        }
+
+        return MSValue.VOID;
+    }4
 
     @Override
     public MSValue visitType(MinespeakParser.TypeContext ctx) {

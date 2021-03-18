@@ -26,4 +26,7 @@ public class Scope {
         return this.variables.getOrDefault(key, null);
     }
 
+    public void reAssign(String id, MSValue value) {
+        variables.replace(id, value);
+    }
 }

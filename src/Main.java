@@ -17,7 +17,7 @@ import java.util.HashMap;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        String testString = "minespeak \n func Test(param1 : num) -> num do \n var n : num = 5\n endfunc \n\n\n\n closespeak";
+        String testString = "minespeak \n func Test(param1 : num) -> num do \n var n : num = 5\n n = 2 \n endfunc \n\n\n\n closespeak";
         CharStream charStream = CharStreams.fromString(testString);
 
         MinespeakLexer minespeakLexer = new MinespeakLexer(charStream);
