@@ -22,6 +22,10 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
         this.functions = new HashMap<>();
     }
 
+    public ScopeVisitor(){
+
+    }
+
     public Map<String, Function> getFunctions() {
         return this.functions;
     }
