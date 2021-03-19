@@ -10,7 +10,7 @@ minespeak
         const mainTowerWallSize:vector3 = <15, 20, 15>
 
         const mat:block = BLOCK_OF_DIAMOND
-        const startPos = self
+        const startPos:vector3 = self
 
         const conrnerTowerPos:vector3[4] = {startPos - <  wallSize.x/2,  0,   wallSize.z/2> - <  towerSize.x/2,  0,   towerSize.z/2>,
                                             startPos + <-(wallSize.x/2), 0,   wallSize.z/2> + <-(towerSize.x/2), 0,   towerSize.z/2>,
