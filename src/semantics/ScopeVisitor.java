@@ -74,9 +74,9 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
         
         if (ctx.primType() == null)
             return MSValue.VOID;
-        if (ctx.primType().PrimitiveType() == null)
+        if (ctx.primType().primitiveType() == null)
             return MSValue.ERROR;
-        return MSValue.generateValueFromType(ctx.primType().PrimitiveType().getText());
+        return MSValue.generateValueFromType(ctx.primType().primitiveType().getText());
     }
 
     @Override
@@ -199,7 +199,7 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
         for (int i = 0; i < ctx.ID().size(); i++) {
             scope.addVariable(ctx.ID(i).getText(), this.visit(ctx.expr(i)));
         }
-        return MSValue.generateValueFromType(ctx.primType().PrimitiveType().getText());
+        return MSValue.generateValueFromType(ctx.primType().primitiveType().getText());
     }
 
     @Override
@@ -223,10 +223,10 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
         MSValue rhand = this.visit(ctx.expr(1));
         MSValue result = MSValue.ERROR;
         switch (ctx.op.getType()){
-            case MinespeakLexer.Add:
+            case MinespeakLexer.ADD:
                 result = new MSValue(lhand.getValueAsInt() + rhand.getValueAsInt());
                 break;
-            case MinespeakLexer.Sub:
+            case MinespeakLexer.SUB:
                 result = new MSValue(lhand.getValueAsInt() - rhand.getValueAsInt());
             default:
                 break;
@@ -271,16 +271,16 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
 
     @Override
     public MSValue visitAssign(MinespeakParser.AssignContext ctx) {
-        String id = ctx.ID().getText();
+        /*String id = ctx.ID().getText();
 
         if(scope.lookup(id) == null)
             return MSValue.ERROR;
 
-        TerminalNode compAssignNode = ctx.CompAssign();
+        MinespeakParser.CompAssignContext compAssignNode = ctx.compAssign();
         MSValue expr = this.visit(ctx.expr());
 
         if(compAssignNode != null) {
-            String symbol = compAssignNode.getSymbol().getText();
+            String symbol = compAssignNode.op.getText();
             MSValue left = scope.lookup(id);
             switch (compAssignNode.getSymbol().getText()) {
                 case "+=":
@@ -297,8 +297,8 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
         } else {
             scope.reAssign(id, expr);
         }
-
-        return expr;
+        */
+        return MSValue.VOID;
     }
 
     @Override
@@ -310,8 +310,8 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
     public MSValue visitLiteral(MinespeakParser.LiteralContext ctx) {
         if (ctx.BlockLiteral() != null)
             return new MSValue(ctx.BlockLiteral().getText());
-        else if (ctx.BooleanLiteral() != null)
-            return new MSValue(ctx.BooleanLiteral().getText());
+        else if (ctx.booleanLiteral() != null)
+            return this.visit(ctx.booleanLiteral());
         else if (ctx.StringLiteral() != null)
             return new MSValue(ctx.StringLiteral().getText());
         else if (ctx.vector2Literal() != null)
@@ -322,6 +322,26 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
             return this.visit(ctx.numberLiteral());
 
         return MSValue.ERROR;
+    }
+
+    @Override
+    public MSValue visitAccess(MinespeakParser.AccessContext ctx) {
+        return super.visitAccess(ctx);
+    }
+
+    @Override
+    public MSValue visitCompAssign(MinespeakParser.CompAssignContext ctx) {
+        return super.visitCompAssign(ctx);
+    }
+
+    @Override
+    public MSValue visitPrimitiveType(MinespeakParser.PrimitiveTypeContext ctx) {
+        return super.visitPrimitiveType(ctx);
+    }
+
+    @Override
+    public MSValue visitBooleanLiteral(MinespeakParser.BooleanLiteralContext ctx) {
+        return super.visitBooleanLiteral(ctx);
     }
 
     @Override
