@@ -1,1 +1,1 @@
-var a:num = 2
+var a:num

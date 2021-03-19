@@ -1,6 +1,7 @@
 import static org.junit.jupiter.api.Assertions.*;
 
 import exceptions.SyntaxErrorException;
+import org.antlr.runtime.Token;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.RepetitionInfo;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ public class ParseFuncTests {
     void correctTerminalSymbols(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/func/func_terminal_symbol_correct" + rI.getCurrentRepetition() + ".ms");
         assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.func());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
     /* ------- */
 
@@ -37,6 +39,7 @@ public class ParseFuncTests {
     void correctParams(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/func/func_params_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.func());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
     /* ------- */
 
@@ -51,6 +54,7 @@ public class ParseFuncTests {
     void correctName(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/func/func_name_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.func());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
     /* ------- */
 
@@ -65,6 +69,7 @@ public class ParseFuncTests {
     void correctNewlines(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/func/func_newlines_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.func());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
     /* ------- */
 
@@ -79,6 +84,7 @@ public class ParseFuncTests {
     void correctReturn(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/func/func_return_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.func());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
     /* ------- */
 }

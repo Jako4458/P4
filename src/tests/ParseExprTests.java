@@ -1,6 +1,7 @@
 import static org.junit.jupiter.api.Assertions.*;
 
 import exceptions.SyntaxErrorException;
+import org.antlr.runtime.Token;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.RepetitionInfo;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,7 @@ public class ParseExprTests {
     void correctDivision(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/expr/expr_division_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.expr());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
     /* ------- */
 
@@ -48,6 +50,7 @@ public class ParseExprTests {
     void correctMinus(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/expr/expr_minus_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.expr());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
     /* ------- */
 
@@ -62,6 +65,7 @@ public class ParseExprTests {
     void correctMultiply(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/expr/expr_multiply_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.expr());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
     /* ------- */
 
@@ -76,6 +80,7 @@ public class ParseExprTests {
     void correctParenthesis(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/expr/expr_parenthesis_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.expr());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
     /* ------- */
 
@@ -90,6 +95,7 @@ public class ParseExprTests {
     void correctPlus(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/expr/expr_plus_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.expr());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
     /* ------- */
 
@@ -104,6 +110,7 @@ public class ParseExprTests {
     void correctPower(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/expr/expr_power_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.expr());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
     /* ------- */
 
@@ -118,6 +125,7 @@ public class ParseExprTests {
     void correctNOT(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/expr/expr_NOT_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.expr());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
     /* ------- */
 
@@ -132,6 +140,7 @@ public class ParseExprTests {
     void correctUnminus(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/expr/expr_unminus_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.expr());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
     /* ------- */
 
@@ -146,6 +155,7 @@ public class ParseExprTests {
     void correctMod(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/expr/expr_mod_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.expr());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
     /* ------- */
 
@@ -160,6 +170,7 @@ public class ParseExprTests {
     void correctLess(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/expr/expr_less_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.expr());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
     /* ------- */
 
@@ -174,6 +185,7 @@ public class ParseExprTests {
     void correctGreater(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/expr/expr_greater_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.expr());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
     /* ------- */
 
@@ -188,6 +200,7 @@ public class ParseExprTests {
     void correctLessEqual(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/expr/expr_lessEqual_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.expr());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
     /* ------- */
 
@@ -202,6 +215,7 @@ public class ParseExprTests {
     void correctGreaterEqual(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/expr/expr_greaterEqual_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.expr());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
     /* ------- */
 
@@ -216,6 +230,7 @@ public class ParseExprTests {
     void correctEqual(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/expr/expr_equal_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.expr());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
     /* ------- */
 
@@ -230,6 +245,7 @@ public class ParseExprTests {
     void correctNotEqual(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/expr/expr_notEqual_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.expr());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
     /* ------- */
 
@@ -244,6 +260,7 @@ public class ParseExprTests {
     void correctAnd(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/expr/expr_and_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.expr());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
     /* ------- */
 
@@ -258,6 +275,7 @@ public class ParseExprTests {
     void correctOr(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/expr/expr_or_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.expr());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
     /* ------- */
 }

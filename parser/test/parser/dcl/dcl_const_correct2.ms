@@ -1,1 +1,1 @@
-const a : num = 2
+const a : num

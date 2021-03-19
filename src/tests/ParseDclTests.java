@@ -1,6 +1,7 @@
 import static org.junit.jupiter.api.Assertions.*;
 
 import exceptions.SyntaxErrorException;
+import org.antlr.runtime.Token;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.RepetitionInfo;
 import java.io.IOException;
@@ -13,6 +14,7 @@ public class ParseDclTests {
     void CorrectVarDcl(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/dcl/dcl_var_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.dcls());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
 
     /* wrong var dcl */
@@ -27,6 +29,7 @@ public class ParseDclTests {
     void CorrectConstDcl(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/dcl/dcl_const_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.dcls());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
 
     /* wrong const dcl */
@@ -41,6 +44,7 @@ public class ParseDclTests {
     void CorrectColonDcl(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/dcl/dcl_colon_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.dcls());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
 
     /* wrong colon dcl */
@@ -55,6 +59,7 @@ public class ParseDclTests {
     void CorrectIdDcl(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/dcl/dcl_id_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.dcls());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
 
     /* wrong id dcl */
@@ -69,6 +74,7 @@ public class ParseDclTests {
     void CorrectOrderDcl(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/dcl/dcl_order_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.dcls());
+        assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
 
     /* wrong order dcl */

@@ -1,1 +1,1 @@
-var a : block = 2
+var a : block
