@@ -31,6 +31,13 @@ public class MSValue implements Comparable<MSValue> {
     }
 
 
+    public boolean isBoolean() {
+        return this.type.equals("bool");
+    }
+
+    public boolean getBooleanValue() {
+        return this.value.toString().equals("true");
+    }
 
     public static MSValue generateValueFromType(String typeName) throws InvalidReturnTypeException {
         switch (typeName) {

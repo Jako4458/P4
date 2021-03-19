@@ -76,11 +76,11 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
         this.scope = new Scope(this.scope);
         MSValue returnVal = this.visit(ctx.funcBody()); // Used for typechecking later on
         
-        if (ctx.type() == null)
+        if (ctx.primType() == null)
             return MSValue.VOID;
-        if (ctx.type().PrimitiveType() == null)
+        if (ctx.primType().PrimitiveType() == null)
             return MSValue.ERROR;
-        return MSValue.generateValueFromType(ctx.type().PrimitiveType().getText());
+        return MSValue.generateValueFromType(ctx.primType().PrimitiveType().getText());
     }
 
     @Override
@@ -91,7 +91,7 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
 
     @Override
     public MSValue visitParam(MinespeakParser.ParamContext ctx) {
-        this.scope.addVariable(ctx.ID().getText(), MSValue.generateValueFromType(ctx.type().getText()));
+        this.scope.addVariable(ctx.ID().getText(), MSValue.generateValueFromType(ctx.primType().getText()));
         return MSValue.VOID;
     }
 
@@ -172,12 +172,25 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
 
     @Override
     public MSValue visitForStmnt(MinespeakParser.ForStmntContext ctx) {
+        //int start = this.visit
+
+
+
         return super.visitForStmnt(ctx);
     }
 
     @Override
     public MSValue visitIfStmnt(MinespeakParser.IfStmntContext ctx) {
-        return super.visitIfStmnt(ctx);
+        int length = ctx.expr().size();
+        for (int i = 0; i < length; i++) {
+            if (this.visit(ctx.expr(i)).getBooleanValue())
+                return this.visit(ctx.stmnts(i));
+        }
+
+        if (ctx.stmnts().size() > ctx.expr().size())
+            return this.visit(ctx.stmnts(ctx.stmnts().size()-1)); // else statement
+
+        return MSValue.VOID;
     }
 
     @Override
@@ -187,11 +200,10 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
 
     @Override
     public MSValue visitInstan(MinespeakParser.InstanContext ctx) {
-        System.out.println("I got here");
         for (int i = 0; i < ctx.ID().size(); i++) {
             scope.addVariable(ctx.ID(i).getText(), this.visit(ctx.expr(i)));
         }
-        return MSValue.generateValueFromType(ctx.type().PrimitiveType().getText());
+        return MSValue.generateValueFromType(ctx.primType().PrimitiveType().getText());
     }
 
     @Override
@@ -249,8 +261,10 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
 
     @Override
     public MSValue visitFactor(MinespeakParser.FactorContext ctx) {
-         if (ctx.literal() != null)
-            return new MSValue(ctx.literal().getText());
+        if (ctx.literal() != null)
+            return this.visit(ctx.literal());
+        if (ctx.ID() != null)
+            return new MSValue(ctx.ID().getText());
         return new MSValue(ctx.expr());
     }
 
@@ -292,18 +306,31 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
     }
 
     @Override
-    public MSValue visitType(MinespeakParser.TypeContext ctx) {
-        return super.visitType(ctx);
+    public MSValue visitPrimType(MinespeakParser.PrimTypeContext ctx) {
+        return super.visitPrimType(ctx);
     }
 
     @Override
     public MSValue visitLiteral(MinespeakParser.LiteralContext ctx) {
-        return super.visitLiteral(ctx);
+        if (ctx.BlockLiteral() != null)
+            return new MSValue(ctx.BlockLiteral().getText());
+        else if (ctx.BooleanLiteral() != null)
+            return new MSValue(ctx.BooleanLiteral().getText());
+        else if (ctx.StringLiteral() != null)
+            return new MSValue(ctx.StringLiteral().getText());
+        else if (ctx.vector2Literal() != null)
+            return this.visit(ctx.vector2Literal());
+        else if (ctx.vector3Literal() != null)
+            return this.visit(ctx.vector3Literal());
+        else if (ctx.numberLiteral() != null)
+            return this.visit(ctx.numberLiteral());
+
+        return MSValue.ERROR;
     }
 
     @Override
     public MSValue visitNumberLiteral(MinespeakParser.NumberLiteralContext ctx) {
-        return super.visitNumberLiteral(ctx);
+        return new MSValue(ctx.DecimalDigit().getText());
     }
 
     @Override
