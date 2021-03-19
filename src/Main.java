@@ -1,17 +1,9 @@
-import org.antlr.v4.gui.TestRig;
-import org.antlr.v4.parse.ScopeParser;
-import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
-import org.antlr.v4.runtime.tree.TerminalNode;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.HashMap;
 
 public class Main {
     public static void main(String[] args) throws IOException {
@@ -30,7 +22,7 @@ public class Main {
         System.out.println(tree.toStringTree(minespeakParser));
 
         Scope scope = new Scope();
-        ScopeVisitor visitor = new ScopeVisitor(scope);
+        ScopeVisitorDepre visitor = new ScopeVisitorDepre(scope);
         visitor.visit(tree);
 
         System.out.println("n is: " + (visitor.getScope().lookup("n") != null ? visitor.getScope().lookup("n").getValue() : "null"));

@@ -41,13 +41,13 @@ returns [Type type]
 stmnts : (stmnt newlines)+
        ;
 
-stmnt : dcls            # dclsStmnt
-      | assign          # assignStmnt
-      | instan          # instanStmnt
-      | ifStmnt         # ifStmntStmnt
-      | loop            # loopStmnt
-      | MCStmnt         # MCStmntStmnt
-      | funcCall        # funcCallStmnt
+stmnt : dcls
+      | assign
+      | instan
+      | ifStmnt
+      | loop
+      | MCStmnt
+      | funcCall
       ;
 
 loop : (forStmnt | foreach | whileStmnt | doWhile)
@@ -75,7 +75,12 @@ locals [Scope scope]
 
 ifStmnt
 locals [Scope scope]
-        : IF expr DO newlines (stmnts)? (ELIF expr DO newlines (stmnts)?)* (ELSE DO newlines (stmnts)?)? ENDIF
+        : IF expr DO newlines ifBody (ELIF expr DO newlines ifBody)* (ELSE DO newlines ifBody)? ENDIF
+        ;
+
+ifBody
+locals [Scope scope]
+        : stmnts?
         ;
 
 access : CONST
@@ -136,7 +141,7 @@ returns [Type type]
         ;
 
 literal
-//returns [Type type]
+returns [Type type]
         :  booleanLiteral
         |  BlockLiteral
         |  numberLiteral
