@@ -72,11 +72,11 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
         this.scope = new Scope(this.scope);
         MSValue returnVal = this.visit(ctx.funcBody()); // Used for typechecking later on
         
-        if (ctx.type() == null)
+        if (ctx.primType() == null)
             return MSValue.VOID;
-        if (ctx.type().PrimitiveType() == null)
+        if (ctx.primType().PrimitiveType() == null)
             return MSValue.ERROR;
-        return MSValue.generateValueFromType(ctx.type().PrimitiveType().getText());
+        return MSValue.generateValueFromType(ctx.primType().PrimitiveType().getText());
     }
 
     @Override
@@ -87,7 +87,7 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
 
     @Override
     public MSValue visitParam(MinespeakParser.ParamContext ctx) {
-        this.scope.addVariable(ctx.ID().getText(), MSValue.generateValueFromType(ctx.type().getText()));
+        this.scope.addVariable(ctx.ID().getText(), MSValue.generateValueFromType(ctx.primType().getText()));
         return MSValue.VOID;
     }
 
@@ -199,7 +199,7 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
         for (int i = 0; i < ctx.ID().size(); i++) {
             scope.addVariable(ctx.ID(i).getText(), this.visit(ctx.expr(i)));
         }
-        return MSValue.generateValueFromType(ctx.type().PrimitiveType().getText());
+        return MSValue.generateValueFromType(ctx.primType().PrimitiveType().getText());
     }
 
     @Override
@@ -302,8 +302,8 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
     }
 
     @Override
-    public MSValue visitType(MinespeakParser.TypeContext ctx) {
-        return super.visitType(ctx);
+    public MSValue visitPrimType(MinespeakParser.PrimTypeContext ctx) {
+        return super.visitPrimType(ctx);
     }
 
     @Override
