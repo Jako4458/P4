@@ -1,5 +1,3 @@
-package utils;
-
 import exceptions.InvalidReturnTypeException;
 
 public class MSValue implements Comparable<MSValue> {

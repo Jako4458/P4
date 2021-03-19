@@ -1,9 +1,8 @@
-package utils;
-
+import org.antlr.v4.runtime.tree.ParseTree;
 
 public class Type {
     public static final Type INVALID = new Type(null);
-    public static final int BOOLEAN = MinespeakParser.BOOLEAN;
+    public static final int BOOLEAN = MinespeakParser.BOOL;
 
 
     public final ParseTree tree;

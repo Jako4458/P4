@@ -1,9 +1,6 @@
 grammar Minespeak;
 
-@header {
-import utils.Scope;
-import utils.Type;
-}
+
 
 prog
 locals [Scope scope]

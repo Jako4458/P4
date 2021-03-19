@@ -1,5 +1,3 @@
-package utils;
-
 public interface SymbolTable {
 
     SymEntry getEntry(String hashCode);

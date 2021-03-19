@@ -1,5 +1,3 @@
-package utils;
-
 public interface SymEntry {
 
     String hashString();

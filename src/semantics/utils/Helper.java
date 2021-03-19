@@ -1,6 +1,4 @@
-package utils;
-
-public class Utils {
+public class Helper {
 
     public static SymEntry getEntryFromParent(Node parent, String key) {
         SymEntry lookup = parent.getTable().getEntry(key);

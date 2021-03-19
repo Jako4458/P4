@@ -29,7 +29,7 @@ public class SymTab implements SymbolTable {
     public SymEntry lookup(String key) {
         SymEntry lookup = this.entries.getOrDefault(key, null);
         if (lookup == null) {
-            lookup = Utils.getEntryFromParent(node.getParent(), key);
+            lookup = Helper.getEntryFromParent(node.getParent(), key);
         }
         return lookup;
     }
