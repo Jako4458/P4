@@ -9,7 +9,10 @@
 			"include": "#strings"
 		},
 		{
-			"include": "expressions"
+			"include": "#comment"
+		},
+		{
+			"include": "#expression"
 		},
 		{
 			"include": "#types"
@@ -22,13 +25,16 @@
 		},
 		{
 			"include": "#assignment"
+		},
+		{
+			"include": "#func"
 		}
 	],
 	"repository": {
 		"keywords": {
 			"patterns": [{
 				"name": "keyword.control.ms",
-				"match": "\\b(minespeak|closespeak|if|endif|do|while|endwhile|for|endfor|func|endfunc|in|foreach|elif|else|until|return|where)\\b"
+				"match": "\\b(minespeak|closespeak|if|endif|do|while|endwhile|for|endfor|endfunc|in|foreach|elif|else|until|return|where)\\b"
 			}]
 		},
 		"strings": {
@@ -42,11 +48,22 @@
 				}
 			]
 		},
+		"comment": {
+			"name": "comment.line",
+			"begin": "//",
+			"end": "\n",
+			"patterns": [
+				{
+					"name": "constant.character.escape.ms",
+					"match": "\\\\."
+				}
+			]
+		},
 		"expression": {
 			"patterns": [
 				{
 					"name": "keyword.operator.ms",
-					"match": "\\b(=|not|Pow|*|/|%|+|-|<|>|<=|>=|==|!=|and|or)\\b"
+					"match": "(=|not|Pow|\\*|/|%|\\+|-|<|>|<=|>=|==|!=|and|or|->)"
 				}
 			]
 		},
@@ -54,10 +71,13 @@
 			"patterns": [
 				{
 					"name": "keyword.operator.ms",
-					"match": "\\b(var |const )?([a-zA-Z]+[a-zA-Z_]*):\\b",
+					"match": "\\b(var |const )?([a-zA-Z]+[a-zA-Z_]*)(:)\\b",
 					"captures": {
 						"2": {
 							"name": "variable.name"
+						},
+						"3": {
+							"name": "constant.character"
 						}
 					}
 				}
@@ -66,8 +86,33 @@
 		"types": {
 			"patterns": [
 				{
-					"name": "variable.other",
+					"name": "keyword.other",
 					"match": "(\\b(num|block|bool|string|byte|file|vector2|vector3)\\b)"
+				}
+			]
+		},
+		"mcfunc": {
+			"patterns": [
+				{
+					"name": "constant.character",
+					"match": "@mc"
+				}
+			]
+		},
+		"func": {
+			"patterns": [
+				{"include": "#mcfunc"},
+				{
+					"name": "keyword.control",
+					"match": "func ([a-zA-Z]+[a-zA-Z_]*)?",
+					"captures": {
+						"1": {
+							"name": "variable.name"
+						},
+						"2": {
+							"name": "n"
+						}
+					}
 				}
 			]
 		},

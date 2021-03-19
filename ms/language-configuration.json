@@ -22,10 +22,10 @@
         ["(", ")"],
         ["\"", "\""],
         ["'", "'"],
-        ["minespeak", "closespeak"],
-        ["func", "endfunc"],
-        ["while", "endwhile"],
-        ["for", "endfor"],
+        {"open": "minespeak", "close": "closespeak"},
+        {"open": "func", "close": "endfunc"},
+        {"open": "while", "close": "endwhile"},
+        {"open": "for", "close": "endfor"},
     ],
     // symbols that can be used to surround a selection
     "surroundingPairs": [
