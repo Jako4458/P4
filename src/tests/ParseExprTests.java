@@ -4,13 +4,25 @@ import exceptions.SyntaxErrorException;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.RepetitionInfo;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import utils.MSValue;
 
 import java.io.IOException;
 
 public class ParseExprTests {
     private TestHelper helper = new TestHelper();
+
+    @Test
+    void TestTest(){
+        helper.setupFromString("2 Pow 3");
+
+        ScopeVisitor scopeVisitor = new ScopeVisitor();
+
+        MinespeakParser.PowContext powContext = (MinespeakParser.PowContext) helper.minespeakParser.expr();
+
+        MSValue result = scopeVisitor.visit(powContext);
+
+        assertEquals(8, result.getValue());
+    }
 
     /* Division */
     @RepeatedTest(2)

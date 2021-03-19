@@ -1,10 +1,8 @@
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import utils.Function;
 import utils.MSValue;
 import utils.Scope;
-import utils.Utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -246,7 +244,21 @@ public class ScopeVisitor extends MinespeakBaseVisitor<MSValue> {
 
     @Override
     public MSValue visitPow(MinespeakParser.PowContext ctx) {
-        return super.visitPow(ctx);
+        MSValue lhand = this.visit(ctx.expr(0));
+        MSValue rhand = this.visit(ctx.expr(1));
+        MSValue result = MSValue.ERROR;
+
+        result = new MSValue( (int) Math.pow(lhand.getValueAsInt(), rhand.getValueAsInt()));
+        /*switch (ctx.op.getType()){
+            case MinespeakLexer.ADD:
+                result = new MSValue(lhand.getValueAsInt() + rhand.getValueAsInt());
+                break;
+            case MinespeakLexer.SUB:
+                result = new MSValue(lhand.getValueAsInt() - rhand.getValueAsInt());
+            default:
+                break;
+        }*/
+        return result;
     }
 
     @Override

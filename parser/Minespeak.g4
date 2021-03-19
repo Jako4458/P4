@@ -1,8 +1,8 @@
 grammar Minespeak;
 
 @header {
-import semantics.utils.Scope;
-import semantics.utils.Type;
+import utils.Scope;
+import utils.Type;
 }
 
 prog
@@ -174,8 +174,7 @@ DecimalDigit : [0-9]+
 StringLiteral : QUOTE (~["\\\r\n\u0085\u2028\u2029])* QUOTE
               ;
 
-ID         : [a-zA-Z_][a-zA-Z_0-9]*
-           ;
+
 
 Whitespace : [ \t] + -> skip
            ;
@@ -192,6 +191,7 @@ BlockLiteral : '¤'('ACACIA_BUTTON' | 'ACACIA_DOOR' | 'ACACIA_FENCE' | 'ACACIA_F
 
 MCStmnt : '$' (~["\\\r\n\u0085\u2028\u2029])*
         ;
+
 
 /* SYMBOLS */
 ADD : '+';
@@ -259,3 +259,5 @@ ELIF: 'elif';
 ELSE: 'else';
 ENDIF: 'endif';
 
+ID         : [a-zA-Z_][a-zA-Z_0-9]*
+           ;
