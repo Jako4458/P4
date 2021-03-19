@@ -1,0 +1,1 @@
+const a:num, var b:num
