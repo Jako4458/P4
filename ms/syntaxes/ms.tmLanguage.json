@@ -50,7 +50,7 @@
 		},
 		"comment": {
 			"name": "comment.line",
-			"begin": "//",
+			"begin": "(//|#)",
 			"end": "\n",
 			"patterns": [
 				{
@@ -63,7 +63,7 @@
 			"patterns": [
 				{
 					"name": "keyword.operator.ms",
-					"match": "(=|not|Pow|\\*|/|%|\\+|-|<|>|<=|>=|==|!=|and|or|->)"
+					"match": "(\\bnot\\b|\\bPow\\b|\\band\\b|\\bor\\b|=|\\*|/|%|\\+|-|<|>|<=|>=|==|!=|->)"
 				}
 			]
 		},
