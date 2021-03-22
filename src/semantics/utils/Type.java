@@ -9,7 +9,9 @@ import java.util.Set;
 
 /** Represents possible type trees
  *
- *  Used only in expressions
+ *  Used only in expressions.
+ *  Same method as that used for Mantra by Terrence Parr, rewrtitten here for the Minespeak language
+ *  https://github.com/mantra/compiler/blob/master/src/java/mantra/symbols/Type.java
  */
 
 public class Type {
@@ -71,11 +73,15 @@ public class Type {
             add(MinespeakParser.OR);
 
         }};
-        // maybe add more stuff
-        Set<Integer> arithmeticTypes = new HashSet<Integer>() {{
-            add(NUM);
+        Set<Integer> vectorOps = new HashSet<Integer>() {{
+            add(MinespeakParser.ADD);
+            add(MinespeakParser.SUB);
         }};
-        // Add other operations and their respective allowed types such as vectors etc.
+
+        for (int op : arithmeticOps) {
+            resultTypes.put(opKey(NUM, op, NUM), NUM);
+        }
+
     }
 
     public Type(ParseTree tree) { this.tree = tree; }
