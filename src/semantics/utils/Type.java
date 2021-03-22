@@ -33,6 +33,8 @@ public class Type {
     public static final Type _num = new Type(new TerminalNodeImpl(new CommonToken(NUM, "num")));
     public static final Type _string = new Type(new TerminalNodeImpl(new CommonToken(STRING, "string")));
     public static final Type _block = new Type(new TerminalNodeImpl(new CommonToken(BLOCK, "block")));
+    public static final Type _vector2 = new Type(new TerminalNodeImpl(new CommonToken(VECTOR2, "vector2")));
+    public static final Type _vector3 = new Type(new TerminalNodeImpl(new CommonToken(VECTOR3, "vector3")));
 
     public final ParseTree tree;
 
@@ -71,7 +73,6 @@ public class Type {
             add(MinespeakParser.NOTEQUAL);
             add(MinespeakParser.AND);
             add(MinespeakParser.OR);
-
         }};
         Set<Integer> vectorOps = new HashSet<Integer>() {{
             add(MinespeakParser.ADD);
@@ -105,6 +106,35 @@ public class Type {
     }
 
     public Type(ParseTree tree) { this.tree = tree; }
+
+    public static boolean isValidOp(int left, int op, int right) {
+        return Type.resultTypes.get(Type.opKey(left, op, right)) != null;
+    }
+
+    public static Type inferType(int left, int op, int right) {
+        return getTypeFromInt(Type.resultTypes.get(Type.opKey(left, op, right)));
+    }
+
+    public static Type getTypeFromInt(int val) {
+        Type type;
+        switch (val) {
+            case Type.BOOL:
+                type = Type._bool; break;
+            case Type.NUM:
+                type = Type._num; break;
+            case Type.BLOCK:
+                type = Type._block; break;
+            case Type.STRING:
+                type = Type._string; break;
+            case Type.VECTOR2:
+                type = Type._vector2; break;
+            case Type.VECTOR3:
+                type = Type._vector3; break;
+            default:
+                type = Type.INVALID;
+        }
+        return type;
+    }
 
     @Override
     public String toString() {
