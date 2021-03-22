@@ -1,1 +1,1 @@
-¤ACACIA_BUTTON
+"This is not a valid string

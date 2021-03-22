@@ -11,7 +11,7 @@ public class ParseLiteralTests {
     private TestHelper helper = new TestHelper();
 
     /* correct literal dcl */
-    @RepeatedTest(11)
+    @RepeatedTest(12)
     void CorrectVarDcl(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/literal/literal_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.literal());
