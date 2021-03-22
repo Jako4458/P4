@@ -1,15 +1,8 @@
 public class SimpleEntry implements SymEntry {
+    private Type type;
+    private String name;
 
-    public SimpleEntry(MinespeakParser.ParamContext ctx) {
-
-    }
-
-    public SimpleEntry(MinespeakParser.RetValContext ctx) {
-
-    }
-
-    public SimpleEntry(MinespeakParser.PrimTypeContext ctx) {
-
+    public SimpleEntry(String id, Type type) {
     }
 
     @Override

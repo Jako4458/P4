@@ -20,14 +20,14 @@ mcFunc: MCKEY Newline func;
 
 func
 locals [Scope scope, Type type]
-        : FUNC ID LPAREN params RPAREN (RETARROW primType)? DO newlines funcBody newlines? ENDFUNC Newline
+        : FUNC ID LPAREN params RPAREN (RETARROW primaryType)? DO newlines funcBody newlines? ENDFUNC Newline
         ;
 
 params : param (COMMA param)*
        |
        ;
 
-param : ID COLON primType;
+param : ID COLON primaryType;
 
 funcBody
 locals [Scope scope, Type type]
@@ -55,30 +55,30 @@ loop : (forStmnt | foreach | whileStmnt | doWhile)
 
 doWhile
 locals [Scope scope]
-        : DO (stmnts)? WHILE expr ENDWHILE
+        : DO body WHILE expr ENDWHILE
         ;
 
 whileStmnt
 locals [Scope scope]
-        : WHILE expr DO (stmnts)? ENDWHILE
+        : WHILE expr DO body ENDWHILE
         ;
 
 foreach
 locals [Scope scope]
-        : FOREACH primType ID IN expr DO (stmnts)? ENDFOR
+        : FOREACH primaryType ID IN expr DO body ENDFOR
         ;
 
 forStmnt
 locals [Scope scope]
-        : FOR assign UNTIL expr WHERE assign DO newlines (stmnts)? ENDFOR
+        : FOR assign UNTIL expr WHERE assign DO newlines body ENDFOR
         ;
 
 ifStmnt
 locals [Scope scope]
-        : IF expr DO newlines ifBody (ELIF expr DO newlines ifBody)* (ELSE DO newlines ifBody)? ENDIF
+        : IF expr DO newlines body (ELIF expr DO newlines body)* (ELSE DO newlines body)? ENDIF
         ;
 
-ifBody
+body
 locals [Scope scope]
         : stmnts?
         ;
@@ -87,26 +87,35 @@ access : CONST
        | VAR
        ;
 
-// Maybe remove : type
-dcls : access ID COLON primType (COMMA ID COLON primType)*
+dcls : access ID COLON primaryType (COMMA ID COLON primaryType)*
      ;
 
-instan : access ID COLON primType ASSIGN expr (COMMA ID ASSIGN expr)*
+instan : access ID COLON primaryType ASSIGN initialValue (COMMA ID COLON primaryType ASSIGN initialValue)*
        ;
+
+initialValue : array
+             | expr
+             ;
+
+array   : LSQUARE (expr (COMMA expr)*)? RSQUARE
+        ;
+
+arrayAccess : ID LSQUARE expr RSQUARE
+            ;
 
 expr
 returns [Type type]
-        : op=(NOT | SUB)? factor                                # NotNegFac
-        | <assoc=right> expr POW expr                           # Pow
-        | expr op=(TIMES | DIV | MOD) expr                      # MulDivMod
-        | expr op=(ADD | SUB) expr                              # AddSub
-        | expr op=(LESSER | GREATER | LESSEQ | GREATEQ) expr    # relations
-        | expr op=(EQUAL | NOTEQUAL) expr                       # equality
-        | expr AND expr                                         # and
-        | expr OR expr                                          # or
+        : (NOT | SUB)? factor                                # NotNegFac
+        | <assoc=right> expr POW expr                        # Pow
+        | expr (TIMES | DIV | MOD) expr                      # MulDivMod
+        | expr (ADD | SUB) expr                              # AddSub
+        | expr (LESSER | GREATER | LESSEQ | GREATEQ) expr    # relations
+        | expr (EQUAL | NOTEQUAL) expr                       # equality
+        | expr AND expr                                      # and
+        | expr OR expr                                       # or
         ;
 
-factor : (LPAREN expr RPAREN | ID | literal | funcCall)
+factor : (LPAREN expr RPAREN | ID | literal | funcCall | arrayAccess)
        ;
 
 funcCall
@@ -116,13 +125,14 @@ returns [Type type]
 
 assign
 returns [Type type]
-        : ID (ASSIGN | compAssign) expr
+        : ID (LSQUARE expr RSQUARE)? (ASSIGN | compAssign) expr
+        | ID ASSIGN array
         ;
 
 compAssign : op=(MODASSIGN | MULTASSIGN | DIVASSIGN | ADDASSIGN | SUBASSIGN)
            ;
 
-primType
+primaryType
 returns [Type type]
         :  primitiveType
         |  primitiveType ARRAY
@@ -231,7 +241,8 @@ VECTOR3: 'vector3';
 TRUE: 'true';
 FALSE: 'false';
 QUOTE: '"';
-
+LSQUARE: '[';
+RSQUARE: ']';
 
 RETARROW: '->';
 CONST: 'const';

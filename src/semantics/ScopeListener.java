@@ -1,6 +1,3 @@
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.tree.ErrorNode;
-import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.ArrayList;
@@ -10,216 +7,203 @@ import java.util.Map;
 
 public class ScopeListener extends MinespeakBaseListener {
     private Scope currentScope;
-    private Map<String, Function> functions;
+    private final Map<String, Function> functions;
     private final ScopeFactory factory = new ScopeFactory();
-    private boolean nextFuncIsMCFunc;
+    private final EntryFactory entryFac = new EntryFactory();
 
     public ScopeListener() {
-        this.currentScope = null;
+        enterScope(null);
         this.functions = new HashMap<>();
-        this.nextFuncIsMCFunc = false;
     }
 
     @Override
     public void enterProg(MinespeakParser.ProgContext ctx) {
         ctx.scope = factory.createScope(this.currentScope);
-        this.currentScope = ctx.scope;
+        enterScope(ctx.scope);
     }
 
     @Override
     public void exitProg(MinespeakParser.ProgContext ctx) {
-        this.currentScope = ctx.scope.getParent();
+        exitScope();
     }
 
     @Override
     public void enterBlock(MinespeakParser.BlockContext ctx) {
         ctx.scope = factory.createScope(this.currentScope);
-        this.currentScope = ctx.scope;
+        enterScope(ctx.scope);
     }
 
     @Override
     public void exitBlock(MinespeakParser.BlockContext ctx) {
         if (!ctx.scope.isFunction() && ctx.scope.getParent() != null)
-            this.currentScope = ctx.scope;
+            enterScope(ctx.scope);
         else
             throw new RuntimeException();
     }
 
     @Override
     public void enterMcFunc(MinespeakParser.McFuncContext ctx) {
-        this.nextFuncIsMCFunc = true;
+        entryFac.setMCFunction();
     }
 
     @Override
     public void enterFunc(MinespeakParser.FuncContext ctx) {
         Function newFunc = new Function(ctx);
         functions.put(newFunc.getName(), newFunc);
-        this.currentScope.addVariable(newFunc.getName(), new FuncEntry(this.nextFuncIsMCFunc, ctx));
-        this.nextFuncIsMCFunc = false;
+
+        String name = ctx.ID().getText();
+        ctx.type = ctx.primaryType().type;
+        List<SimpleEntry> paramIDs = new ArrayList<>();
+
+        for (int i = 0; i < ctx.params().param().size(); i++) {
+            String paramName = ctx.params().param(i).ID().getText();
+            Type paramType = ctx.params().param(i).primaryType().type;
+            paramIDs.add(entryFac.createFromType(paramName, paramType));
+        }
+
+        this.currentScope.addVariable(name, entryFac.createFunctionEntry(name, ctx.type, paramIDs));
+
         ctx.scope = factory.createFuncScope(this.currentScope);
-        this.currentScope = ctx.scope;
+        enterScope(ctx.scope);
     }
 
     @Override
     public void exitFunc(MinespeakParser.FuncContext ctx) {
         while (!this.currentScope.isFunction()) {
-            this.currentScope = this.currentScope.getParent();
+            exitScope();
         }
-        this.currentScope = this.currentScope.getParent();
+        exitScope();
     }
 
     @Override
     public void enterParam(MinespeakParser.ParamContext ctx) {
-        this.currentScope.addVariable(ctx.ID().getText(), new SimpleEntry(ctx));
-    }
-
-    @Override
-    public void exitParam(MinespeakParser.ParamContext ctx) {
-        super.exitParam(ctx);
+        String name = ctx.ID().getText();
+        Type type = ctx.primaryType().type;
+        this.currentScope.addVariable(name, entryFac.createFromType(name, type));
     }
 
     @Override
     public void enterFuncBody(MinespeakParser.FuncBodyContext ctx) {
         ctx.scope = factory.createScope(this.currentScope);
-        this.currentScope = ctx.scope;
+        enterScope(ctx.scope);
     }
 
     @Override
     public void exitFuncBody(MinespeakParser.FuncBodyContext ctx) {
-        this.currentScope = this.currentScope.getParent();
+        exitScope();
     }
 
     @Override
     public void enterRetVal(MinespeakParser.RetValContext ctx) {
-        this.currentScope.addVariable("return", new SimpleEntry(ctx));
+        ctx.type = ctx.expr().type;
+        this.currentScope.addVariable("return", entryFac.createFromType("return", ctx.type));
     }
 
     @Override
     public void enterDoWhile(MinespeakParser.DoWhileContext ctx) {
         ctx.scope = factory.createScope(this.currentScope);
-        this.currentScope = ctx.scope;
+        enterScope(ctx.scope);
     }
 
     @Override
     public void exitDoWhile(MinespeakParser.DoWhileContext ctx) {
-        this.currentScope = this.currentScope.getParent();
+        exitScope();
     }
 
     @Override
     public void enterWhileStmnt(MinespeakParser.WhileStmntContext ctx) {
         ctx.scope = factory.createScope(this.currentScope);
-        this.currentScope = ctx.scope;
+        enterScope(ctx.scope);
     }
 
     @Override
     public void exitWhileStmnt(MinespeakParser.WhileStmntContext ctx) {
-        this.currentScope = this.currentScope.getParent();
+        exitScope();
     }
 
     @Override
     public void enterForeach(MinespeakParser.ForeachContext ctx) {
-        super.enterForeach(ctx);
+        ctx.scope = factory.createScope(this.currentScope);
+        enterScope(ctx.scope);
+
+        String name = ctx.ID().getText();
+        Type type = ctx.primaryType().type;
+        ctx.scope.addVariable(name, entryFac.createFromType(name, type));
     }
 
     @Override
     public void exitForeach(MinespeakParser.ForeachContext ctx) {
-        super.exitForeach(ctx);
+        exitScope();
     }
 
     @Override
     public void enterForStmnt(MinespeakParser.ForStmntContext ctx) {
-        super.enterForStmnt(ctx);
+        ctx.scope = factory.createScope(this.currentScope);
+        enterScope(ctx.scope);
+        List<MinespeakParser.AssignContext> assigns = ctx.assign();
+
+        for (MinespeakParser.AssignContext assign : assigns) {
+            String name = assign.ID().getText();
+            ctx.scope.addVariable(name, entryFac.createForAssignEntry(name));
+        }
     }
 
     @Override
     public void exitForStmnt(MinespeakParser.ForStmntContext ctx) {
-        super.exitForStmnt(ctx);
+        exitScope();
     }
 
     @Override
     public void enterIfStmnt(MinespeakParser.IfStmntContext ctx) {
         ctx.scope = factory.createScope(this.currentScope);
-        this.currentScope = ctx.scope;
+        enterScope(ctx.scope);
     }
 
     @Override
     public void exitIfStmnt(MinespeakParser.IfStmntContext ctx) {
-        this.currentScope = this.currentScope.getParent();
+        exitScope();
     }
 
     @Override
-    public void enterIfBody(MinespeakParser.IfBodyContext ctx) {
+    public void enterBody(MinespeakParser.BodyContext ctx) {
         ctx.scope = factory.createScope(this.currentScope);
-        this.currentScope = ctx.scope;
+        enterScope(ctx.scope);
     }
 
     @Override
-    public void exitIfBody(MinespeakParser.IfBodyContext ctx) {
-        this.currentScope = this.currentScope.getParent();
+    public void exitBody(MinespeakParser.BodyContext ctx) {
+        exitScope();
     }
 
     @Override
     public void enterDcls(MinespeakParser.DclsContext ctx) {
         List<TerminalNode> dclsIDs = ctx.ID();
-        List<MinespeakParser.PrimTypeContext> dclsTypes = ctx.primType();
+        List<MinespeakParser.PrimaryTypeContext> dclsTypes = ctx.primaryType();
 
         for (int i = 0; i < dclsIDs.size(); i++) {
-            this.currentScope.addVariable(dclsIDs.get(i).getText(), new SimpleEntry(dclsTypes.get(i)));
+            String name = dclsIDs.get(i).getText();
+            Type type = dclsTypes.get(i).type;
+            this.currentScope.addVariable(name, entryFac.createFromType(name, type));
         }
     }
 
     @Override
-    public void exitDcls(MinespeakParser.DclsContext ctx) {
-        super.exitDcls(ctx);
-    }
-
-    @Override
     public void enterInstan(MinespeakParser.InstanContext ctx) {
-        super.enterInstan(ctx);
+        List<TerminalNode> instanIDs = ctx.ID();
+        List<MinespeakParser.PrimaryTypeContext> instanTypes = ctx.primaryType();
+
+        for (int i = 0; i < instanIDs.size(); i++) {
+            String name = instanIDs.get(i).getText();
+            Type type = instanTypes.get(i).type;
+            this.currentScope.addVariable(name, entryFac.createFromType(name, type));
+        }
     }
 
-    @Override
-    public void exitInstan(MinespeakParser.InstanContext ctx) {
-        super.exitInstan(ctx);
+    private void exitScope() {
+        enterScope(this.currentScope.getParent());
     }
 
-    @Override
-    public void enterPrimType(MinespeakParser.PrimTypeContext ctx) {
-        super.enterPrimType(ctx);
-    }
-
-    @Override
-    public void exitPrimType(MinespeakParser.PrimTypeContext ctx) {
-        super.exitPrimType(ctx);
-    }
-
-    @Override
-    public void enterPrimitiveType(MinespeakParser.PrimitiveTypeContext ctx) {
-        super.enterPrimitiveType(ctx);
-    }
-
-    @Override
-    public void exitPrimitiveType(MinespeakParser.PrimitiveTypeContext ctx) {
-        super.exitPrimitiveType(ctx);
-    }
-
-    @Override
-    public void enterEveryRule(ParserRuleContext ctx) {
-        super.enterEveryRule(ctx);
-    }
-
-    @Override
-    public void exitEveryRule(ParserRuleContext ctx) {
-        super.exitEveryRule(ctx);
-    }
-
-    @Override
-    public void visitTerminal(TerminalNode node) {
-        super.visitTerminal(node);
-    }
-
-    @Override
-    public void visitErrorNode(ErrorNode node) {
-        super.visitErrorNode(node);
+    private void enterScope(Scope scope) {
+        this.currentScope = scope;
     }
 }

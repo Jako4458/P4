@@ -4,17 +4,13 @@ public class FuncEntry implements SymEntry {
     private boolean isMCFunction;
     private String name;
     private Type retType;
-    private List<String> params;
+    private List<SimpleEntry> params;
 
-    public FuncEntry(boolean isMCFunction, String name, Type retType, List<String> params) {
+    public FuncEntry(boolean isMCFunction, String name, Type retType, List<SimpleEntry> params) {
         this.isMCFunction = isMCFunction;
         this.name = name;
         this.retType = retType;
         this.params = params;
-    }
-
-    public FuncEntry(boolean isMCFunction, MinespeakParser.FuncContext ctx) {
-        this.isMCFunction = isMCFunction;
     }
 
     @Override
@@ -31,7 +27,7 @@ public class FuncEntry implements SymEntry {
         return this.isMCFunction;
     }
 
-    public List<String> getParams() {
+    public List<SimpleEntry> getParams() {
         return this.params;
     }
 }
