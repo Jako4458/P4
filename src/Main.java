@@ -25,11 +25,13 @@ public class Main {
         ScopeListener listener = new ScopeListener();
         ParseTreeWalker.DEFAULT.walk(listener, tree);
 
-        Scope scope = new Scope();
+        System.out.println(tree);
+
+        /*Scope scope = new Scope();
         ScopeVisitorDepre visitor = new ScopeVisitorDepre(scope);
         visitor.visit(tree);
 
-        /*
+
         System.out.println("n is: " + (visitor.getScope().lookup("n") != null ? visitor.getScope().lookup("n").getValue() : "null"));
         System.out.println("a is: " + (visitor.getScope().lookup("a") != null ? visitor.getScope().lookup("a").getValue() : "null"));
         System.out.println("b is: " + (visitor.getScope().lookup("b") != null ? visitor.getScope().lookup("b").getValue() : "null"));

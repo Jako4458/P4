@@ -3,15 +3,17 @@ public class SimpleEntry implements SymEntry {
     private String name;
 
     public SimpleEntry(String id, Type type) {
+        this.name = id;
+        this.type = type;
     }
 
     @Override
     public String getName() {
-        return null;
+        return this.name;
     }
 
     @Override
     public Type getType() {
-        return null;
+        return this.type;
     }
 }

@@ -27,7 +27,10 @@ params : param (COMMA param)*
        |
        ;
 
-param : ID COLON primaryType;
+param
+locals [Type type]
+        : ID COLON primaryType
+        ;
 
 funcBody
 locals [Scope scope, Type type]
@@ -100,8 +103,10 @@ initialValue : array
 array   : LSQUARE (expr (COMMA expr)*)? RSQUARE
         ;
 
-arrayAccess : ID LSQUARE expr RSQUARE
-            ;
+arrayAccess
+returns [Type type]
+        : ID LSQUARE expr RSQUARE
+        ;
 
 expr
 returns [Type type]
@@ -115,8 +120,15 @@ returns [Type type]
         | expr OR expr                                       # or
         ;
 
-factor : (LPAREN expr RPAREN | ID | literal | funcCall | arrayAccess)
-       ;
+factor
+returns [Type type]
+        : (LPAREN expr RPAREN | rvalue | literal | funcCall | arrayAccess)
+        ;
+
+rvalue
+returns [Type type]
+        : ID
+        ;
 
 funcCall
 returns [Type type]

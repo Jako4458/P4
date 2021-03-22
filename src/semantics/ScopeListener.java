@@ -48,6 +48,12 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void enterFunc(MinespeakParser.FuncContext ctx) {
+        ctx.scope = factory.createFuncScope(this.currentScope);
+        enterScope(ctx.scope);
+    }
+
+    @Override
+    public void exitFunc(MinespeakParser.FuncContext ctx) {
         Function newFunc = new Function(ctx);
         functions.put(newFunc.getName(), newFunc);
 
@@ -63,12 +69,6 @@ public class ScopeListener extends MinespeakBaseListener {
 
         this.currentScope.addVariable(name, entryFac.createFunctionEntry(name, ctx.type, paramIDs));
 
-        ctx.scope = factory.createFuncScope(this.currentScope);
-        enterScope(ctx.scope);
-    }
-
-    @Override
-    public void exitFunc(MinespeakParser.FuncContext ctx) {
         while (!this.currentScope.isFunction()) {
             exitScope();
         }
@@ -76,10 +76,10 @@ public class ScopeListener extends MinespeakBaseListener {
     }
 
     @Override
-    public void enterParam(MinespeakParser.ParamContext ctx) {
+    public void exitParam(MinespeakParser.ParamContext ctx) {
         String name = ctx.ID().getText();
-        Type type = ctx.primaryType().type;
-        this.currentScope.addVariable(name, entryFac.createFromType(name, type));
+        ctx.type = ctx.primaryType().type;
+        this.currentScope.addVariable(name, entryFac.createFromType(name, ctx.type));
     }
 
     @Override
@@ -90,11 +90,16 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitFuncBody(MinespeakParser.FuncBodyContext ctx) {
+        if (ctx.retVal() != null) {
+            ctx.type = ctx.retVal().type;
+        } else {
+            ctx.type = null;
+        }
         exitScope();
     }
 
     @Override
-    public void enterRetVal(MinespeakParser.RetValContext ctx) {
+    public void exitRetVal(MinespeakParser.RetValContext ctx) {
         ctx.type = ctx.expr().type;
         this.currentScope.addVariable("return", entryFac.createFromType("return", ctx.type));
     }
@@ -176,7 +181,7 @@ public class ScopeListener extends MinespeakBaseListener {
     }
 
     @Override
-    public void enterDcls(MinespeakParser.DclsContext ctx) {
+    public void exitDcls(MinespeakParser.DclsContext ctx) {
         List<TerminalNode> dclsIDs = ctx.ID();
         List<MinespeakParser.PrimaryTypeContext> dclsTypes = ctx.primaryType();
 
@@ -188,7 +193,7 @@ public class ScopeListener extends MinespeakBaseListener {
     }
 
     @Override
-    public void enterInstan(MinespeakParser.InstanContext ctx) {
+    public void exitInstan(MinespeakParser.InstanContext ctx) {
         List<TerminalNode> instanIDs = ctx.ID();
         List<MinespeakParser.PrimaryTypeContext> instanTypes = ctx.primaryType();
 
@@ -197,6 +202,46 @@ public class ScopeListener extends MinespeakBaseListener {
             Type type = instanTypes.get(i).type;
             this.currentScope.addVariable(name, entryFac.createFromType(name, type));
         }
+    }
+
+    @Override
+    public void enterArrayAccess(MinespeakParser.ArrayAccessContext ctx) {
+        SymEntry entry = this.currentScope.lookup(ctx.ID().getText());
+
+        if (entry == null) {
+            // error
+        }
+    }
+
+    @Override
+    public void enterRvalue(MinespeakParser.RvalueContext ctx) {
+        SymEntry entry = this.currentScope.lookup(ctx.ID().getText());
+
+        if (entry == null) {
+            // error
+        }
+    }
+
+    @Override
+    public void exitPrimaryType(MinespeakParser.PrimaryTypeContext ctx) {
+        Type type = ctx.primitiveType().type;
+        if (ctx.ARRAY() != null) {
+            ctx.type = new ArrayType(ctx, type);
+        } else {
+            ctx.type = type;
+        }
+    }
+
+    @Override
+    public void exitPrimitiveType(MinespeakParser.PrimitiveTypeContext ctx) {
+        if (ctx.BOOL() != null)
+            ctx.type = Type._bool;
+        else if (ctx.BLOCK() != null)
+            ctx.type = Type._block;
+        else if (ctx.NUM() != null)
+            ctx.type = Type._num;
+        else
+            ctx.type = Type._string;
     }
 
     private void exitScope() {
