@@ -120,7 +120,7 @@ factor : (LPAREN expr RPAREN | ID | literal | funcCall | arrayAccess)
 
 funcCall
 returns [Type type]
-        : ID LPAREN expr (COMMA expr)* RPAREN
+        : ID LPAREN (expr (COMMA expr)*)? RPAREN
         ;
 
 assign
