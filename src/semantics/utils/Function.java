@@ -5,17 +5,27 @@ import java.util.List;
 
 public class Function {
     private Scope scope;
-    private List<TerminalNode> params;
+    private List<String> params;
+    private Type retType;
     private ParseTree body;
+    private String name;
 
-    public Function(Scope scope, List<TerminalNode> params, ParseTree body) {
+    public Function(Scope scope, List<String> params, Type retType, ParseTree body) {
         this.scope = scope;
         this.params = params;
+        this.retType = retType;
         this.body = body;
     }
 
-    public List<TerminalNode> getParams() {
+    public Function(MinespeakParser.FuncContext ctx) {
+        
+    }
+
+    public List<String> getParams() {
         return this.params;
     }
 
+    public String getName() {
+        return this.name;
+    }
 }

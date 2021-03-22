@@ -1,8 +1,5 @@
 public interface SymEntry {
-
-    String hashString();
-
     String getName();
-    void setName(String name);
 
+    Type getType();
 }
