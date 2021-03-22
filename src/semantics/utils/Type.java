@@ -77,9 +77,29 @@ public class Type {
             add(MinespeakParser.ADD);
             add(MinespeakParser.SUB);
         }};
+        Set<Integer> vectorTypes = new HashSet<Integer>() {{
+            add(MinespeakParser.VECTOR2);
+            add(MinespeakParser.VECTOR3);
+        }};
 
         for (int op : arithmeticOps) {
             resultTypes.put(opKey(NUM, op, NUM), NUM);
+        }
+
+        for (int op : relationalOps) {
+            resultTypes.put(opKey(BOOL, op, BOOL), BOOL);
+        }
+
+        for (int op : vectorOps) {
+            for (int type : vectorTypes) {
+                resultTypes.put(opKey(type, op, type), type);
+            }
+        }
+
+        // Multiplication of vector by scalar
+        for (int type : vectorTypes) {
+            resultTypes.put(opKey(NUM, MinespeakParser.TIMES, type), type);
+            resultTypes.put(opKey(type, MinespeakParser.TIMES, NUM), type);
         }
 
     }
