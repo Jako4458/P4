@@ -11,19 +11,6 @@ import java.io.IOException;
 public class ParseExprTests {
     private TestHelper helper = new TestHelper();
 
-    @Test
-    void TestTest(){
-        helper.setupFromString("2 Pow 3");
-
-        ScopeVisitor scopeVisitor = new ScopeVisitor();
-
-        MinespeakParser.PowContext powContext = (MinespeakParser.PowContext) helper.minespeakParser.expr();
-
-        MSValue result = scopeVisitor.visit(powContext);
-
-        assertEquals(8, result.getValue());
-    }
-
     /* Division */
     @RepeatedTest(2)
     void wrongDivision(RepetitionInfo rI) throws IOException {
