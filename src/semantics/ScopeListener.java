@@ -58,7 +58,10 @@ public class ScopeListener extends MinespeakBaseListener {
         functions.put(newFunc.getName(), newFunc);
 
         String name = ctx.ID().getText();
-        ctx.type = ctx.primaryType().type;
+        if (ctx.primaryType() != null)
+            ctx.type = ctx.primaryType().type;
+        else
+            ctx.type = null;
         List<SimpleEntry> paramIDs = new ArrayList<>();
 
         for (int i = 0; i < ctx.params().param().size(); i++) {

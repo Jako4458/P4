@@ -26,6 +26,8 @@ public class Type {
     public static final int VECTOR2 = MinespeakParser.VECTOR2;
     public static final int VECTOR3 = MinespeakParser.VECTOR3;
 
+    public static final int ERROR = -1;
+
     /** Creates
      *
      */
@@ -35,6 +37,7 @@ public class Type {
     public static final Type _block = new Type(new TerminalNodeImpl(new CommonToken(BLOCK, "block")));
     public static final Type _vector2 = new Type(new TerminalNodeImpl(new CommonToken(VECTOR2, "vector2")));
     public static final Type _vector3 = new Type(new TerminalNodeImpl(new CommonToken(VECTOR3, "vector3")));
+    public static final Type _error = new Type(new TerminalNodeImpl(new CommonToken(ERROR, "error")));
 
     public final ParseTree tree;
 
@@ -115,6 +118,10 @@ public class Type {
         return getTypeFromInt(Type.resultTypes.get(Type.opKey(left, op, right)));
     }
 
+    public int getTypeAsInt() {
+        return ((TerminalNodeImpl)this.tree).symbol.getType();
+    }
+
     public static Type getTypeFromInt(int val) {
         Type type;
         switch (val) {
@@ -131,7 +138,7 @@ public class Type {
             case Type.VECTOR3:
                 type = Type._vector3; break;
             default:
-                type = Type.INVALID;
+                type = Type._error;
         }
         return type;
     }
