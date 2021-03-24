@@ -228,7 +228,7 @@ public class ScopeListener extends MinespeakBaseListener {
     @Override
     public void exitPrimaryType(MinespeakParser.PrimaryTypeContext ctx) {
         Type type = ctx.primitiveType().type;
-        if (ctx.ARRAY() != null) {
+        if (ctx.lArray() != null) {
             ctx.type = new ArrayType(ctx, type);
         } else {
             ctx.type = type;

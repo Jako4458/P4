@@ -96,11 +96,11 @@ dcls : access ID COLON primaryType (COMMA ID COLON primaryType)*
 instan : access ID COLON primaryType ASSIGN initialValue (COMMA ID COLON primaryType ASSIGN initialValue)*
        ;
 
-initialValue : array
+initialValue : rArray
              | expr
              ;
 
-array   : LSQUARE (expr (COMMA expr)*)? RSQUARE
+rArray   : LSQUARE (expr (COMMA expr)*)? RSQUARE
         ;
 
 arrayAccess
@@ -138,7 +138,7 @@ returns [Type type]
 assign
 returns [Type type]
         : ID (LSQUARE expr RSQUARE)? (ASSIGN | compAssign) expr
-        | ID ASSIGN array
+        | ID ASSIGN rArray
         ;
 
 compAssign : op=(MODASSIGN | MULTASSIGN | DIVASSIGN | ADDASSIGN | SUBASSIGN)
@@ -147,7 +147,11 @@ compAssign : op=(MODASSIGN | MULTASSIGN | DIVASSIGN | ADDASSIGN | SUBASSIGN)
 primaryType
 returns [Type type]
         :  primitiveType
-        |  primitiveType LSQUARE expr? RSQUARE
+        |  primitiveType lArray
+        ;
+
+lArray
+        : LSQUARE expr? RSQUARE
         ;
 
 primitiveType
@@ -241,7 +245,6 @@ DIVASSIGN: '/=';
 ADDASSIGN: '+=';
 SUBASSIGN: '-=';
 
-ARRAY: '[]';
 NUM: 'num';
 BLOCK: 'block';
 BOOL: 'bool';
@@ -253,8 +256,10 @@ VECTOR3: 'vector3';
 TRUE: 'true';
 FALSE: 'false';
 QUOTE: '"';
+ARRAY: '[]';
 LSQUARE: '[';
 RSQUARE: ']';
+
 
 RETARROW: '->';
 CONST: 'const';
