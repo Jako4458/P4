@@ -2,6 +2,9 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ConsoleErrorListener;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,4 +38,16 @@ public class TestHelper {
         minespeakLexer.addErrorListener(listener);
     }
 
+    public int getEntryTypeAsInt(Scope scope, String id) {
+        return ((TerminalNodeImpl)scope.lookup(id).getType().tree).symbol.getType();
+    }
+
+    public void walkTree(ParseTree tree) {
+        ScopeListener listener = new ScopeListener();
+        ParseTreeWalker.DEFAULT.walk(listener, tree);
+    }
+
+    public String getEnrtyName(Scope scope, String id) {
+        return scope.lookup(id).getName();
+    }
 }

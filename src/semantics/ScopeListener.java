@@ -243,8 +243,14 @@ public class ScopeListener extends MinespeakBaseListener {
             ctx.type = Type._block;
         else if (ctx.NUM() != null)
             ctx.type = Type._num;
-        else
+        else if (ctx.STRING() != null)
             ctx.type = Type._string;
+        else if (ctx.VECTOR2() != null)
+            ctx.type = Type._vector2;
+        else if (ctx.VECTOR3() != null)
+            ctx.type = Type._vector3;
+        else
+            ctx.type = Type._error;
     }
 
     private void exitScope() {
