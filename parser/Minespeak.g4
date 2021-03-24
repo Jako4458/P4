@@ -147,7 +147,7 @@ compAssign : op=(MODASSIGN | MULTASSIGN | DIVASSIGN | ADDASSIGN | SUBASSIGN)
 primaryType
 returns [Type type]
         :  primitiveType
-        |  primitiveType ARRAY
+        |  primitiveType LSQUARE expr? RSQUARE
         ;
 
 primitiveType
