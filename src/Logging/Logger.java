@@ -10,7 +10,7 @@ public class Logger implements ILogger {
 
     public static Logger shared = new Logger();
 
-    public Logger() {
+    private Logger() {
         logs = new ArrayList<>();
     }
 
