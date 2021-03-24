@@ -14,4 +14,19 @@ public class TypeCheckListener extends MinespeakBaseListener {
             ctx.type = Type.inferType(left, MinespeakParser.SUB, right);
         }
     }
+
+    @Override
+    public void exitNotNegFac(MinespeakParser.NotNegFacContext ctx) {
+        ctx.type = ctx.factor().type;
+    }
+
+    @Override
+    public void exitFactor(MinespeakParser.FactorContext ctx) {
+        ctx.type = ctx.literal().type;
+    }
+
+    @Override
+    public void exitLiteral(MinespeakParser.LiteralContext ctx) {
+        ctx.type = Type._num;
+    }
 }
