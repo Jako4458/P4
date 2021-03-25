@@ -1,3 +1,4 @@
+import Logging.FunctionAlreadyDeclaredError;
 import Logging.Logger;
 import Logging.VariableAlreadyDeclaredError;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -14,6 +15,7 @@ public class ScopeListener extends MinespeakBaseListener {
     private final Map<String, Function> functions;
     private final ScopeFactory factory = new ScopeFactory();
     private final EntryFactory entryFac = new EntryFactory();
+    private boolean isInvalidFunc = false;
 
     public ScopeListener() {
         enterScope(null);
@@ -49,32 +51,41 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void enterFunc(MinespeakParser.FuncContext ctx) {
-        ctx.scope = factory.createFuncScope(this.currentScope);
-        enterScope(ctx.scope);
-
+        if (functions.containsKey(ctx.ID().getText())) {
+            Logger.shared.add(new FunctionAlreadyDeclaredError(ctx.ID().getText(), ctx.start.getLine()));
+            this.isInvalidFunc = true;
+        } else {
+            ctx.scope = factory.createFuncScope(this.currentScope);
+            enterScope(ctx.scope);
+        }
     }
 
     @Override
     public void exitFunc(MinespeakParser.FuncContext ctx) {
-        Function newFunc = new Function(ctx);
-        functions.put(newFunc.getName(), newFunc);
+        if (this.isInvalidFunc) {
+            this.isInvalidFunc = false;
+            this.entryFac.resetMCFunction();
+        } else {
+            Function newFunc = new Function(ctx);
+            functions.put(newFunc.getName(), newFunc);
 
-        String name = ctx.ID().getText();
-        if (ctx.primaryType() != null)
-            ctx.type = ctx.primaryType().type;
-        else
-            ctx.type = null;
-        List<SimpleEntry> paramIDs = new ArrayList<>();
+            String name = ctx.ID().getText();
+            if (ctx.primaryType() != null)
+                ctx.type = ctx.primaryType().type;
+            else
+                ctx.type = null;
+            List<SimpleEntry> paramIDs = new ArrayList<>();
 
-        for (int i = 0; i < ctx.params().param().size(); i++) {
-            String paramName = ctx.params().param(i).ID().getText();
-            Type paramType = ctx.params().param(i).primaryType().type;
-            paramIDs.add(entryFac.createFromType(paramName, paramType));
+            for (int i = 0; i < ctx.params().param().size(); i++) {
+                String paramName = ctx.params().param(i).ID().getText();
+                Type paramType = ctx.params().param(i).primaryType().type;
+                paramIDs.add(entryFac.createFromType(paramName, paramType));
+            }
+
+            this.addToScope(ctx, name, entryFac.createFunctionEntry(name, ctx.type, paramIDs));
+
+            exitScope();
         }
-
-        this.addToScope(ctx, name, entryFac.createFunctionEntry(name, ctx.type, paramIDs));
-
-        exitScope();
     }
 
     @Override
@@ -147,12 +158,6 @@ public class ScopeListener extends MinespeakBaseListener {
     public void enterForStmnt(MinespeakParser.ForStmntContext ctx) {
         ctx.scope = factory.createScope(this.currentScope);
         enterScope(ctx.scope);
-        List<MinespeakParser.AssignContext> assigns = ctx.assign();
-
-        for (MinespeakParser.AssignContext assign : assigns) {
-            String name = assign.ID().getText();
-            this.addToScope(ctx, name, entryFac.createForAssignEntry(name));
-        }
     }
 
     @Override
