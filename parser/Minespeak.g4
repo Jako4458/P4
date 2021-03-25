@@ -288,6 +288,7 @@ IF: 'if';
 ELIF: 'elif';
 ELSE: 'else';
 ENDIF: 'endif';
+VOID: 'void';
 
 ID         : [a-zA-Z_][a-zA-Z_0-9]*
            ;

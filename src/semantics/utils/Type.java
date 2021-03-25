@@ -17,6 +17,8 @@ import java.util.Set;
 public class Type {
     public static final Type INVALID = new Type(null);
 
+
+    public static final int VOID = MinespeakParser.VOID;
     public static final int BOOL = MinespeakParser.BOOL;
     public static final int NUM = MinespeakParser.NUM;
     public static final int STRING = MinespeakParser.STRING;
@@ -31,6 +33,7 @@ public class Type {
     /** Creates
      *
      */
+    public static final Type _void = new Type(new TerminalNodeImpl(new CommonToken(VOID, "void")));
     public static final Type _bool = new Type(new TerminalNodeImpl(new CommonToken(BOOL, "bool")));
     public static final Type _num = new Type(new TerminalNodeImpl(new CommonToken(NUM, "num")));
     public static final Type _string = new Type(new TerminalNodeImpl(new CommonToken(STRING, "string")));
@@ -137,6 +140,8 @@ public class Type {
                 type = Type._vector2; break;
             case Type.VECTOR3:
                 type = Type._vector3; break;
+            case Type.VOID:
+                type = Type._void; break;
             default:
                 type = Type._error;
         }
