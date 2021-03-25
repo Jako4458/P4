@@ -1,3 +1,6 @@
+import Logging.Logger;
+import Logging.VariableAlreadyDeclaredError;
+
 import java.util.HashMap;
 
 public class Scope {
@@ -25,12 +28,17 @@ public class Scope {
     }
 
     // Not good
-    public void addVariable(String key, SymEntry var) {
-        variables.putIfAbsent(key, var);
+    public boolean addVariable(String key, SymEntry var) {
+        return variables.putIfAbsent(key, var) == null;
     }
 
     public SymEntry lookup(String key) {
-        return this.variables.getOrDefault(key, null);
+        SymEntry entry = this.variables.getOrDefault(key, null);
+        if (entry == null && !this.parent.isFunction) {
+            entry = this.parent.lookup(key);
+        }
+
+        return entry;
     }
 
     public void reAssign(String id, SymEntry value) {
