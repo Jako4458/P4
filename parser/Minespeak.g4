@@ -68,12 +68,12 @@ locals [Scope scope]
 
 foreach
 locals [Scope scope]
-        : FOREACH primaryType ID IN expr DO body ENDFOR
+        : FOREACH primaryType ID IN expr DO newlines body ENDFOR
         ;
 
 forStmnt
 locals [Scope scope]
-        : FOR assign UNTIL expr WHERE assign DO newlines body ENDFOR
+        : FOR instan UNTIL expr WHERE assign DO newlines body ENDFOR
         ;
 
 ifStmnt
