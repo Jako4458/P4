@@ -58,12 +58,12 @@ loop : (forStmnt | foreach | whileStmnt | doWhile)
 
 doWhile
 locals [Scope scope]
-        : DO body WHILE expr ENDWHILE
+        : DO newlines body WHILE expr ENDWHILE
         ;
 
 whileStmnt
 locals [Scope scope]
-        : WHILE expr DO body ENDWHILE
+        : WHILE expr DO newlines body ENDWHILE
         ;
 
 foreach
@@ -148,6 +148,7 @@ primaryType
 returns [Type type]
         :  primitiveType
         |  primitiveType lArray
+        |  primitiveType ARRAY
         ;
 
 lArray
@@ -256,10 +257,9 @@ VECTOR3: 'vector3';
 TRUE: 'true';
 FALSE: 'false';
 QUOTE: '"';
-ARRAY: '[]';
 LSQUARE: '[';
 RSQUARE: ']';
-
+ARRAY: '[]';
 
 RETARROW: '->';
 CONST: 'const';
