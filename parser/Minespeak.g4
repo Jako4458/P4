@@ -148,6 +148,7 @@ primaryType
 returns [Type type]
         :  primitiveType
         |  primitiveType lArray
+        |  primitiveType ARRAY
         ;
 
 lArray
@@ -258,6 +259,7 @@ FALSE: 'false';
 QUOTE: '"';
 LSQUARE: '[';
 RSQUARE: ']';
+ARRAY: '[]';
 
 RETARROW: '->';
 CONST: 'const';
