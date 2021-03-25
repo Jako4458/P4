@@ -1,6 +1,7 @@
 package Logging;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Simple singleton implementation of ILogger.
@@ -34,6 +35,10 @@ public class Logger implements ILogger {
 
             System.out.println(formattedMessage);
         }
+    }
+
+    public List<Log> getLogs() {
+        return this.logs;
     }
 
     private String format_message(String message, LogType type) {
