@@ -1,1 +1,1 @@
-var a:num = ¤ACACIA_BUTTON
+var a:num = "¤ACACIA_BUTTON"
