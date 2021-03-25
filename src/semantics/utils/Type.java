@@ -22,9 +22,11 @@ public class Type {
     public static final int STRING = MinespeakParser.STRING;
     public static final int BLOCK = MinespeakParser.BLOCK;
 
-    public static final int ARRAY = MinespeakParser.ARRAY;
     public static final int VECTOR2 = MinespeakParser.VECTOR2;
     public static final int VECTOR3 = MinespeakParser.VECTOR3;
+
+    public static final int ARRAY = MinespeakParser.ARRAY;
+
 
     public static final int ERROR = -1;
 
@@ -72,10 +74,24 @@ public class Type {
             add(MinespeakParser.GREATER);
             add(MinespeakParser.LESSEQ);
             add(MinespeakParser.GREATEQ);
-            add(MinespeakParser.EQUAL);
-            add(MinespeakParser.NOTEQUAL);
+        }};
+        Set<Integer> logicalOps = new HashSet<Integer>() {{
+            add(MinespeakParser.NOT);
             add(MinespeakParser.AND);
             add(MinespeakParser.OR);
+        }};
+        // These are allowed on all types in primitive types
+        Set<Integer> universalOps = new HashSet<Integer>() {{
+            add(MinespeakParser.EQUAL);
+            add(MinespeakParser.NOTEQUAL);
+        }};
+        Set<Integer> primitiveTypes = new HashSet<Integer>() {{
+            add(MinespeakParser.NUM);
+            add(MinespeakParser.BOOL);
+            add(MinespeakParser.BLOCK);
+            add(MinespeakParser.STRING);    // this means string == string and string != string is allowed
+            add(MinespeakParser.VECTOR2);
+            add(MinespeakParser.VECTOR3);
         }};
         Set<Integer> vectorOps = new HashSet<Integer>() {{
             add(MinespeakParser.ADD);
@@ -86,12 +102,23 @@ public class Type {
             add(MinespeakParser.VECTOR3);
         }};
 
+
         for (int op : arithmeticOps) {
             resultTypes.put(opKey(NUM, op, NUM), NUM);
         }
 
         for (int op : relationalOps) {
+            resultTypes.put(opKey(NUM, op, NUM), BOOL);
+        }
+
+        for (int op : logicalOps) {
             resultTypes.put(opKey(BOOL, op, BOOL), BOOL);
+        }
+
+        for (int op : universalOps) {
+            for (int type : primitiveTypes) {
+                resultTypes.put(opKey(type, op, type), BOOL);
+            }
         }
 
         for (int op : vectorOps) {
@@ -105,6 +132,9 @@ public class Type {
             resultTypes.put(opKey(NUM, MinespeakParser.TIMES, type), type);
             resultTypes.put(opKey(type, MinespeakParser.TIMES, NUM), type);
         }
+
+        // String concatenation with +
+        resultTypes.put(opKey(STRING, MinespeakParser.ADD, STRING), STRING);
 
     }
 
