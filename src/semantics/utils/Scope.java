@@ -34,7 +34,7 @@ public class Scope {
 
     public SymEntry lookup(String key) {
         SymEntry entry = this.variables.getOrDefault(key, null);
-        if (entry == null && !this.parent.isFunction) {
+        if (entry == null && this.parent != null && !this.parent.isFunction) {
             entry = this.parent.lookup(key);
         }
 

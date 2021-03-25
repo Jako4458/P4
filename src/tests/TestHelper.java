@@ -47,7 +47,7 @@ public class TestHelper {
         ParseTreeWalker.DEFAULT.walk(listener, tree);
     }
 
-    public String getEnrtyName(Scope scope, String id) {
+    public String getEntryName(Scope scope, String id) {
         return scope.lookup(id).getName();
     }
 }

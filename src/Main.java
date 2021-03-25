@@ -27,6 +27,8 @@ public class Main {
 
         System.out.println(tree);
 
+        System.out.println(Type.resultTypes);
+
         /*Scope scope = new Scope();
         ScopeVisitorDepre visitor = new ScopeVisitorDepre(scope);
         visitor.visit(tree);

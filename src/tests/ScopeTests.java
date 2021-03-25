@@ -2,14 +2,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import Logging.LogType;
 import Logging.Logger;
-import exceptions.SyntaxErrorException;
-import org.antlr.runtime.Token;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
-import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.RepetitionInfo;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -32,7 +25,7 @@ public class ScopeTests {
         int actualType = helper.getEntryTypeAsInt(tree.scope, "param1");
         int expectedType = MinespeakParser.NUM;
 
-        String actualName = helper.getEnrtyName(tree.scope, "param1");
+        String actualName = helper.getEntryName(tree.scope, "param1");
         String expectedName = "param1";
 
         assertEquals(expectedType, actualType);
@@ -48,7 +41,7 @@ public class ScopeTests {
         int actualType = helper.getEntryTypeAsInt(tree.scope, "param1");
         int expectedType = MinespeakParser.BLOCK;
 
-        String actualName = helper.getEnrtyName(tree.scope, "param1");
+        String actualName = helper.getEntryName(tree.scope, "param1");
         String expectedName = "param1";
 
         assertEquals(expectedType, actualType);
@@ -64,7 +57,7 @@ public class ScopeTests {
         int actualType = helper.getEntryTypeAsInt(tree.scope, "param1");
         int expectedType = MinespeakParser.STRING;
 
-        String actualName = helper.getEnrtyName(tree.scope, "param1");
+        String actualName = helper.getEntryName(tree.scope, "param1");
         String expectedName = "param1";
 
         assertEquals(expectedType, actualType);
@@ -80,7 +73,7 @@ public class ScopeTests {
         int actualType = helper.getEntryTypeAsInt(tree.scope, "param1");
         int expectedType = MinespeakParser.BOOL;
 
-        String actualName = helper.getEnrtyName(tree.scope, "param1");
+        String actualName = helper.getEntryName(tree.scope, "param1");
         String expectedName = "param1";
 
         assertEquals(expectedType, actualType);
@@ -96,7 +89,7 @@ public class ScopeTests {
         int actualType = helper.getEntryTypeAsInt(tree.scope, "param1");
         int expectedType = MinespeakParser.VECTOR2;
 
-        String actualName = helper.getEnrtyName(tree.scope, "param1");
+        String actualName = helper.getEntryName(tree.scope, "param1");
         String expectedName = "param1";
 
         assertEquals(expectedType, actualType);
@@ -112,7 +105,7 @@ public class ScopeTests {
         int actualType = helper.getEntryTypeAsInt(tree.scope, "param1");
         int expectedType = MinespeakParser.VECTOR3;
 
-        String actualName = helper.getEnrtyName(tree.scope, "param1");
+        String actualName = helper.getEntryName(tree.scope, "param1");
         String expectedName = "param1";
 
         assertEquals(expectedType, actualType);
@@ -130,9 +123,9 @@ public class ScopeTests {
         int actual2Type = helper.getEntryTypeAsInt(tree.scope, "param2");
         int expected2Type = MinespeakParser.NUM;
 
-        String actual1Name = helper.getEnrtyName(tree.scope, "param1");
+        String actual1Name = helper.getEntryName(tree.scope, "param1");
         String expected1Name = "param1";
-        String actual2Name = helper.getEnrtyName(tree.scope, "param2");
+        String actual2Name = helper.getEntryName(tree.scope, "param2");
         String expected2Name = "param2";
 
         assertEquals(expected1Type, actual1Type);
@@ -174,7 +167,7 @@ public class ScopeTests {
         int actualType = helper.getEntryTypeAsInt(tree.funcBody().scope, "n");
         int expectedType = MinespeakParser.NUM;
 
-        String actualName = helper.getEnrtyName(tree.funcBody().scope, "n");
+        String actualName = helper.getEntryName(tree.funcBody().scope, "n");
         String expectedName = "n";
 
         assertEquals(expectedType, actualType);
@@ -194,11 +187,11 @@ public class ScopeTests {
         int actual3Type = helper.getEntryTypeAsInt(tree.funcBody().scope, "n");
         int expected3Type = MinespeakParser.NUM;
 
-        String actual1Name = helper.getEnrtyName(tree.funcBody().scope, "n");
+        String actual1Name = helper.getEntryName(tree.funcBody().scope, "n");
         String expected1Name = "n";
-        String actual2Name = helper.getEnrtyName(tree.funcBody().scope, "n");
+        String actual2Name = helper.getEntryName(tree.funcBody().scope, "n");
         String expected2Name = "n";
-        String actual3Name = helper.getEnrtyName(tree.funcBody().scope, "n");
+        String actual3Name = helper.getEntryName(tree.funcBody().scope, "n");
         String expected3Name = "n";
 
         assertEquals(expected1Type, actual1Type);
@@ -220,9 +213,9 @@ public class ScopeTests {
         int actualBodyType = helper.getEntryTypeAsInt(tree.funcBody().scope, "param1");
         int expectedBodyType = MinespeakParser.BOOL;
 
-        String actualParamName = helper.getEnrtyName(tree.funcBody().scope, "param1");
+        String actualParamName = helper.getEntryName(tree.funcBody().scope, "param1");
         String expectedParamName = "param1";
-        String actualBodyName = helper.getEnrtyName(tree.funcBody().scope, "param1");
+        String actualBodyName = helper.getEntryName(tree.funcBody().scope, "param1");
         String expectedBodyName = "param1";
 
         assertEquals(expectedParamType, actualParamType);
@@ -235,10 +228,74 @@ public class ScopeTests {
     }
     //endregion
 
+
     //region Test of scope for for-loop iterator
+    @Test
+    public void ForLoopIteratorIsInForLoopScope() throws IOException {
+        helper.setupFromString("for var i: num = 0 until i < 10 where i += 1 do \n var i : bool = true \n endfor");
+        MinespeakParser.ForStmntContext tree = helper.minespeakParser.forStmnt();
+        helper.walkTree(tree);
+
+        int actualIteratorType = helper.getEntryTypeAsInt(tree.scope, "i");
+        int expectedIteratorType = MinespeakParser.NUM;
+
+        String actualIteratorName = helper.getEntryName(tree.body().scope, "i");
+        String expectedIteratorName = "i";
+
+        assertEquals(expectedIteratorType, actualIteratorType);
+        assertEquals(expectedIteratorName, actualIteratorName);
+    }
     //endregion
 
     //region Test of scope for for-loop body
+    @Test
+    public void ForLoopBodyVarAlreadyDeclared() throws IOException {
+        helper.setupFromString("for var i: num = 0 until i < 10 where i += 1 do \n var test : bool = true \n var test : bool = true \n endfor");
+        MinespeakParser.ForStmntContext tree = helper.minespeakParser.forStmnt();
+        helper.walkTree(tree);
+
+        int actualIteratorType = helper.getEntryTypeAsInt(tree.scope, "i");
+        int expectedIteratorType = MinespeakParser.NUM;
+
+        String actualIteratorName = helper.getEntryName(tree.body().scope, "i");
+        String expectedIteratorName = "i";
+
+
+        assertEquals(1, Logger.shared.getLogs().size());
+        assertEquals(LogType.ERROR, Logger.shared.getLogs().get(0).type);
+    }
+
+    @Test
+    public void ForLoopBodyNewIHasCorrectType() throws IOException {
+        helper.setupFromString("for var i: num = 0 until i < 10 where i += 1 do \n var i : bool = true \n endfor");
+        MinespeakParser.ForStmntContext tree = helper.minespeakParser.forStmnt();
+        helper.walkTree(tree);
+
+        int actualIteratorType = helper.getEntryTypeAsInt(tree.body().scope, "i");
+        int expectedIteratorType = MinespeakParser.BOOL;
+
+        String actualIteratorName = helper.getEntryName(tree.body().scope, "i");
+        String expectedIteratorName = "i";
+
+        assertEquals(expectedIteratorType, actualIteratorType);
+        assertEquals(expectedIteratorName, actualIteratorName);
+    }
+
+    @Test
+    public void ForLoopBodyGetIterator() throws IOException {
+        helper.setupFromString("for var i: num = 0 until i < 10 where i += 1 do \n i = 1 \n endfor");
+        MinespeakParser.ForStmntContext tree = helper.minespeakParser.forStmnt();
+        helper.walkTree(tree);
+
+        int actualIteratorType = helper.getEntryTypeAsInt(tree.body().scope, "i");
+        int expectedIteratorType = MinespeakParser.NUM;
+
+        String actualIteratorName = helper.getEntryName(tree.body().scope, "i");
+        String expectedIteratorName = "i";
+
+        assertEquals(expectedIteratorType, actualIteratorType);
+        assertEquals(expectedIteratorName, actualIteratorName);
+    }
     //endregion
 
     //region Test of scope for foreach-loop iterator
