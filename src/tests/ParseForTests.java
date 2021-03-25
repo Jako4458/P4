@@ -19,7 +19,7 @@ public class ParseForTests {
     }
 
     /* wrong for-stmnt */
-    @RepeatedTest(3)
+    @RepeatedTest(4)
     void WrongForStmnt(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/stmnt/for_stmnt/for_stmnt_wrong" + rI.getCurrentRepetition() + ".ms");
         assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.forStmnt());

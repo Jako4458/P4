@@ -11,7 +11,7 @@ public class ParseLiteralTests {
     private TestHelper helper = new TestHelper();
 
     /* correct literal */
-    @RepeatedTest(12)
+    @RepeatedTest(14)
     void CorrectLiteral(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/literal/literal_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.literal());
@@ -19,9 +19,17 @@ public class ParseLiteralTests {
     }
 
     /* wrong literal */
-    @RepeatedTest(5)
+    @RepeatedTest(7)
     void WrongLiteral(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/literal/literal_wrong" + rI.getCurrentRepetition() + ".ms");
         assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.literal());
+    }
+
+    /* wrong only one literal */
+    @RepeatedTest(1)
+    void WrongOnlyOneLiteral(RepetitionInfo rI) throws IOException {
+        helper.setupFromFile("/parser/test/parser/literal/literal_one_wrong" + rI.getCurrentRepetition() + ".ms");
+        helper.minespeakParser.literal();
+        assertNotEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
 }
