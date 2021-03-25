@@ -110,7 +110,7 @@ public class ParseInstanTests {
     }
 
     /* wrong assign instan */
-    @RepeatedTest(4)
+    @RepeatedTest(2)
     void WrongArrayInstan(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/instan/instan_array_wrong" + rI.getCurrentRepetition() + ".ms");
         assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.instan());
