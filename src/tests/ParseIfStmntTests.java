@@ -13,7 +13,7 @@ public class ParseIfStmntTests {
     /* correct if-stmnt */
     @RepeatedTest(6)
     void CorrectAssign(RepetitionInfo rI) throws IOException {
-        helper.setupFromFile("/parser/test/parser/if_stmnt/if_stmnt_correct" + rI.getCurrentRepetition() + ".ms");
+        helper.setupFromFile("/parser/test/parser/stmnt/if_stmnt/if_stmnt_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.ifStmnt());
         assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
@@ -21,7 +21,7 @@ public class ParseIfStmntTests {
     /* wrong if-stmnt */
     @RepeatedTest(4)
     void WrongAssign(RepetitionInfo rI) throws IOException {
-        helper.setupFromFile("/parser/test/parser/if_stmnt/if_stmnt_wrong" + rI.getCurrentRepetition() + ".ms");
+        helper.setupFromFile("/parser/test/parser/stmnt/if_stmnt/if_stmnt_wrong" + rI.getCurrentRepetition() + ".ms");
         assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.ifStmnt());
     }
 }

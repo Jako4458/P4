@@ -13,7 +13,7 @@ public class ParseForeachTests {
     /* correct foreach-stmnt */
     @RepeatedTest(4)
     void CorrectForeachStmnt(RepetitionInfo rI) throws IOException {
-        helper.setupFromFile("/parser/test/parser/foreach_stmnt/foreach_stmnt_correct" + rI.getCurrentRepetition() + ".ms");
+        helper.setupFromFile("/parser/test/parser/stmnt/foreach_stmnt/foreach_stmnt_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.foreach());
         assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
@@ -21,7 +21,7 @@ public class ParseForeachTests {
     /* wrong foreach-stmnt */
     @RepeatedTest(2)
     void WrongForeachStmnt(RepetitionInfo rI) throws IOException {
-        helper.setupFromFile("/parser/test/parser/foreach_stmnt/foreach_stmnt_wrong" + rI.getCurrentRepetition() + ".ms");
+        helper.setupFromFile("/parser/test/parser/stmnt/foreach_stmnt/foreach_stmnt_wrong" + rI.getCurrentRepetition() + ".ms");
         assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.foreach());
     }
 }
