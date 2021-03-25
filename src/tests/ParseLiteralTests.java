@@ -12,7 +12,7 @@ public class ParseLiteralTests {
 
     /* correct literal dcl */
     @RepeatedTest(12)
-    void CorrectVarDcl(RepetitionInfo rI) throws IOException {
+    void CorrectLiteral(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/literal/literal_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.literal());
         assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
@@ -20,7 +20,7 @@ public class ParseLiteralTests {
 
     /* wrong var dcl */
     @RepeatedTest(4)
-    void WrongVarDcl(RepetitionInfo rI) throws IOException {
+    void WrongLiteral(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/literal/literal_wrong" + rI.getCurrentRepetition() + ".ms");
         assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.literal());
     }
