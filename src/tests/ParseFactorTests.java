@@ -17,4 +17,11 @@ public class ParseFactorTests {
         assertDoesNotThrow(() -> helper.minespeakParser.factor());
         assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
+
+    /* wrong factor */
+    @RepeatedTest(1)
+    void WrongFactor(RepetitionInfo rI) throws IOException {
+        helper.setupFromFile("/parser/test/parser/factor/factor_wrong" + rI.getCurrentRepetition() + ".ms");
+        assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.factor());
+    }
 }

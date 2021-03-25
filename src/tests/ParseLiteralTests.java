@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ParseLiteralTests {
     private TestHelper helper = new TestHelper();
 
-    /* correct literal dcl */
+    /* correct literal */
     @RepeatedTest(12)
     void CorrectLiteral(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/literal/literal_correct" + rI.getCurrentRepetition() + ".ms");
@@ -18,8 +18,8 @@ public class ParseLiteralTests {
         assertEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
     }
 
-    /* wrong var dcl */
-    @RepeatedTest(4)
+    /* wrong literal */
+    @RepeatedTest(5)
     void WrongLiteral(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/literal/literal_wrong" + rI.getCurrentRepetition() + ".ms");
         assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.literal());
