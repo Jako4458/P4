@@ -149,7 +149,7 @@ public class ScopeTests {
 
         assertEquals(1, Logger.shared.getLogs().size());
         assertEquals(LogType.ERROR, Logger.shared.getLogs().get(0).type);
-        assertEquals("Error at line 1: param1 has already been declared", Logger.shared.getLogs().get(0).message);
+        assertEquals("Error at line 1: variable param1 has already been declared", Logger.shared.getLogs().get(0).message);
     }
 
     @Test
@@ -160,7 +160,7 @@ public class ScopeTests {
 
         assertEquals(1, Logger.shared.getLogs().size());
         assertEquals(LogType.ERROR, Logger.shared.getLogs().get(0).type);
-        assertEquals("Error at line 3: n has already been declared", Logger.shared.getLogs().get(0).message);
+        assertEquals("Error at line 3: variable n has already been declared", Logger.shared.getLogs().get(0).message);
     }
     //endregion
 

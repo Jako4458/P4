@@ -21,4 +21,8 @@ public class EntryFactory {
     public void setMCFunction() {
         this.isMCFunction = true;
     }
+
+    public void resetMCFunction() {
+        this.isMCFunction = false;
+    }
 }
