@@ -256,10 +256,8 @@ VECTOR3: 'vector3';
 TRUE: 'true';
 FALSE: 'false';
 QUOTE: '"';
-ARRAY: '[]';
 LSQUARE: '[';
 RSQUARE: ']';
-
 
 RETARROW: '->';
 CONST: 'const';
