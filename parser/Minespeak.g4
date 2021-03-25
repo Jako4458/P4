@@ -175,6 +175,7 @@ returns [Type type]
         |  StringLiteral
         |  vector2Literal
         |  vector3Literal
+        |  rArray
         ;
 
 numberLiteral : DecimalDigit
