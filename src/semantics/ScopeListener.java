@@ -1,3 +1,7 @@
+import Logging.Logger;
+import Logging.VariableAlreadyDeclaredError;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.ArrayList;
@@ -35,10 +39,7 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitBlock(MinespeakParser.BlockContext ctx) {
-        if (!ctx.scope.isFunction() && ctx.scope.getParent() != null)
-            enterScope(ctx.scope);
-        else
-            throw new RuntimeException();
+        exitScope();
     }
 
     @Override
@@ -50,6 +51,7 @@ public class ScopeListener extends MinespeakBaseListener {
     public void enterFunc(MinespeakParser.FuncContext ctx) {
         ctx.scope = factory.createFuncScope(this.currentScope);
         enterScope(ctx.scope);
+
     }
 
     @Override
@@ -70,11 +72,8 @@ public class ScopeListener extends MinespeakBaseListener {
             paramIDs.add(entryFac.createFromType(paramName, paramType));
         }
 
-        this.currentScope.addVariable(name, entryFac.createFunctionEntry(name, ctx.type, paramIDs));
+        this.addToScope(ctx, name, entryFac.createFunctionEntry(name, ctx.type, paramIDs));
 
-        while (!this.currentScope.isFunction()) {
-            exitScope();
-        }
         exitScope();
     }
 
@@ -82,7 +81,7 @@ public class ScopeListener extends MinespeakBaseListener {
     public void exitParam(MinespeakParser.ParamContext ctx) {
         String name = ctx.ID().getText();
         ctx.type = ctx.primaryType().type;
-        this.currentScope.addVariable(name, entryFac.createFromType(name, ctx.type));
+        this.addToScope(ctx, name, entryFac.createFromType(name, ctx.type));
     }
 
     @Override
@@ -104,7 +103,7 @@ public class ScopeListener extends MinespeakBaseListener {
     @Override
     public void exitRetVal(MinespeakParser.RetValContext ctx) {
         ctx.type = ctx.expr().type;
-        this.currentScope.addVariable("return", entryFac.createFromType("return", ctx.type));
+        this.addToScope(ctx, "return", entryFac.createFromType("return", ctx.type));
     }
 
     @Override
@@ -136,7 +135,7 @@ public class ScopeListener extends MinespeakBaseListener {
 
         String name = ctx.ID().getText();
         Type type = ctx.primaryType().type;
-        ctx.scope.addVariable(name, entryFac.createFromType(name, type));
+        this.addToScope(ctx, name, entryFac.createFromType(name, type));
     }
 
     @Override
@@ -152,7 +151,7 @@ public class ScopeListener extends MinespeakBaseListener {
 
         for (MinespeakParser.AssignContext assign : assigns) {
             String name = assign.ID().getText();
-            ctx.scope.addVariable(name, entryFac.createForAssignEntry(name));
+            this.addToScope(ctx, name, entryFac.createForAssignEntry(name));
         }
     }
 
@@ -191,7 +190,7 @@ public class ScopeListener extends MinespeakBaseListener {
         for (int i = 0; i < dclsIDs.size(); i++) {
             String name = dclsIDs.get(i).getText();
             Type type = dclsTypes.get(i).type;
-            this.currentScope.addVariable(name, entryFac.createFromType(name, type));
+            this.addToScope(ctx, name, entryFac.createFromType(name, type));
         }
     }
 
@@ -203,7 +202,7 @@ public class ScopeListener extends MinespeakBaseListener {
         for (int i = 0; i < instanIDs.size(); i++) {
             String name = instanIDs.get(i).getText();
             Type type = instanTypes.get(i).type;
-            this.currentScope.addVariable(name, entryFac.createFromType(name, type));
+            this.addToScope(ctx, name, entryFac.createFromType(name, type));
         }
     }
 
@@ -259,5 +258,11 @@ public class ScopeListener extends MinespeakBaseListener {
 
     private void enterScope(Scope scope) {
         this.currentScope = scope;
+    }
+
+    private void addToScope(ParserRuleContext ctx, String key, SymEntry var) {
+        if (!this.currentScope.addVariable(key, var)) {
+            Logger.shared.add(new VariableAlreadyDeclaredError(key, ctx.start.getLine()));
+        }
     }
 }
