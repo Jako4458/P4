@@ -68,7 +68,12 @@ locals [Scope scope]
 
 foreach
 locals [Scope scope]
-        : FOREACH primaryType ID IN expr DO newlines body ENDFOR
+        : FOREACH foreachInit DO newlines body ENDFOR
+        ;
+
+foreachInit
+locals [Type type]
+        : primaryType ID IN expr
         ;
 
 forStmnt
