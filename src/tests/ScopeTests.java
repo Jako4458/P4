@@ -357,13 +357,155 @@ public class ScopeTests {
     //region Test of scope for do-while-loop body
     //endregion
 
-    //region Test of scope for if-stmnt condition
-    //endregion
-
     //region Test of scope for if-stmnt body
+    @Test
+    public void IfStmntBodyTestIfBody() {
+        helper.setupFromString("if true do \n var n: num \n endif");
+        MinespeakParser.IfStmntContext tree = helper.minespeakParser.ifStmnt();
+        helper.walkTree(tree);
+
+        int actualType = helper.getEntryTypeAsInt(tree.body(0).scope, "n");
+        String actualName = helper.getEntryName(tree.body(0).scope, "n");
+
+        assertEquals(Type.NUM, actualType);
+        assertEquals("n", actualName);
+    }
+
+    @Test
+    public void IfStmntBodyTestElifBody() {
+        helper.setupFromString("if false do \n elif true do \n var n: num \n endif");
+        MinespeakParser.IfStmntContext tree = helper.minespeakParser.ifStmnt();
+        helper.walkTree(tree);
+
+        int actualType = helper.getEntryTypeAsInt(tree.body(1).scope, "n");
+        String actualName = helper.getEntryName(tree.body(1).scope, "n");
+
+        assertEquals(Type.NUM, actualType);
+        assertEquals("n", actualName);
+    }
+
+    @Test
+    public void IfStmntBodyTestElseBody() {
+        helper.setupFromString("if true do \n else do \n var n: num \n endif");
+        MinespeakParser.IfStmntContext tree = helper.minespeakParser.ifStmnt();
+        helper.walkTree(tree);
+
+        int actualType = helper.getEntryTypeAsInt(tree.body(1).scope, "n");
+        String actualName = helper.getEntryName(tree.body(1).scope, "n");
+
+        assertEquals(Type.NUM, actualType);
+        assertEquals("n", actualName);
+    }
+
+    @Test
+    public void IfStmntBodyTestDifferentVariablesInDifferentBodies() {
+        helper.setupFromString("if true do \n var i: num \n elif true do \n var e: bool \n else do \n var s: block \n endif");
+        MinespeakParser.IfStmntContext tree = helper.minespeakParser.ifStmnt();
+        helper.walkTree(tree);
+
+        int actualType1 = helper.getEntryTypeAsInt(tree.body(0).scope, "i");
+        int actualType2 = helper.getEntryTypeAsInt(tree.body(1).scope, "e");
+        int actualType3 = helper.getEntryTypeAsInt(tree.body(2).scope, "s");
+        String actualName1 = helper.getEntryName(tree.body(0).scope, "i");
+        String actualName2 = helper.getEntryName(tree.body(1).scope, "e");
+        String actualName3 = helper.getEntryName(tree.body(2).scope, "s");
+
+        assertEquals(Type.NUM, actualType1);
+        assertEquals(Type.BOOL, actualType2);
+        assertEquals(Type.BLOCK, actualType3);
+        assertEquals("i", actualName1);
+        assertEquals("e", actualName2);
+        assertEquals("s", actualName3);
+    }
+
+    @Test
+    public void IfStmntBodyTestSameVariableInDifferentBodies() {
+        helper.setupFromString("if true do \n var i: num \n elif true do \n var i: bool \n else do \n var i: block \n endif");
+        MinespeakParser.IfStmntContext tree = helper.minespeakParser.ifStmnt();
+        helper.walkTree(tree);
+
+        int actualType1 = helper.getEntryTypeAsInt(tree.body(0).scope, "i");
+        int actualType2 = helper.getEntryTypeAsInt(tree.body(1).scope, "i");
+        int actualType3 = helper.getEntryTypeAsInt(tree.body(2).scope, "i");
+        String actualName1 = helper.getEntryName(tree.body(0).scope, "i");
+        String actualName2 = helper.getEntryName(tree.body(1).scope, "i");
+        String actualName3 = helper.getEntryName(tree.body(2).scope, "i");
+
+        assertEquals(Type.NUM, actualType1);
+        assertEquals(Type.BOOL, actualType2);
+        assertEquals(Type.BLOCK, actualType3);
+        assertEquals("i", actualName1);
+        assertEquals("i", actualName2);
+        assertEquals("i", actualName3);
+    }
     //endregion
 
     //region Test of scope for dcls
+    @Test
+    public void DclSingleNumInstan() {
+        helper.setupFromString("var i : num\n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        int actualType = helper.getEntryTypeAsInt(tree.scope, "i");
+        String actualName = helper.getEntryName(tree.scope, "i");
+
+        assertEquals(Type.NUM, actualType);
+        assertEquals("i", actualName);
+    }
+
+    @Test
+    public void DclMultipleInstansSameType() {
+        helper.setupFromString("var i : num, j : num\n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        int actualType1 = helper.getEntryTypeAsInt(tree.scope, "i");
+        int actualType2 = helper.getEntryTypeAsInt(tree.scope, "j");
+
+        String actualName1 = helper.getEntryName(tree.scope, "i");
+        String actualName2 = helper.getEntryName(tree.scope, "j");
+
+        assertEquals(Type.NUM, actualType1);
+        assertEquals(Type.NUM, actualType2);
+        assertEquals("i", actualName1);
+        assertEquals("j", actualName2);
+    }
+
+    @Test
+    public void DclMultipleInstansDifferentTypes() {
+        helper.setupFromString("var i : num, j : bool\n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        int actualType1 = helper.getEntryTypeAsInt(tree.scope, "i");
+        int actualType2 = helper.getEntryTypeAsInt(tree.scope, "j");
+
+        String actualName1 = helper.getEntryName(tree.scope, "i");
+        String actualName2 = helper.getEntryName(tree.scope, "j");
+
+        assertEquals(Type.NUM, actualType1);
+        assertEquals(Type.BOOL, actualType2);
+        assertEquals("i", actualName1);
+        assertEquals("j", actualName2);
+    }
+
+    @Test
+    public void DclMultipleInstansSameID() {
+        helper.setupFromString("var i : num, i : bool\n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        int actualType1 = helper.getEntryTypeAsInt(tree.scope, "i");
+        boolean duplicateExists = helper.entryExists(tree.scope, "j");
+
+        String actualName1 = helper.getEntryName(tree.scope, "i");
+
+        assertEquals(Type.NUM, actualType1);
+        assertEquals("i", actualName1);
+        assertFalse(duplicateExists);
+        assertTrue(Logger.shared.getLogs().get(0) instanceof VariableAlreadyDeclaredError);
+    }
     //endregion
 
     //region Test of scope for instantiations
