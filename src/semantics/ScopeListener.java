@@ -68,7 +68,7 @@ public class ScopeListener extends MinespeakBaseListener {
         else
             ctx.type = Type._void;
 
-        if (this.isInvalidFunc) {
+        if (this.isInvalidFunc || (ctx.type != Type._void && ctx.funcBody().retVal() == null) || (ctx.type != ctx.funcBody().retVal().type)) {
             this.isInvalidFunc = false;
             this.entryFac.resetMCFunction();
         } else {
