@@ -229,7 +229,6 @@ public class ScopeTests {
     }
     //endregion
 
-
     //region Test of scope for for-loop iterator
     @Test
     public void ForLoopIteratorIsInForLoopScope() {
@@ -310,15 +309,6 @@ public class ScopeTests {
 
     }
 
-    @Test
-    public void ForEachIteratorInScope() throws IOException {
-        helper.setupFromString("var some_array : num[] \n foreach num number in some_array do \n \n endfor\n");
-        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
-        helper.walkTree(tree);
-
-        assertEquals(1, Logger.shared.getLogs().size());
-        assertEquals(LogType.ERROR, Logger.shared.getLogs().get(0).type);
-    }
     //endregion
 
     //region Test of scope for foreach-loop body
@@ -354,6 +344,14 @@ public class ScopeTests {
         assertEquals(expectedIteratorName, actualIteratorName);
     }
 
+    @Test
+    public void ForEachBodyVarAlreadyDeclaredError() throws IOException {
+        helper.setupFromString("var some_array : num[] \n foreach num number in some_array do \n var test1:num = 0 \n var test1:num = 0 \n endfor\n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        assertTrue(Logger.shared.getLogs().get(0) instanceof VariableAlreadyDeclaredError);
+    }
     //endregion
 
     //region Test of scope for while-loop expression
@@ -376,12 +374,112 @@ public class ScopeTests {
     //endregion
 
     //region Test of scope for while-loop body
+    @Test
+    public void WhileLoopVarInBody() {
+        helper.setupFromString("var flag : bool = true \n while flag do \n \n endwhile\n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        int actualIteratorType = helper.getEntryTypeAsInt(tree.stmnts().stmnt(1).loop().whileStmnt().body().scope, "flag");
+        int expectedIteratorType = MinespeakParser.BOOL;
+
+        String actualIteratorName = helper.getEntryName(tree.stmnts().stmnt(1).loop().whileStmnt().body().scope, "flag");
+        String expectedIteratorName = "flag";
+
+        assertEquals(expectedIteratorType, actualIteratorType);
+        assertEquals(expectedIteratorName, actualIteratorName);
+    }
+
+    @Test
+    public void WhileLoopVarNameInBody() {
+        helper.setupFromString("var flag : bool = true \n while flag do \n var flag : num = 1 \n endwhile\n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        int actualIteratorType = helper.getEntryTypeAsInt(tree.stmnts().stmnt(1).loop().whileStmnt().body().scope, "flag");
+        int expectedIteratorType = MinespeakParser.NUM;
+
+        String actualIteratorName = helper.getEntryName(tree.stmnts().stmnt(1).loop().whileStmnt().body().scope, "flag");
+        String expectedIteratorName = "flag";
+
+        assertEquals(expectedIteratorType, actualIteratorType);
+        assertEquals(expectedIteratorName, actualIteratorName);
+    }
+
+    @Test
+    public void WhileBodyVarAlreadyDeclaredError() throws IOException {
+        helper.setupFromString("var flag : bool = true \n while flag do \n var flag : num = 1 \n var flag : num = 5 \n endwhile\n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        assertTrue(Logger.shared.getLogs().get(0) instanceof VariableAlreadyDeclaredError);
+    }
+
     //endregion
 
     //region Test of scope for do-while-loop expression
+    @Test
+    public void DoWhileLoopVarInLoopScope() {
+        helper.setupFromString("var flag : bool = true \n do /*statements*/ \n while flag endwhile\n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        int actualIteratorType = helper.getEntryTypeAsInt(tree.stmnts().stmnt(1).loop().doWhile().scope, "flag");
+        int expectedIteratorType = MinespeakParser.BOOL;
+
+        String actualIteratorName = helper.getEntryName(tree.stmnts().stmnt(1).loop().doWhile().scope, "flag");
+        String expectedIteratorName = "flag";
+
+        assertEquals(expectedIteratorType, actualIteratorType);
+        assertEquals(expectedIteratorName, actualIteratorName);
+    }
+
+
+
     //endregion
 
     //region Test of scope for do-while-loop body
+    @Test
+    public void DoWhileLoopVarNameInBody() {
+        helper.setupFromString("var flag : bool = true \n do \n var flag : num = 5 \n while flag endwhile\n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        int actualIteratorType = helper.getEntryTypeAsInt(tree.stmnts().stmnt(1).loop().doWhile().body().scope, "flag");
+        int expectedIteratorType = MinespeakParser.NUM;
+
+        String actualIteratorName = helper.getEntryName(tree.stmnts().stmnt(1).loop().doWhile().body().scope, "flag");
+        String expectedIteratorName = "flag";
+
+        assertEquals(expectedIteratorType, actualIteratorType);
+        assertEquals(expectedIteratorName, actualIteratorName);
+    }
+
+    @Test
+    public void DoWhileLoopVarNotFromBody() {
+        helper.setupFromString("var flag : bool = true \n do \n var flag : num = 5 \n while flag endwhile\n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        int actualIteratorType = helper.getEntryTypeAsInt(tree.stmnts().stmnt(1).loop().doWhile().scope, "flag");
+        int expectedIteratorType = MinespeakParser.BOOL;
+
+        String actualIteratorName = helper.getEntryName(tree.stmnts().stmnt(1).loop().doWhile().scope, "flag");
+        String expectedIteratorName = "flag";
+
+        assertEquals(expectedIteratorType, actualIteratorType);
+        assertEquals(expectedIteratorName, actualIteratorName);
+    }
+
+    @Test
+    public void DoWhileBodyVarAlreadyDeclaredError() {
+        helper.setupFromString("var flag : bool = true \n do \n var flag : num = 5 \n var flag : num = 10 \n while flag endwhile\n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        assertTrue(Logger.shared.getLogs().get(0) instanceof VariableAlreadyDeclaredError);
+    }
+
     //endregion
 
     //region Test of scope for if-stmnt condition
