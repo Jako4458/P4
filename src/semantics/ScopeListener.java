@@ -134,10 +134,14 @@ public class ScopeListener extends MinespeakBaseListener {
     public void enterForeach(MinespeakParser.ForeachContext ctx) {
         ctx.scope = factory.createScope(this.currentScope);
         enterScope(ctx.scope);
+    }
 
+    @Override
+    public void exitForeachInit(MinespeakParser.ForeachInitContext ctx) {
         String name = ctx.ID().getText();
         Type type = ctx.primaryType().type;
         this.addToScope(ctx, name, entryFac.createFromType(name, type));
+        ctx.type = type;
     }
 
     @Override
