@@ -1,0 +1,1 @@
+const a:num = 2, b:num = 2

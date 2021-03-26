@@ -1,0 +1,1 @@
+var a:num, var b:num

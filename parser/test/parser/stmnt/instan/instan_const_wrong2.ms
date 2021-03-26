@@ -1,0 +1,1 @@
+const a:num = 3, var b:num = 2
