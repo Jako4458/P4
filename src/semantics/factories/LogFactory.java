@@ -8,9 +8,15 @@ public class LogFactory {
     }
 
     public Log createTypeError(String text, ParserRuleContext ctx, Type actual, Type expected) {
-        return new TypeErrorLog(text, ctx.start.getLine(), ctx.start.getCharPositionInLine(),
+        return new TypeError(text, ctx.start.getLine(), ctx.start.getCharPositionInLine(),
                 ((TerminalNodeImpl)actual.tree).symbol.getText(),
                 ((TerminalNodeImpl)expected.tree).symbol.getText()
+        );
+    }
+
+    public Log createMissingReturnError(String text, ParserRuleContext ctx, Type actual) {
+        return new MissingReturnError(text, ctx.start.getLine(), ctx.start.getCharPositionInLine(),
+                ((TerminalNodeImpl)actual.tree).symbol.getText()
         );
     }
 

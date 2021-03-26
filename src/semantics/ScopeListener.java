@@ -72,9 +72,12 @@ public class ScopeListener extends MinespeakBaseListener {
             this.isInvalidFunc = false;
             this.entryFac.resetMCFunction();
             if (ctx.type != Type._void && ctx.funcBody().retVal() == null) {
-                Logger.shared.add(logFac.createTypeError(ctx.ID().getText(), ctx, ctx.type, Type._void));
+                Logger.shared.add(logFac.createMissingReturnError(ctx.ID().getText(), ctx, ctx.type));
             } else if (ctx.type != ctx.funcBody().retVal().type) {
-                Logger.shared.add(logFac.createTypeError(ctx.funcBody().retVal().expr().getText(), ctx.funcBody().retVal(), ctx.type, ctx.funcBody().retVal().type));
+                Logger.shared.add(logFac.createTypeError(ctx.funcBody().retVal().expr().getText(),
+                        ctx.funcBody().retVal().expr(),
+                        ctx.funcBody().retVal().type,
+                        ctx.type));
             }
         } else {
             List<SimpleEntry> paramIDs = new ArrayList<>();

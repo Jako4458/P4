@@ -1,10 +1,10 @@
 package Logging;
 
-public class TypeErrorLog extends ErrorLog {
+public class TypeError extends ErrorLog {
     private String actualType;
     private String expectedType;
 
-    public TypeErrorLog(String errorText, int lineNum, int characterIndex, String actualType, String expectedType) {
+    public TypeError(String errorText, int lineNum, int characterIndex, String actualType, String expectedType) {
         super(errorText, lineNum, characterIndex);
         this.actualType = actualType;
         this.expectedType = expectedType;
