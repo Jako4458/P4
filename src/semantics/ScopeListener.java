@@ -124,6 +124,9 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitDoWhile(MinespeakParser.DoWhileContext ctx) {
+        if(ctx.expr().type != Type._bool){
+            Logger.shared.add(logFac.createTypeError(ctx.expr().getText(), ctx, ctx.expr().type, Type._bool));
+        }
         exitScope();
     }
 
