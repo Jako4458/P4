@@ -299,9 +299,57 @@ public class ScopeTests {
     //endregion
 
     //region Test of scope for foreach-loop iterator
+    @Test
+    public void ForEachIteratorInScope() throws IOException {
+        helper.setupFromString("var some_array : num[] \n foreach num number in some_array do \n \n endfor\n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        int actualIteratorType = helper.getEntryTypeAsInt(tree.stmnts().stmnt(1).loop().foreach().scope, "number");
+        int expectedIteratorType = MinespeakParser.NUM;
+
+        String actualIteratorName = helper.getEntryName(tree.stmnts().stmnt(1).loop().foreach().scope, "number");
+        String expectedIteratorName = "number";
+
+        assertEquals(expectedIteratorType, actualIteratorType);
+        assertEquals(expectedIteratorName, actualIteratorName);
+    }
+
     //endregion
 
     //region Test of scope for foreach-loop body
+    @Test
+    public void ForEachLoopVarInBody() throws IOException {
+        helper.setupFromString("var some_array : num[] \n foreach num number in some_array do \n \n endfor\n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        int actualIteratorType = helper.getEntryTypeAsInt(tree.stmnts().stmnt(1).loop().foreach().body().scope, "number");
+        int expectedIteratorType = MinespeakParser.NUM;
+
+        String actualIteratorName = helper.getEntryName(tree.stmnts().stmnt(1).loop().foreach().body().scope, "number");
+        String expectedIteratorName = "number";
+
+        assertEquals(expectedIteratorType, actualIteratorType);
+        assertEquals(expectedIteratorName, actualIteratorName);
+    }
+
+    @Test
+    public void ForEachLoopSameLoopVarNameInBody() throws IOException {
+        helper.setupFromString("var some_array : num[] \n foreach num number in some_array do \n var number : bool = 5 \n endfor\n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        int actualIteratorType = helper.getEntryTypeAsInt(tree.stmnts().stmnt(1).loop().foreach().body().scope, "number");
+        int expectedIteratorType = MinespeakParser.BOOL;
+
+        String actualIteratorName = helper.getEntryName(tree.stmnts().stmnt(1).loop().foreach().body().scope, "number");
+        String expectedIteratorName = "number";
+
+        assertEquals(expectedIteratorType, actualIteratorType);
+        assertEquals(expectedIteratorName, actualIteratorName);
+    }
+
     //endregion
 
     //region Test of scope for while-loop expression
