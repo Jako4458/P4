@@ -230,8 +230,10 @@ public class ScopeListener extends MinespeakBaseListener {
             ctx.type = Type._vector2;
         else if (ctx.VECTOR3() != null)
             ctx.type = Type._vector3;
-        else
+        else {
             ctx.type = Type._error;
+            Logger.shared.add(new InvalidTypeError(ctx.getText(), ctx.start.getLine()));
+        }
     }
 
     private void exitScope() {
