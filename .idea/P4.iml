@@ -8,6 +8,10 @@
       <sourceFolder url="file://$MODULE_DIR$/parser/gen" isTestSource="false" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/semantics" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/semantics/factories" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/semantics/utils" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/tests/ParserTest" isTestSource="true" />
     </content>
     <orderEntry type="jdk" jdkName="15" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />

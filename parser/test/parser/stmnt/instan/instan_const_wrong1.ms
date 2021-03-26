@@ -1,0 +1,1 @@
+const a:num = 3, const b:num = 43
