@@ -1,2 +1,2 @@
-while 1 == 2 do
-endwhile
+do
+while 1 == 2 endwhile
