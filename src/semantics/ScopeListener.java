@@ -65,7 +65,10 @@ public class ScopeListener extends MinespeakBaseListener {
             this.entryFac.resetMCFunction();
         } else {
             String name = ctx.ID().getText();
-            ctx.type = ctx.primaryType().type;
+            if (ctx.primaryType() != null)
+                ctx.type = ctx.primaryType().type;
+            else
+                ctx.type = Type._void;
 
             List<SimpleEntry> paramIDs = new ArrayList<>();
 
@@ -278,5 +281,9 @@ public class ScopeListener extends MinespeakBaseListener {
             Type type = types.get(i).type;
             this.addToScope(ctx, name, entryFac.createFromType(name, type));
         }
+    }
+
+    private void resetFunctions() {
+        functions.clear();
     }
 }
