@@ -2,6 +2,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import Logging.LogType;
 import Logging.Logger;
+import Logging.VariableAlreadyDeclaredError;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -142,7 +143,7 @@ public class ScopeTests {
 
         assertEquals(1, Logger.shared.getLogs().size());
         assertEquals(LogType.ERROR, Logger.shared.getLogs().get(0).type);
-        assertEquals("Error at line 1: variable param1 has already been declared", Logger.shared.getLogs().get(0).message);
+        assertTrue(Logger.shared.getLogs().get(0) instanceof VariableAlreadyDeclaredError);
     }
 
     @Test
@@ -153,7 +154,7 @@ public class ScopeTests {
 
         assertEquals(1, Logger.shared.getLogs().size());
         assertEquals(LogType.ERROR, Logger.shared.getLogs().get(0).type);
-        assertEquals("Error at line 3: variable n has already been declared", Logger.shared.getLogs().get(0).message);
+        assertTrue(Logger.shared.getLogs().get(0) instanceof VariableAlreadyDeclaredError);
     }
     //endregion
 
@@ -254,15 +255,7 @@ public class ScopeTests {
         MinespeakParser.ForStmntContext tree = helper.minespeakParser.forStmnt();
         helper.walkTree(tree);
 
-        int actualIteratorType = helper.getEntryTypeAsInt(tree.scope, "i");
-        int expectedIteratorType = MinespeakParser.NUM;
-
-        String actualIteratorName = helper.getEntryName(tree.body().scope, "i");
-        String expectedIteratorName = "i";
-
-
-        assertEquals(1, Logger.shared.getLogs().size());
-        assertEquals(LogType.ERROR, Logger.shared.getLogs().get(0).type);
+        assertTrue(Logger.shared.getLogs().get(0) instanceof VariableAlreadyDeclaredError);
     }
 
     @Test
@@ -437,9 +430,7 @@ public class ScopeTests {
         assertEquals(Type.NUM, actualType1);
         assertEquals("i", actualName1);
         assertFalse(duplicateExists);
-
+        assertTrue(Logger.shared.getLogs().get(0) instanceof VariableAlreadyDeclaredError);
     }
-
-
     //endregion
 }
