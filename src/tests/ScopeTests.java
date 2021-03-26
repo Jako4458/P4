@@ -326,5 +326,72 @@ public class ScopeTests {
     //endregion
 
     //region Test of scope for instantiations
+    @Test
+    public void InstanSingleNumInstan() {
+        helper.setupFromString("var i : num = 1\n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        int actualType = helper.getEntryTypeAsInt(tree.scope, "i");
+        String actualName = helper.getEntryName(tree.scope, "i");
+
+        assertEquals(Type.NUM, actualType);
+        assertEquals("i", actualName);
+    }
+
+    @Test
+    public void InstanMultipleInstansSameType() {
+        helper.setupFromString("var i : num = 1, j : num = 2\n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        int actualType1 = helper.getEntryTypeAsInt(tree.scope, "i");
+        int actualType2 = helper.getEntryTypeAsInt(tree.scope, "j");
+
+        String actualName1 = helper.getEntryName(tree.scope, "i");
+        String actualName2 = helper.getEntryName(tree.scope, "j");
+
+        assertEquals(Type.NUM, actualType1);
+        assertEquals(Type.NUM, actualType2);
+        assertEquals("i", actualName1);
+        assertEquals("j", actualName2);
+    }
+
+    @Test
+    public void InstanMultipleInstansDifferentTypes() {
+        helper.setupFromString("var i : num = 1, j : bool = 2\n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        int actualType1 = helper.getEntryTypeAsInt(tree.scope, "i");
+        int actualType2 = helper.getEntryTypeAsInt(tree.scope, "j");
+
+        String actualName1 = helper.getEntryName(tree.scope, "i");
+        String actualName2 = helper.getEntryName(tree.scope, "j");
+
+        assertEquals(Type.NUM, actualType1);
+        assertEquals(Type.BOOL, actualType2);
+        assertEquals("i", actualName1);
+        assertEquals("j", actualName2);
+    }
+
+    @Test
+    public void InstanMultipleInstansSameID() {
+        helper.setupFromString("var i : num = 1, i : bool = 2\n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        int actualType1 = helper.getEntryTypeAsInt(tree.scope, "i");
+        boolean duplicateExists = helper.entryExists(tree.scope, "j");
+
+        String actualName1 = helper.getEntryName(tree.scope, "i");
+
+        assertEquals(Type.NUM, actualType1);
+        assertEquals("i", actualName1);
+        assertFalse(duplicateExists);
+
+    }
+
+
     //endregion
 }

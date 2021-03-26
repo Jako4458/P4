@@ -42,6 +42,10 @@ public class TestHelper {
         return ((TerminalNodeImpl)scope.lookup(id).getType().tree).symbol.getType();
     }
 
+    public boolean entryExists(Scope scope, String id) {
+        return scope.lookup(id) != null;
+    }
+
     public void walkTree(ParseTree tree) {
         ScopeListener listener = new ScopeListener();
         ParseTreeWalker.DEFAULT.walk(listener, tree);
