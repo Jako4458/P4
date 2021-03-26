@@ -134,6 +134,10 @@ public class Type {
         for (int type : vectorTypes) {
             resultTypes.put(opKey(NUM, MinespeakParser.TIMES, type), type);
             resultTypes.put(opKey(type, MinespeakParser.TIMES, NUM), type);
+
+            // Division by scalar (illegal)
+            //resultTypes.put(opKey(NUM, MinespeakParser.DIV, type), type);
+            //resultTypes.put(opKey(type, MinespeakParser.DIV, NUM), type);
         }
 
         // String concatenation with +
