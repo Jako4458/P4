@@ -6,11 +6,11 @@ package Logging;
 public class ErrorLog extends Log {
     private int line;
     private int characterIndex;
-    private String name;
+    protected String text;
 
-    public ErrorLog(String name, int line, int characterIndex) {
+    public ErrorLog(String text, int line, int characterIndex) {
         super(LogType.ERROR);
-        this.name = name;
+        this.text = text;
         this.line = line;
         this.characterIndex = characterIndex;
     }
@@ -23,7 +23,7 @@ public class ErrorLog extends Log {
         return this.characterIndex;
     }
 
-    public String getName() {
-        return this.name;
+    public String getText() {
+        return this.text;
     }
 }

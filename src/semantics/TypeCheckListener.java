@@ -109,7 +109,7 @@ public class TypeCheckListener extends MinespeakBaseListener {
         //log error
     }
 
-    @Override
+    /*@Override
     public void exitDoWhile(MinespeakParser.DoWhileContext ctx) {
         if(ctx.expr().type != Type._bool){
             Logger.shared.add(new TypeErrorLog("expression error: '" + ctx.expr().getText() + "' is not a boolean expression"));
@@ -125,16 +125,16 @@ public class TypeCheckListener extends MinespeakBaseListener {
 
     @Override
     public void exitForStmnt(MinespeakParser.ForStmntContext ctx) {
-        /*if(ctx.assign().type != Type._num){
+        if(ctx.assign().type != Type._num){
             Logger.shared.add(new TypeWarningLog("expression error: '" + ctx.expr().getText() + "' is not a number"));
-        }*/
+        }
 
         if(ctx.expr().type != Type._bool){
             Logger.shared.add(new TypeErrorLog("expression error: '" + ctx.expr().getText() + "' is not a boolean expression"));
         }
 
         System.out.println(ctx.getText());
-    }
+    }*/
 
     /*@Override
     public void exitForeach(MinespeakParser.ForeachContext ctx) {

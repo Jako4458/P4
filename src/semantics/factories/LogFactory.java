@@ -7,8 +7,8 @@ public class LogFactory {
         return new VariableAlreadyDeclaredError(name, ctx.start.getLine(), ctx.start.getCharPositionInLine());
     }
 
-    public Log createTypeError(String name, ParserRuleContext ctx, Type actual, Type expected) {
-        return new TypeErrorLog(name, ctx.start.getLine(), ctx.start.getCharPositionInLine(),
+    public Log createTypeError(String text, ParserRuleContext ctx, Type actual, Type expected) {
+        return new TypeErrorLog(text, ctx.start.getLine(), ctx.start.getCharPositionInLine(),
                 ((TerminalNodeImpl)actual.tree).symbol.getText(),
                 ((TerminalNodeImpl)expected.tree).symbol.getText()
         );

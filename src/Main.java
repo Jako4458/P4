@@ -1,3 +1,4 @@
+import Logging.Logger;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -8,11 +9,13 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        String testString = "minespeak \n func Test(param1 : num) -> num do \n var n : num = 5 \n if true do \n n = 2 \n else do \n n = 3 \n endif \n endfunc \n\n\n\n closespeak";
-        testString = "minespeak \n func Test(param1 : num) -> num do \n var n : num = 5 \n if false do \n var b: num = 1 \n else do \n var a: num = 2 \n endif \n endfunc \n\n\n\n closespeak";
+        //String testString = "minespeak \n func Test(param1 : num) -> num do \n var n : num = 5 \n if true do \n n = 2 \n else do \n n = 3 \n endif \n endfunc \n\n\n\n closespeak";
+        //testString = "minespeak \n func Test(param1 : num) -> num do \n var n : num = 5 \n if false do \n var b: num = 1 \n else do \n var a: num = 2 \n endif \n endfunc \n\n\n\n closespeak";
         //testString = "minespeak \n func Test(param1 : num) -> num do \n var n : bool = true \n \n endfunc \n\n\n\n closespeak";
 
-        CharStream charStream = CharStreams.fromString(testString);
+        CharStream charStream = CharStreams.fromFileName("F:\\git_projects\\P4\\src\\testString.ms");
+
+        //CharStream charStream = CharStreams.fromString(testString);
 
         MinespeakLexer minespeakLexer = new MinespeakLexer(charStream);
         CommonTokenStream commonTokenStream = new CommonTokenStream(minespeakLexer);
@@ -25,9 +28,11 @@ public class Main {
         ScopeListener listener = new ScopeListener();
         ParseTreeWalker.DEFAULT.walk(listener, tree);
 
-        System.out.println(tree);
+        Logger.shared.print();
 
-        System.out.println(Type.resultTypes);
+//        System.out.println(tree);
+//
+//        System.out.println(Type.resultTypes);
 
         /*Scope scope = new Scope();
         ScopeVisitorDepre visitor = new ScopeVisitorDepre(scope);
