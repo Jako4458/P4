@@ -62,16 +62,16 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitFunc(MinespeakParser.FuncContext ctx) {
+        String name = ctx.ID().getText();
+        if (ctx.primaryType() != null)
+            ctx.type = ctx.primaryType().type;
+        else
+            ctx.type = Type._void;
+
         if (this.isInvalidFunc) {
             this.isInvalidFunc = false;
             this.entryFac.resetMCFunction();
         } else {
-            String name = ctx.ID().getText();
-            if (ctx.primaryType() != null)
-                ctx.type = ctx.primaryType().type;
-            else
-                ctx.type = Type._void;
-
             List<SimpleEntry> paramIDs = new ArrayList<>();
 
             for (MinespeakParser.ParamContext param : ctx.params().param()) {
@@ -83,9 +83,9 @@ public class ScopeListener extends MinespeakBaseListener {
             FuncEntry entry = entryFac.createFunctionEntry(name, ctx.type, paramIDs);
             this.addToScope(ctx, name, entry);
             this.functions.put(name, entry);
-
-            exitScope();
         }
+
+        exitScope();
     }
 
     @Override
@@ -111,9 +111,9 @@ public class ScopeListener extends MinespeakBaseListener {
     public void exitRetVal(MinespeakParser.RetValContext ctx) {
         ctx.type = ctx.expr().type;
         this.addToScope(ctx, "return", entryFac.createFromType("return", ctx.type));
-        if (ctx.type != ((MinespeakParser.FuncContext)ctx.parent.parent).type) {
-            Logger.shared.add(logFac.createTypeError("return", ctx, ctx.type, ((MinespeakParser.FuncContext)ctx.parent.parent).type));
-        }
+//        if (ctx.type != ((MinespeakParser.FuncContext)ctx.parent.parent).type) {
+//            Logger.shared.add(logFac.createTypeError("return", ctx, ctx.type, ((MinespeakParser.FuncContext)ctx.parent.parent).type));
+//        }
     }
 
     @Override
@@ -125,8 +125,9 @@ public class ScopeListener extends MinespeakBaseListener {
     @Override
     public void exitDoWhile(MinespeakParser.DoWhileContext ctx) {
         if(ctx.expr().type != Type._bool){
-            Logger.shared.add(logFac.createTypeError(ctx.expr().getText(), ctx, ctx.expr().type, Type._bool));
+            Logger.shared.add(logFac.createTypeError(ctx.expr().getText(), ctx.expr(), ctx.expr().type, Type._bool));
         }
+        System.out.println(ctx.getSourceInterval().b);
         exitScope();
     }
 

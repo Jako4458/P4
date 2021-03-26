@@ -4,7 +4,7 @@ import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 
 public class LogFactory {
     public Log createDuplicateVarLog(String name, ParserRuleContext ctx) {
-        return new VariableAlreadyDeclaredError(name, ctx.start.getLine(), ctx.start.getCharPositionInLine());
+        return null;//return new VariableAlreadyDeclaredError(name, ctx.start.getLine(), ctx.start.getCharPositionInLine());
     }
 
     public Log createTypeError(String text, ParserRuleContext ctx, Type actual, Type expected) {
@@ -15,10 +15,10 @@ public class LogFactory {
     }
 
     public Log createNotDeclaredLog(String name, ParserRuleContext ctx) {
-        return new VariableNotDeclaredError(name, ctx.start.getLine(), ctx.start.getCharPositionInLine());
+        return null;//return new VariableNotDeclaredError(name, ctx.start.getLine(), ctx.start.getCharPositionInLine());
     }
 
     public Log createVarNotArrayLog(String name, ParserRuleContext ctx) {
-        return new VariableIsNotArrayError(name, ctx.start.getLine(), ctx.start.getCharPositionInLine());
+        return null;//return new VariableIsNotArrayError(name, ctx.start.getLine(), ctx.start.getCharPositionInLine());
     }
 }

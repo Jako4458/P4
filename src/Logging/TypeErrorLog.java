@@ -4,14 +4,14 @@ public class TypeErrorLog extends ErrorLog {
     private String actualType;
     private String expectedType;
 
-    public TypeErrorLog(String text, int line, int characterIndex, String actualType, String expectedType) {
-        super(text, line, characterIndex);
+    public TypeErrorLog(String errorText, int lineNum, int characterIndex, String actualType, String expectedType) {
+        super(errorText, lineNum, characterIndex);
         this.actualType = actualType;
         this.expectedType = expectedType;
     }
 
     @Override
     public String toString() {
-        return String.format("TypeError: %s has type %s. Expected %s.", text, expectedType, actualType) ;
+        return String.format("TypeError: %s has type %s. Expected %s.", this.getText(), actualType, expectedType) ;
     }
 }

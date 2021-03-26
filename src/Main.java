@@ -17,6 +17,8 @@ public class Main {
 
         //CharStream charStream = CharStreams.fromString(testString);
 
+        Logger.shared.setSourceProg(charStream.toString().split(System.getProperty("line.separator")));
+
         MinespeakLexer minespeakLexer = new MinespeakLexer(charStream);
         CommonTokenStream commonTokenStream = new CommonTokenStream(minespeakLexer);
 
@@ -29,7 +31,7 @@ public class Main {
         ParseTreeWalker.DEFAULT.walk(listener, tree);
 
         Logger.shared.print();
-
+        //System.out.println(commonTokenStream.get(25, 29));
 //        System.out.println(tree);
 //
 //        System.out.println(Type.resultTypes);

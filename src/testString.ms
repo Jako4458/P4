@@ -1,11 +1,13 @@
 minespeak
 
-func Test(param1:num) do
+func Test(param1:num) -> num do
 
     do
-        var n : num = 2 + 3
-    while 2+2 endwhile
-    
+    var n : num = 2 + 3
+
+while 2+2             endwhile
+
+    return 1
     /*
     for var gamer : num = 0 until gamer > 10 where gamer += 1 do
         var n : num = 2 + 3
