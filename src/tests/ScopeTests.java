@@ -17,7 +17,7 @@ public class ScopeTests {
 
     //region Test of scope for func parameters
     @Test
-    public void FuncParameterNum() throws IOException {
+    public void FuncParameterNum() {
         helper.setupFromString("func Test(param1: num) do\n endfunc\n");
         MinespeakParser.FuncContext tree = helper.minespeakParser.func();
         helper.walkTree(tree);
@@ -33,7 +33,7 @@ public class ScopeTests {
     }
 
     @Test
-    public void FuncParameterBlock() throws IOException {
+    public void FuncParameterBlock() {
         helper.setupFromString("func Test(param1: block) do\n endfunc\n");
         MinespeakParser.FuncContext tree = helper.minespeakParser.func();
         helper.walkTree(tree);
@@ -49,7 +49,7 @@ public class ScopeTests {
     }
 
     @Test
-    public void FuncParameterString() throws IOException {
+    public void FuncParameterString() {
         helper.setupFromString("func Test(param1: string) do\n endfunc\n");
         MinespeakParser.FuncContext tree = helper.minespeakParser.func();
         helper.walkTree(tree);
@@ -65,7 +65,7 @@ public class ScopeTests {
     }
 
     @Test
-    public void FuncParameterBoolean() throws IOException {
+    public void FuncParameterBoolean() {
         helper.setupFromString("func Test(param1: bool) do\n endfunc\n");
         MinespeakParser.FuncContext tree = helper.minespeakParser.func();
         helper.walkTree(tree);
@@ -81,7 +81,7 @@ public class ScopeTests {
     }
 
     @Test
-    public void FuncParameterVector2() throws IOException {
+    public void FuncParameterVector2() {
         helper.setupFromString("func Test(param1: vector2) do\n endfunc\n");
         MinespeakParser.FuncContext tree = helper.minespeakParser.func();
         helper.walkTree(tree);
@@ -97,7 +97,7 @@ public class ScopeTests {
     }
 
     @Test
-    public void FuncParameterVector3() throws IOException {
+    public void FuncParameterVector3() {
         helper.setupFromString("func Test(param1: vector3) do\n endfunc\n");
         MinespeakParser.FuncContext tree = helper.minespeakParser.func();
         helper.walkTree(tree);
@@ -113,7 +113,7 @@ public class ScopeTests {
     }
 
     @Test
-    public void FuncParameterMultiples() throws IOException {
+    public void FuncParameterMultiples() {
         helper.setupFromString("func Test(param1: vector3, param2: num) do\n endfunc\n");
         MinespeakParser.FuncContext tree = helper.minespeakParser.func();
         helper.walkTree(tree);
@@ -135,7 +135,7 @@ public class ScopeTests {
     }
 
     @Test
-    public void FuncParameterNameClash() throws IOException {
+    public void FuncParameterNameClash() {
         helper.setupFromString("func Test(param1: num, param1: num) do\n endfunc\n");
         MinespeakParser.FuncContext tree = helper.minespeakParser.func();
         helper.walkTree(tree);
@@ -146,7 +146,7 @@ public class ScopeTests {
     }
 
     @Test
-    public void FuncBodyVariablesNameClash() throws IOException {
+    public void FuncBodyVariablesNameClash() {
         helper.setupFromString("func Test() do\n var n: num \n var n: num \n endfunc\n");
         MinespeakParser.FuncContext tree = helper.minespeakParser.func();
         helper.walkTree(tree);
@@ -159,7 +159,7 @@ public class ScopeTests {
 
     //region Test of scope for func body
     @Test
-    public void FuncBodyOneVariableNum() throws IOException {
+    public void FuncBodyOneVariableNum() {
         helper.setupFromString("func Test(param1: num) do\n var n: num \n endfunc\n");
         MinespeakParser.FuncContext tree = helper.minespeakParser.func();
         helper.walkTree(tree);
@@ -175,7 +175,7 @@ public class ScopeTests {
     }
 
     @Test
-    public void FuncBodyMultipleVariables() throws IOException {
+    public void FuncBodyMultipleVariables() {
         helper.setupFromString("func Test(param1: num) do\n var n: num \n var b: block \n var s: string \n endfunc\n");
         MinespeakParser.FuncContext tree = helper.minespeakParser.func();
         helper.walkTree(tree);
@@ -203,7 +203,7 @@ public class ScopeTests {
     }
 
     @Test
-    public void FuncBodyVariableSameNameAsParameter() throws IOException {
+    public void FuncBodyVariableSameNameAsParameter() {
         helper.setupFromString("func Test(param1: num) do\n var param1: bool \n endfunc\n");
         MinespeakParser.FuncContext tree = helper.minespeakParser.func();
         helper.walkTree(tree);
@@ -231,7 +231,7 @@ public class ScopeTests {
 
     //region Test of scope for for-loop iterator
     @Test
-    public void ForLoopIteratorIsInForLoopScope() throws IOException {
+    public void ForLoopIteratorIsInForLoopScope() {
         helper.setupFromString("for var i: num = 0 until i < 10 where i += 1 do \n var i : bool = true \n endfor");
         MinespeakParser.ForStmntContext tree = helper.minespeakParser.forStmnt();
         helper.walkTree(tree);
@@ -313,8 +313,19 @@ public class ScopeTests {
 
         assertEquals(expectedIteratorType, actualIteratorType);
         assertEquals(expectedIteratorName, actualIteratorName);
+
+
     }
 
+    @Test
+    public void ForEachIteratorInScope() throws IOException {
+        helper.setupFromString("var some_array : num[] \n foreach num number in some_array do \n \n endfor\n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        assertEquals(1, Logger.shared.getLogs().size());
+        assertEquals(LogType.ERROR, Logger.shared.getLogs().get(0).type);
+    }
     //endregion
 
     //region Test of scope for foreach-loop body
@@ -353,6 +364,22 @@ public class ScopeTests {
     //endregion
 
     //region Test of scope for while-loop expression
+    @Test
+    public void WhileExpressionIsInWhileScope() throws IOException {
+        helper.setupFromString("var flag : bool = true \n while flag do \n endwhile \n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        int actualLoopVarType = helper.getEntryTypeAsInt(tree.stmnts().stmnt(1).loop().whileStmnt().scope, "flag");
+        int expectedLoopVarType = MinespeakParser.BOOL;
+
+        String actualLoopVarName = helper.getEntryName(tree.stmnts().stmnt(1).loop().whileStmnt().scope, "flag");
+        String expectedLoopVarName = "flag";
+
+        assertEquals(expectedLoopVarType, actualLoopVarType);
+        assertEquals(expectedLoopVarName, actualLoopVarName);
+    }
+
     //endregion
 
     //region Test of scope for while-loop body
