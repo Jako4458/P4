@@ -139,6 +139,10 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitWhileStmnt(MinespeakParser.WhileStmntContext ctx) {
+        if(ctx.expr().type != Type._bool){
+            Logger.shared.add(logFac.createTypeError(ctx.expr().getText(), ctx.expr(), ctx.expr().type, Type._bool));
+        }
+
         exitScope();
     }
 
@@ -158,6 +162,13 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitForeach(MinespeakParser.ForeachContext ctx) {
+        if(ctx.foreachInit().primaryType().type != ctx.foreachInit().expr().type){
+            Logger.shared.add(logFac.createTypeError(ctx.foreachInit().expr().getText(),
+                    ctx.foreachInit().expr(),
+                    ctx.foreachInit().expr().type,
+                    ctx.foreachInit().primaryType().type)
+            );
+        }
         exitScope();
     }
 
