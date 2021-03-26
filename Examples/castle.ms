@@ -14,3 +14,5 @@ endfunc
 func BuildLayer(size: num, offset: num, height: num) do
     Fill(self, <offset, height, offset>, <size, height, size>, mat)
 endfunc
+
+closespeak
