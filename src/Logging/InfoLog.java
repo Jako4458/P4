@@ -5,6 +5,6 @@ package Logging;
  */
 public class InfoLog extends Log {
     public InfoLog(String message) {
-        super(message, LogType.INFO);
+        super(LogType.INFO);
     }
 }

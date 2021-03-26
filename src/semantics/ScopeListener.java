@@ -11,18 +11,20 @@ import java.util.Map;
 public class ScopeListener extends MinespeakBaseListener {
     private Scope currentScope;
     private final Map<String, FuncEntry> functions;
-    private final ScopeFactory factory = new ScopeFactory();
+    private final ScopeFactory scopeFac = new ScopeFactory();
     private final EntryFactory entryFac = new EntryFactory();
+    private final LogFactory logFac = new LogFactory();
     private boolean isInvalidFunc = false;
 
     public ScopeListener() {
         enterScope(null);
         this.functions = new HashMap<>();
+
     }
 
     @Override
     public void enterProg(MinespeakParser.ProgContext ctx) {
-        ctx.scope = factory.createScope(this.currentScope);
+        ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
@@ -33,7 +35,7 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void enterBlock(MinespeakParser.BlockContext ctx) {
-        ctx.scope = factory.createScope(this.currentScope);
+        ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
@@ -50,10 +52,10 @@ public class ScopeListener extends MinespeakBaseListener {
     @Override
     public void enterFunc(MinespeakParser.FuncContext ctx) {
         if (functions.containsKey(ctx.ID().getText())) {
-            Logger.shared.add(new FunctionAlreadyDeclaredError(ctx.ID().getText(), ctx.start.getLine()));
+            Logger.shared.add(logFac.createDuplicateVarLog(ctx.ID().getText(), ctx));
             this.isInvalidFunc = true;
         } else {
-            ctx.scope = factory.createFuncScope(this.currentScope);
+            ctx.scope = scopeFac.createFuncScope(this.currentScope);
             enterScope(ctx.scope);
         }
     }
@@ -95,7 +97,7 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void enterFuncBody(MinespeakParser.FuncBodyContext ctx) {
-        ctx.scope = factory.createScope(this.currentScope);
+        ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
@@ -109,11 +111,14 @@ public class ScopeListener extends MinespeakBaseListener {
     public void exitRetVal(MinespeakParser.RetValContext ctx) {
         ctx.type = ctx.expr().type;
         this.addToScope(ctx, "return", entryFac.createFromType("return", ctx.type));
+        if (ctx.type != ((MinespeakParser.FuncContext)ctx.parent.parent).type) {
+            Logger.shared.add(logFac.createTypeError("return", ctx, ctx.type, ((MinespeakParser.FuncContext)ctx.parent.parent).type));
+        }
     }
 
     @Override
     public void enterDoWhile(MinespeakParser.DoWhileContext ctx) {
-        ctx.scope = factory.createScope(this.currentScope);
+        ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
@@ -124,7 +129,7 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void enterWhileStmnt(MinespeakParser.WhileStmntContext ctx) {
-        ctx.scope = factory.createScope(this.currentScope);
+        ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
@@ -135,7 +140,7 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void enterForeach(MinespeakParser.ForeachContext ctx) {
-        ctx.scope = factory.createScope(this.currentScope);
+        ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
@@ -154,7 +159,7 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void enterForStmnt(MinespeakParser.ForStmntContext ctx) {
-        ctx.scope = factory.createScope(this.currentScope);
+        ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
@@ -165,7 +170,7 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void enterIfStmnt(MinespeakParser.IfStmntContext ctx) {
-        ctx.scope = factory.createScope(this.currentScope);
+        ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
@@ -176,7 +181,7 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void enterBody(MinespeakParser.BodyContext ctx) {
-        ctx.scope = factory.createScope(this.currentScope);
+        ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
@@ -187,19 +192,19 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitDcls(MinespeakParser.DclsContext ctx) {
-        addMultpleToScope(ctx);
+        addMultipleToScope(ctx);
     }
 
     @Override
     public void exitInstan(MinespeakParser.InstanContext ctx) {
-        addMultpleToScope(ctx);
+        addMultipleToScope(ctx);
     }
 
     @Override
     public void enterArrayAccess(MinespeakParser.ArrayAccessContext ctx) {
         Type tempType = this.lookupTypeInScope(ctx, ctx.ID().getText());
         if (!(tempType instanceof ArrayType))
-            Logger.shared.add(new VariableIsNotArrayError(ctx.ID().getText(), ctx.start.getLine()));
+            Logger.shared.add(logFac.createVarNotArrayLog(ctx.ID().getText(), ctx));
         else
             ctx.type = tempType;
     }
@@ -235,51 +240,7 @@ public class ScopeListener extends MinespeakBaseListener {
             ctx.type = Type._vector3;
         else {
             ctx.type = Type._error;
-            Logger.shared.add(new InvalidTypeError(ctx.getText(), ctx.start.getLine()));
-        }
-    }
-
-    private void exitScope() {
-        enterScope(this.currentScope.getParent());
-    }
-
-    private void enterScope(Scope scope) {
-        this.currentScope = scope;
-    }
-
-    private void addToScope(ParserRuleContext ctx, String key, SymEntry var) {
-        if (!this.currentScope.addVariable(key, var)) {
-            Logger.shared.add(new VariableAlreadyDeclaredError(key, ctx.start.getLine()));
-        }
-    }
-
-    private Type lookupTypeInScope(ParserRuleContext ctx, String key) {
-        SymEntry entry = this.currentScope.lookup(key);
-
-        if (entry == null)
-            Logger.shared.add(new VariableNotDeclaredError(key, ctx.start.getLine()));
-
-        return entry == null ? null : entry.getType();
-    }
-
-    private void addMultpleToScope(ParserRuleContext ctx) {
-        List<TerminalNode> ids;
-        List<MinespeakParser.PrimaryTypeContext> types;
-
-        if (ctx instanceof MinespeakParser.DclsContext) {
-            ids = ((MinespeakParser.DclsContext)ctx).ID();
-            types = ((MinespeakParser.DclsContext)ctx).primaryType();
-        } else if (ctx instanceof MinespeakParser.InstanContext) {
-            ids = ((MinespeakParser.InstanContext)ctx).ID();
-            types = ((MinespeakParser.InstanContext)ctx).primaryType();
-        } else {
-            return;
-        }
-
-        for (int i = 0; i < ids.size(); i++) {
-            String name = ids.get(i).getText();
-            Type type = types.get(i).type;
-            this.addToScope(ctx, name, entryFac.createFromType(name, type));
+            Logger.shared.add(logFac.createTypeError(ctx.getText(), ctx, ctx.type, ctx.type));
         }
     }
 
@@ -354,6 +315,23 @@ public class ScopeListener extends MinespeakBaseListener {
     }
 
     @Override
+    public void exitFactor(MinespeakParser.FactorContext ctx) {
+        if (ctx.rvalue() != null) {
+            ctx.type = lookupTypeInScope(ctx, ctx.rvalue().ID().getText());
+        } else if (ctx.expr() != null) {
+            ctx.type = ctx.expr().type;
+        } else if (ctx.literal() != null) {
+            ctx.type = ctx.literal().type;
+        } else if (ctx.funcCall() != null) {
+            ctx.type = ctx.funcCall().type;
+        } else if (ctx.arrayAccess() != null) {
+            ctx.type = ctx.arrayAccess().type;
+        } else {
+            throw new RuntimeException();
+        }
+    }
+
+    @Override
     public void exitLiteral(MinespeakParser.LiteralContext ctx) {
         if(ctx.booleanLiteral() != null) {
             ctx.type = Type._bool;
@@ -368,13 +346,57 @@ public class ScopeListener extends MinespeakBaseListener {
         } else if(ctx.vector3Literal() != null) {
             ctx.type = Type._vector3;
         } else {
-            //log error
+            throw new RuntimeException();
         }
     }
 
     @Override
     public void exitNotNegFac(MinespeakParser.NotNegFacContext ctx) {
         ctx.type = ctx.factor().type;
+    }
+
+    private void exitScope() {
+        enterScope(this.currentScope.getParent());
+    }
+
+    private void enterScope(Scope scope) {
+        this.currentScope = scope;
+    }
+
+    private void addToScope(ParserRuleContext ctx, String key, SymEntry var) {
+        if (!this.currentScope.addVariable(key, var)) {
+            Logger.shared.add(logFac.createDuplicateVarLog(key, ctx));
+        }
+    }
+
+    private Type lookupTypeInScope(ParserRuleContext ctx, String key) {
+        SymEntry entry = this.currentScope.lookup(key);
+
+        if (entry == null)
+            Logger.shared.add(logFac.createNotDeclaredLog(key, ctx));
+
+        return entry == null ? Type._error : entry.getType();
+    }
+
+    private void addMultipleToScope(ParserRuleContext ctx) {
+        List<TerminalNode> ids;
+        List<MinespeakParser.PrimaryTypeContext> types;
+
+        if (ctx instanceof MinespeakParser.DclsContext) {
+            ids = ((MinespeakParser.DclsContext)ctx).ID();
+            types = ((MinespeakParser.DclsContext)ctx).primaryType();
+        } else if (ctx instanceof MinespeakParser.InstanContext) {
+            ids = ((MinespeakParser.InstanContext)ctx).ID();
+            types = ((MinespeakParser.InstanContext)ctx).primaryType();
+        } else {
+            return;
+        }
+
+        for (int i = 0; i < ids.size(); i++) {
+            String name = ids.get(i).getText();
+            Type type = types.get(i).type;
+            this.addToScope(ctx, name, entryFac.createFromType(name, type));
+        }
     }
 
     private void resetFunctions() {

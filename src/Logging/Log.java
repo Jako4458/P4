@@ -9,18 +9,10 @@ public abstract class Log {
      */
     public final LogType type;
 
-    /**
-     * The logs content.
-     */
-    public final String message;
-
-    protected Log(String message, LogType type) {
-        if (message == null)
-            throw new NullPointerException("Cannot assign log message null.");
+    protected Log(LogType type) {
         if (type == null)
             throw new NullPointerException("Cannot assign log type null.");
 
         this.type = type;
-        this.message = message;
     }
 }
