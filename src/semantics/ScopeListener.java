@@ -392,6 +392,27 @@ public class ScopeListener extends MinespeakBaseListener {
     }
 
     @Override
+    public void exitFuncCall(MinespeakParser.FuncCallContext ctx) {
+        List<SimpleEntry> formalParams = functions.get(ctx.ID().getText()).getParams();
+        List<MinespeakParser.ExprContext> actualParams = ctx.expr();
+
+        if(formalParams.size() != actualParams.size()){
+            //return error
+            System.out.println("FEJL FEJL FEJL FEJL");
+        }
+
+        for (int i = 0; i < formalParams.size(); i++) {
+            if(formalParams.get(i).getType() != actualParams.get(i).type) {
+                Logger.shared.add(logFac.createTypeError(actualParams.get(i).getText(),
+                        actualParams.get(i),
+                        actualParams.get(i).type,
+                        formalParams.get(i).getType())
+                );
+            }
+        }
+    }
+
+    @Override
     public void exitLiteral(MinespeakParser.LiteralContext ctx) {
         if(ctx.booleanLiteral() != null) {
             ctx.type = Type._bool;
