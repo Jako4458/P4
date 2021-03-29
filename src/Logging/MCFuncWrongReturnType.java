@@ -1,6 +1,6 @@
 package Logging;
 
-public class MCFuncWrongReturnType extends TypeErrorLog {
+public class MCFuncWrongReturnType extends TypeError {
     public MCFuncWrongReturnType(String errorText, int lineNum, int characterIndex, String actualType, String expectedType) {
         super(errorText, lineNum, characterIndex, actualType, expectedType);
     }
