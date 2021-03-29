@@ -18,6 +18,7 @@ func Test(param1:num) -> bool do
     endfor
 
     var flag : num = 2
+    var flag : num = 5
 
     if flag do
 

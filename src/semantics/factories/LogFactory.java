@@ -4,7 +4,7 @@ import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 
 public class LogFactory {
     public Log createDuplicateVarLog(String name, ParserRuleContext ctx) {
-        return null;//return new VariableAlreadyDeclaredError(name, ctx.start.getLine(), ctx.start.getCharPositionInLine());
+        return new VariableAlreadyDeclaredError(name, ctx.start.getLine(), ctx.start.getCharPositionInLine());
     }
 
     public Log createTypeError(String text, ParserRuleContext ctx, Type actual, Type expected) {
@@ -60,5 +60,9 @@ public class LogFactory {
 
     public Log createFuncDeclLocationNote(ParserRuleContext ctx){
         return new FuncDeclLocationNote("Function declaration here", ctx.start.getLine(), ctx.start.getCharPositionInLine());
+    }
+
+    public Log createVarDeclLocationNote(ParserRuleContext ctx) {
+        return new VarDeclLocationNote("Definition here", ctx.start.getLine(), ctx.start.getCharPositionInLine());
     }
 }
