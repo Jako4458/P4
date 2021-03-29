@@ -165,7 +165,14 @@ public class ParseExprTests {
     @RepeatedTest(3)
     void wrongGreater(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/expr/expr_greater_wrong" + rI.getCurrentRepetition() + ".ms");
-        assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.expr());
+        if (rI.getCurrentRepetition() == 2) {
+            assertThrows(SyntaxErrorException.class, () -> helper.minespeakParser.expr());
+        }
+        else {
+            assertDoesNotThrow(() -> helper.minespeakParser.expr());
+            assertNotEquals(helper.minespeakParser.getCurrentToken().getType(), Token.EOF);
+        }
+
     }
 
     @RepeatedTest(3)
