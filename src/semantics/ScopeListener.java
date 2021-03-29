@@ -59,6 +59,7 @@ public class ScopeListener extends MinespeakBaseListener {
     public void enterFunc(MinespeakParser.FuncContext ctx) {
         if (functions.containsKey(ctx.funcSignature().ID().getText())) {
             Logger.shared.add(logFac.createDuplicateVarLog(ctx.funcSignature().ID().getText(), ctx.funcSignature()));
+            Logger.shared.add(logFac.createFuncDeclLocationNote(functions.get(ctx.funcSignature().ID().getText()).getCtx()));
             this.isInvalidFunc = true;
         } else {
             ctx.scope = scopeFac.createFuncScope(this.currentScope);
@@ -102,7 +103,7 @@ public class ScopeListener extends MinespeakBaseListener {
             for (MinespeakParser.ParamContext param : ctx.params().param()) {
                 String paramName = param.ID().getText();
                 Type paramType = param.primaryType().type;
-                paramIDs.add(entryFac.createFromType(paramName, paramType));
+                paramIDs.add(entryFac.createFromType(paramName, paramType, ctx));
             }
 
             String funcName = ctx.ID().getText();
@@ -120,7 +121,7 @@ public class ScopeListener extends MinespeakBaseListener {
         if (ctx.type == Type._void || ctx.type == Type._error) {
             Logger.shared.add(logFac.createCannotBeVoid(ctx.ID().getText(), ctx, ctx.type));
         } else {
-            this.addToScope(ctx, name, entryFac.createFromType(name, ctx.type));
+            this.addToScope(ctx, name, entryFac.createFromType(name, ctx.type, ctx));
         }
     }
 
@@ -140,7 +141,7 @@ public class ScopeListener extends MinespeakBaseListener {
     @Override
     public void exitRetVal(MinespeakParser.RetValContext ctx) {
         ctx.type = ctx.expr().type;
-        this.addToScope(ctx, "return", entryFac.createFromType("return", ctx.type));
+        this.addToScope(ctx, "return", entryFac.createFromType("return", ctx.type, ctx));
     }
 
     @Override
@@ -183,7 +184,7 @@ public class ScopeListener extends MinespeakBaseListener {
     public void exitForeachInit(MinespeakParser.ForeachInitContext ctx) {
         String name = ctx.ID().getText();
         Type type = ctx.primaryType().type;
-        this.addToScope(ctx, name, entryFac.createFromType(name, type));
+        this.addToScope(ctx, name, entryFac.createFromType(name, type, ctx));
         ctx.type = type;
     }
 
@@ -276,6 +277,7 @@ public class ScopeListener extends MinespeakBaseListener {
                 );
             }
         }
+
         addMultipleToScope(ctx);
     }
 
@@ -429,7 +431,6 @@ public class ScopeListener extends MinespeakBaseListener {
         if(actualParams.size() < formalParams.size()){
             Logger.shared.add(logFac.createTooFewArgumentsError(ctx.ID().getText(), ctx));
             Logger.shared.add(logFac.createFuncDeclLocationNote(function.getCtx()));
-
         } else if(actualParams.size() > formalParams.size()){
             Logger.shared.add(logFac.createTooManyArgumentsError(ctx.ID().getText(), ctx));
             Logger.shared.add(logFac.createFuncDeclLocationNote(function.getCtx()));
@@ -480,7 +481,8 @@ public class ScopeListener extends MinespeakBaseListener {
 
     private void addToScope(ParserRuleContext ctx, String key, SymEntry var) {
         if (!this.currentScope.addVariable(key, var)) {
-            Logger.shared.add(logFac.createDuplicateVarLog(key, ctx));
+            Logger.shared.add(logFac.createDuplicateVarLog(key, var.getCtx()));
+            Logger.shared.add(logFac.createVarDeclLocationNote(currentScope.lookup(key).getCtx()));
         }
     }
 
@@ -510,7 +512,7 @@ public class ScopeListener extends MinespeakBaseListener {
         for (int i = 0; i < ids.size(); i++) {
             String name = ids.get(i).getText();
             Type type = types.get(i).type;
-            this.addToScope(ctx, name, entryFac.createFromType(name, type));
+            this.addToScope(ctx, name, entryFac.createFromType(name, type, ctx));
         }
     }
 
