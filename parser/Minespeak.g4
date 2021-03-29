@@ -20,7 +20,12 @@ mcFunc: MCKEY Newline func;
 
 func
 locals [Scope scope, Type type]
-        : FUNC ID LPAREN params RPAREN (RETARROW primaryType)? DO newlines funcBody newlines? ENDFUNC Newline
+        : FUNC funcSignature DO newlines funcBody newlines? ENDFUNC Newline
+        ;
+
+funcSignature
+locals [Type type]
+        : ID LPAREN params RPAREN (RETARROW primaryType)?
         ;
 
 params : param (COMMA param)*
