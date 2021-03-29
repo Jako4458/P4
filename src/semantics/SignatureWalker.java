@@ -62,7 +62,7 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
             type = visit(ctx.primaryType());
 
         functionSignatures.add(new FuncEntry(
-                this.nextIsMCFunc, ctx.ID().getText(), type, params)
+                this.nextIsMCFunc, ctx.ID().getText(), type, params, ctx)
         );
 
         return Type._void;
