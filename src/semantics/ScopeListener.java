@@ -107,7 +107,7 @@ public class ScopeListener extends MinespeakBaseListener {
 
             String funcName = ctx.ID().getText();
 
-            FuncEntry entry = entryFac.createFunctionEntry(funcName, ctx.type, paramIDs);
+            FuncEntry entry = entryFac.createFunctionEntry(funcName, ctx.type, paramIDs, ctx);
             this.addToScope(ctx, funcName, entry);
             this.functions.put(funcName, entry);
         }
@@ -234,6 +234,16 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitIfStmnt(MinespeakParser.IfStmntContext ctx) {
+        List<MinespeakParser.ExprContext> ifExprs = ctx.expr();
+        for (int i = 0; i < ifExprs.size(); i++) {
+            if(ifExprs.get(i).type != Type._bool) {
+                Logger.shared.add(logFac.createTypeError(ifExprs.get(i).getText(),
+                        ifExprs.get(i),
+                        ifExprs.get(i).type,
+                        Type._bool)
+                );
+            }
+        }
         exitScope();
     }
 
@@ -407,6 +417,32 @@ public class ScopeListener extends MinespeakBaseListener {
             ctx.type = ctx.arrayAccess().type;
         } else {
             throw new RuntimeException();
+        }
+    }
+
+    @Override
+    public void exitFuncCall(MinespeakParser.FuncCallContext ctx) {
+        FuncEntry function = functions.get(ctx.ID().getText());
+        List<SimpleEntry> formalParams = function.getParams();
+        List<MinespeakParser.ExprContext> actualParams = ctx.expr();
+
+        if(actualParams.size() < formalParams.size()){
+            Logger.shared.add(logFac.createTooFewArgumentsError(ctx.ID().getText(), ctx));
+            Logger.shared.add(logFac.createFuncDeclLocationNote(function.getCtx()));
+
+        } else if(actualParams.size() > formalParams.size()){
+            Logger.shared.add(logFac.createTooManyArgumentsError(ctx.ID().getText(), ctx));
+            Logger.shared.add(logFac.createFuncDeclLocationNote(function.getCtx()));
+        }
+        
+        for (int i = 0; i < formalParams.size(); i++) {
+            if(formalParams.get(i).getType() != actualParams.get(i).type) {
+                Logger.shared.add(logFac.createTypeError(actualParams.get(i).getText(),
+                        actualParams.get(i),
+                        actualParams.get(i).type,
+                        formalParams.get(i).getType())
+                );
+            }
         }
     }
 

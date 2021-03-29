@@ -18,6 +18,6 @@ public class WarningLog extends Log {
 
     @Override
     public String getColour() {
-        return "\u001B[4;34m";
+        return ANSI_COLORS.ANSI_BLUE_UNDERLINE;
     }
 }

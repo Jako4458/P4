@@ -49,4 +49,16 @@ public class LogFactory {
     public Log createCannotBeVoid(String text, ParserRuleContext ctx, Type type) {
         return new CannotBeVoid(text, ctx.start.getLine(), ctx.start.getCharPositionInLine(), ((TerminalNodeImpl)type.tree).symbol.getText());
     }
+
+    public Log createTooFewArgumentsError(String text, ParserRuleContext ctx) {
+        return new TooFewArgumentsError(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
+    }
+
+    public Log createTooManyArgumentsError(String text, ParserRuleContext ctx) {
+        return new TooManyArgumentsError(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
+    }
+
+    public Log createFuncDeclLocationNote(ParserRuleContext ctx){
+        return new FuncDeclLocationNote("Function declaration here", ctx.start.getLine(), ctx.start.getCharPositionInLine());
+    }
 }
