@@ -234,6 +234,16 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitIfStmnt(MinespeakParser.IfStmntContext ctx) {
+        List<MinespeakParser.ExprContext> ifExprs = ctx.expr();
+        for (int i = 0; i < ifExprs.size(); i++) {
+            if(ifExprs.get(i).type != Type._bool) {
+                Logger.shared.add(logFac.createTypeError(ifExprs.get(i).getText(),
+                        ifExprs.get(i),
+                        ifExprs.get(i).type,
+                        Type._bool)
+                );
+            }
+        }
         exitScope();
     }
 
