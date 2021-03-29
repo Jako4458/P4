@@ -28,9 +28,9 @@ public class Main {
         ParseTree tree = minespeakParser.prog();
         System.out.println(tree.toStringTree(minespeakParser));
 
-        ScopeListener listener = new ScopeListener();
         SignatureWalker walker = new SignatureWalker();
         walker.visit(tree);
+        ScopeListener listener = new ScopeListener(walker.functionSignatures);
         ParseTreeWalker.DEFAULT.walk(listener, tree);
 
         for (FuncEntry entry : walker.functionSignatures.values()) {

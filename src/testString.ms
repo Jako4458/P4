@@ -1,14 +1,5 @@
 minespeak
 
-func Test2() do
-
-endfunc
-
-func Test2() do
-
-endfunc
-
-@mc
 func Test(param1:num) -> bool do
 
     do
@@ -31,9 +22,13 @@ func Test(param1:num) -> bool do
 
     endif
 
-    Test2(1)
+    a = 5
 
-    return true
+    Test2()
+    /*
+    This is a comment
+    */
+    return 1
 endfunc
 
 

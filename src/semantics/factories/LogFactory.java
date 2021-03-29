@@ -20,8 +20,8 @@ public class LogFactory {
         );
     }
 
-    public Log createNotDeclaredLog(String name, ParserRuleContext ctx) {
-        return null;//return new VariableNotDeclaredError(name, ctx.start.getLine(), ctx.start.getCharPositionInLine());
+    public Log createNotDeclaredLog(String text, ParserRuleContext ctx) {
+        return new VariableNotDeclaredError(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
     }
 
     public Log createVarNotArrayLog(String name, ParserRuleContext ctx) {
