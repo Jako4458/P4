@@ -33,7 +33,7 @@ public class Main {
         walker.visit(tree);
         ParseTreeWalker.DEFAULT.walk(listener, tree);
 
-        for (FuncEntry entry : walker.functionSignatures) {
+        for (FuncEntry entry : walker.functionSignatures.values()) {
             System.out.print(entry.getName() + ": ");
             for (SimpleEntry param : entry.getParams()) {
                 System.out.print(param.getType().toString() + ", ");

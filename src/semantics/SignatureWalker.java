@@ -1,12 +1,16 @@
+import Logging.Logger;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SignatureWalker extends MinespeakBaseVisitor<Type> {
     private boolean nextIsMCFunc = false;
-    public List<FuncEntry> functionSignatures = new ArrayList<>();
+    public Map<String, FuncEntry> functionSignatures = new HashMap<>();
     private List<SimpleEntry> currentParameters = new ArrayList<>();
+    private final LogFactory logFac = new LogFactory();
 
 
     @Override
@@ -61,9 +65,13 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
         if (ctx.primaryType() != null)
             type = visit(ctx.primaryType());
 
-        functionSignatures.add(new FuncEntry(
-                this.nextIsMCFunc, ctx.ID().getText(), type, params, ctx)
-        );
+        if (!functionSignatures.containsKey(ctx.ID().getText())) {
+            functionSignatures.put(ctx.ID().getText(), new FuncEntry(
+                    this.nextIsMCFunc, ctx.ID().getText(), type, params, ctx)
+            );
+        } else {
+            Logger.shared.add(logFac.createDuplicateVarLog(ctx.ID().getText(), ctx));
+        }
 
         return Type._void;
     }
