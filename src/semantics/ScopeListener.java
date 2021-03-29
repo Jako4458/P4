@@ -88,7 +88,7 @@ public class ScopeListener extends MinespeakBaseListener {
                         ctx.funcBody().retVal().type)
                 );
             } else {
-                Logger.shared.add(logFac.createDuplicateFunc(name, ctx));
+                return;
             }
         }
 
