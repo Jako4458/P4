@@ -1,4 +1,5 @@
 import Logging.*;
+import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 
@@ -60,5 +61,13 @@ public class LogFactory {
 
     public Log createVarDeclLocationNote(ParserRuleContext ctx) {
         return new VarDeclLocationNote("Definition here", ctx.start.getLine(), ctx.start.getCharPositionInLine());
+    }
+
+    public Log createInvalidOperatorError(String text, ParserRuleContext ctx, Type left, Type right) {
+        return new InvalidOperatorError(text, ctx.start.getLine(),
+                ctx.start.getCharPositionInLine(),
+                ((TerminalNodeImpl) left.tree).symbol.getText(),
+                ((TerminalNodeImpl) right.tree).symbol.getText()
+        );
     }
 }

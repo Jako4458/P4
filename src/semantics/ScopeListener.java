@@ -452,19 +452,40 @@ public class ScopeListener extends MinespeakBaseListener {
     @Override
     public void exitAssign(MinespeakParser.AssignContext ctx) {
         Type type = lookupTypeInScope(ctx, ctx.ID().getText());
+        Type exprType = ctx.expr().type;
+        if  (ctx.arrayAccess() != null) {
+            if (type instanceof ArrayType && exprType instanceof ArrayType) {
+                type = ((ArrayType) type).type;
+                exprType = ((ArrayType) type).type;
+            } else {
+                Logger.shared.add(logFac.createTypeError(ctx.arrayAccess().getText(),
+                        ctx.arrayAccess(),
+                        ctx.arrayAccess().type,
+                        type)
+                );
+            }
+        }
 
         if (type == Type._error) {
             return;
         }
 
-        Type inferredType = Type.inferType(type.getTypeAsInt(), MinespeakParser.ASSIGN, ctx.expr(1).type.getTypeAsInt());
+        Type inferredType = Type.inferType(type.getTypeAsInt(), MinespeakParser.ASSIGN, exprType.getTypeAsInt());;
+        if (ctx.compAssign() != null)
+            inferredType = Type.inferType(type.getTypeAsInt(), ctx.compAssign().op.getType(), exprType.getTypeAsInt());
 
-        if (inferredType == null) {
-            Logger.shared.add(logFac.createTypeError(ctx.expr(1).getText(),
-                    ctx.expr(1),
-                    ctx.expr(1).type,
-                    ctx.type)
-            );
+        if (inferredType == Type._error) {
+            if (ctx.compAssign() != null) {
+                Logger.shared.add(logFac.createInvalidOperatorError(
+                        ctx.compAssign().getText(), ctx.compAssign(), type, exprType)
+                );
+            } else {
+                Logger.shared.add(logFac.createTypeError(ctx.expr().getText(),
+                        ctx.expr(),
+                        exprType,
+                        type)
+                );
+            }
         }
     }
 

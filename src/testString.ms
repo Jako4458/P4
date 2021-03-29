@@ -1,7 +1,7 @@
 minespeak
 
 func Test(param1:num) -> bool do
-
+/*
     do
     var n : num = 2 + 3
 
@@ -20,9 +20,10 @@ func Test(param1:num) -> bool do
 
     elif flag do
 
-    endif
+    endif*/
 
-    a = 5
+    var a: num
+    a += true
 
     Test2()
     /*
