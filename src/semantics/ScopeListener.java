@@ -54,22 +54,9 @@ public class ScopeListener extends MinespeakBaseListener {
     }
 
     @Override
-    public void exitMcFunc(MinespeakParser.McFuncContext ctx) {
-        if (ctx.func().type != Type._void) {
-            Logger.shared.add(logFac.createMCFuncWrongReturnType(ctx.func().funcSignature().ID().getText(), ctx, ctx.func().type, Type._void));
-        }
-    }
-
-    @Override
     public void enterFunc(MinespeakParser.FuncContext ctx) {
-        if (functions.containsKey(ctx.funcSignature().ID().getText())) {
-            Logger.shared.add(logFac.createDuplicateVarLog(ctx.funcSignature().ID().getText(), ctx.funcSignature()));
-            Logger.shared.add(logFac.createFuncDeclLocationNote(functions.get(ctx.funcSignature().ID().getText()).getCtx()));
-            this.isInvalidFunc = true;
-        } else {
-            ctx.scope = scopeFac.createFuncScope(this.currentScope);
-            enterScope(ctx.scope);
-        }
+        ctx.scope = scopeFac.createFuncScope(this.currentScope);
+        enterScope(ctx.scope);
     }
 
     @Override
@@ -87,12 +74,16 @@ public class ScopeListener extends MinespeakBaseListener {
                         ctx.funcBody().retVal(), ctx.type,
                         ctx.funcBody().retVal().type)
                 );
-            } else {
-                return;
             }
         }
 
         exitScope();
+    }
+
+    @Override
+    public void enterFuncSignature(MinespeakParser.FuncSignatureContext ctx) {
+        if (ctx.isDuplicate)
+            this.isInvalidFunc = true;
     }
 
     @Override
@@ -115,7 +106,6 @@ public class ScopeListener extends MinespeakBaseListener {
 
             FuncEntry entry = entryFac.createFunctionEntry(funcName, ctx.type, paramIDs, ctx);
             this.addToScope(ctx, funcName, entry);
-            this.functions.put(funcName, entry);
         }
     }
 
