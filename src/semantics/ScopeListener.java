@@ -19,7 +19,6 @@ public class ScopeListener extends MinespeakBaseListener {
     public ScopeListener() {
         enterScope(null);
         this.functions = new HashMap<>();
-
     }
 
     @Override
@@ -50,6 +49,13 @@ public class ScopeListener extends MinespeakBaseListener {
     }
 
     @Override
+    public void exitMcFunc(MinespeakParser.McFuncContext ctx) {
+        if (ctx.func().type != Type._void) {
+            Logger.shared.add(logFac.createMCFuncWrongReturnType(ctx.func().ID().getText(), ctx, ctx.func().type, Type._void));
+        }
+    }
+
+    @Override
     public void enterFunc(MinespeakParser.FuncContext ctx) {
         if (functions.containsKey(ctx.ID().getText())) {
             Logger.shared.add(logFac.createDuplicateVarLog(ctx.ID().getText(), ctx));
@@ -68,16 +74,18 @@ public class ScopeListener extends MinespeakBaseListener {
         else
             ctx.type = Type._void;
 
-        if (this.isInvalidFunc || (ctx.type != Type._void && ctx.funcBody().retVal() == null) || (ctx.type != ctx.funcBody().retVal().type)) {
+        if (this.isInvalidFunc || (ctx.type != ctx.funcBody().type)) {
             this.isInvalidFunc = false;
             this.entryFac.resetMCFunction();
-            if (ctx.type != Type._void && ctx.funcBody().retVal() == null) {
-                Logger.shared.add(logFac.createMissingReturnError(ctx.ID().getText(), ctx, ctx.type));
-            } else if (ctx.type != ctx.funcBody().retVal().type) {
+            if (ctx.type != Type._void && ctx.funcBody().type == Type._void) {
+                Logger.shared.add(logFac.createTypeError(ctx.ID().getText(), ctx, ctx.type, Type._void));
+            } else if (ctx.type != ctx.funcBody().type) {
                 Logger.shared.add(logFac.createTypeError(ctx.funcBody().retVal().expr().getText(),
-                        ctx.funcBody().retVal().expr(),
-                        ctx.funcBody().retVal().type,
-                        ctx.type));
+                        ctx.funcBody().retVal(), ctx.type,
+                        ctx.funcBody().retVal().type)
+                );
+            } else {
+                Logger.shared.add(logFac.createDuplicateFunc(ctx.ID().getText(), ctx));
             }
         } else {
             List<SimpleEntry> paramIDs = new ArrayList<>();
@@ -100,6 +108,9 @@ public class ScopeListener extends MinespeakBaseListener {
     public void exitParam(MinespeakParser.ParamContext ctx) {
         String name = ctx.ID().getText();
         ctx.type = ctx.primaryType().type;
+        if (ctx.type == Type._void || ctx.type == Type._error) {
+            
+        }
         this.addToScope(ctx, name, entryFac.createFromType(name, ctx.type));
     }
 
@@ -107,6 +118,7 @@ public class ScopeListener extends MinespeakBaseListener {
     public void enterFuncBody(MinespeakParser.FuncBodyContext ctx) {
         ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
+
     }
 
     @Override
@@ -119,9 +131,6 @@ public class ScopeListener extends MinespeakBaseListener {
     public void exitRetVal(MinespeakParser.RetValContext ctx) {
         ctx.type = ctx.expr().type;
         this.addToScope(ctx, "return", entryFac.createFromType("return", ctx.type));
-//        if (ctx.type != ((MinespeakParser.FuncContext)ctx.parent.parent).type) {
-//            Logger.shared.add(logFac.createTypeError("return", ctx, ctx.type, ((MinespeakParser.FuncContext)ctx.parent.parent).type));
-//        }
     }
 
     @Override

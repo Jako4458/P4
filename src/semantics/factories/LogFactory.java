@@ -28,10 +28,25 @@ public class LogFactory {
         return null;//return new VariableIsNotArrayError(name, ctx.start.getLine(), ctx.start.getCharPositionInLine());
     }
 
+    public Log createMCFuncWrongReturnType(String text, ParserRuleContext ctx, Type actual, Type expected) {
+        return new MCFuncWrongReturnType(text, ctx.start.getLine(), ctx.start.getCharPositionInLine(),
+                ((TerminalNodeImpl) actual.tree).symbol.getText(),
+                ((TerminalNodeImpl) expected.tree).symbol.getText()
+        );
+    }
+
     public Log createTypeWarning(String text, ParserRuleContext ctx, Type actual, Type expected) {
         return new TypeWarningLog(text, ctx.start.getLine(), ctx.start.getCharPositionInLine(),
                 ((TerminalNodeImpl)actual.tree).symbol.getText(),
                 ((TerminalNodeImpl)expected.tree).symbol.getText()
         );
+    }
+
+    public Log createDuplicateFunc(String text, ParserRuleContext ctx) {
+        return new FunctionAlreadyDeclaredError(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
+    }
+
+    public Log createCannotBeVoid(String text, ParserRuleContext ctx, Type type) {
+        return new CannotBeVoid(text, ctx.start.getLine(), ctx.start.getCharPositionInLine(), ((TerminalNodeImpl)type.tree).symbol.getText());
     }
 }
