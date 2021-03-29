@@ -1,21 +1,23 @@
 minespeak
 
-func Test(param1:num) -> num do
+func Test(param1:num) -> bool do
 
     do
     var n : num = 2 + 3
 
-while 2+2             endwhile
+    while 2+2             endwhile
 
-    return 1
-    /*
-    for var gamer : num = 0 until gamer > 10 where gamer += 1 do
+    var i : num = 5
+
+    for var gamer : bool = 2, var sebastian : bool = true, var jacob : bool = 25 until i > 10 where i += 1 do
         var n : num = 2 + 3
     endfor
+
     var flag : num = 2
+
     if flag do
 
-    endif*/
+    endif
 endfunc
 
 closespeak
