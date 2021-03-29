@@ -7,6 +7,6 @@ public class MCFuncWrongReturnType extends TypeError {
 
     @Override
     public String toString() {
-        return super.toString() + "MCFunctions cannot return a value.";
+        return super.toString() + " MCFunctions cannot return a value.";
     }
 }
