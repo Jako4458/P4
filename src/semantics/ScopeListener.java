@@ -108,7 +108,9 @@ public class ScopeListener extends MinespeakBaseListener {
     public void exitParam(MinespeakParser.ParamContext ctx) {
         String name = ctx.ID().getText();
         ctx.type = ctx.primaryType().type;
-        if (ctx.type == Type._void || ctx.)
+        if (ctx.type == Type._void || ctx.type == Type._error) {
+            
+        }
         this.addToScope(ctx, name, entryFac.createFromType(name, ctx.type));
     }
 
