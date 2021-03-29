@@ -24,7 +24,7 @@ locals [Scope scope, Type type]
         ;
 
 funcSignature
-locals [Type type]
+locals [Type type, boolean isDuplicate]
         : ID LPAREN params RPAREN (RETARROW primaryType)?
         ;
 
@@ -146,8 +146,8 @@ returns [Type type]
         ;
 
 assign
-returns [Type type]
-        : ID (LSQUARE expr RSQUARE)? (ASSIGN | compAssign) expr
+        : ID (ASSIGN | compAssign) expr
+        | arrayAccess (ASSIGN | compAssign) expr
         | ID ASSIGN rArray
         ;
 

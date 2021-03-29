@@ -104,6 +104,14 @@ public class Type {
             add(MinespeakParser.VECTOR2);
             add(MinespeakParser.VECTOR3);
         }};
+        Set<Integer> assignments = new HashSet<>() {{
+           add(MinespeakParser.ASSIGN);
+           add(MinespeakParser.MODASSIGN);
+           add(MinespeakParser.MULTASSIGN);
+           add(MinespeakParser.DIVASSIGN);
+           add(MinespeakParser.ADDASSIGN);
+           add(MinespeakParser.SUBASSIGN);
+        }};
 
 
         for (int op : arithmeticOps) {
@@ -140,6 +148,16 @@ public class Type {
             //resultTypes.put(opKey(type, MinespeakParser.DIV, NUM), type);
         }
 
+        for (int assign : assignments) {
+            if (assign == MinespeakParser.ASSIGN) {
+                for (int primitiveType : primitiveTypes) {
+                    resultTypes.put(opKey(primitiveType, assign, primitiveType), primitiveType);
+                }
+            } else {
+                resultTypes.put(opKey(NUM, assign, NUM), NUM);
+            }
+        }
+
         // String concatenation with +
         resultTypes.put(opKey(STRING, MinespeakParser.ADD, STRING), STRING);
 
@@ -152,7 +170,7 @@ public class Type {
     }
 
     public static Type inferType(int left, int op, int right) {
-        return getTypeFromInt(Type.resultTypes.get(Type.opKey(left, op, right)));
+        return getTypeFromInt(Type.resultTypes.getOrDefault(Type.opKey(left, op, right), -1));
     }
 
     public int getTypeAsInt() {

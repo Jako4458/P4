@@ -1,15 +1,7 @@
 minespeak
 
-func Test2() do
-
-endfunc
-
-func Test2() do
-
-endfunc
-
 func Test(param1:num) -> bool do
-
+/*
     do
     var n : num = 2 + 3
 
@@ -28,11 +20,16 @@ func Test(param1:num) -> bool do
 
     elif flag do
 
-    endif
+    endif*/
 
-    Test2(1)
+    var a: num
+    a += true
 
-    return true
+    Test2()
+    /*
+    This is a comment
+    */
+    return 1
 endfunc
 
 

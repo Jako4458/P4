@@ -16,6 +16,11 @@ public class ErrorLog extends Log {
     }
 
     @Override
+    public String toString() {
+        return "Error";
+    }
+
+    @Override
     public String getColour() {
         // underline RED
         return ANSI_COLORS.ANSI_RED_UNDERLINE;

@@ -54,22 +54,9 @@ public class ScopeListener extends MinespeakBaseListener {
     }
 
     @Override
-    public void exitMcFunc(MinespeakParser.McFuncContext ctx) {
-        if (ctx.func().type != Type._void) {
-            Logger.shared.add(logFac.createMCFuncWrongReturnType(ctx.func().funcSignature().ID().getText(), ctx, ctx.func().type, Type._void));
-        }
-    }
-
-    @Override
     public void enterFunc(MinespeakParser.FuncContext ctx) {
-        if (functions.containsKey(ctx.funcSignature().ID().getText())) {
-            Logger.shared.add(logFac.createDuplicateVarLog(ctx.funcSignature().ID().getText(), ctx.funcSignature()));
-            Logger.shared.add(logFac.createFuncDeclLocationNote(functions.get(ctx.funcSignature().ID().getText()).getCtx()));
-            this.isInvalidFunc = true;
-        } else {
-            ctx.scope = scopeFac.createFuncScope(this.currentScope);
-            enterScope(ctx.scope);
-        }
+        ctx.scope = scopeFac.createFuncScope(this.currentScope);
+        enterScope(ctx.scope);
     }
 
     @Override
@@ -84,15 +71,20 @@ public class ScopeListener extends MinespeakBaseListener {
                 Logger.shared.add(logFac.createTypeError(name, ctx, ctx.type, Type._void));
             } else if (ctx.type != ctx.funcBody().type) {
                 Logger.shared.add(logFac.createTypeError(ctx.funcBody().retVal().expr().getText(),
-                        ctx.funcBody().retVal(), ctx.type,
-                        ctx.funcBody().retVal().type)
+                        ctx.funcBody().retVal().expr(),
+                        ctx.funcBody().retVal().type,
+                        ctx.type)
                 );
-            } else {
-                return;
             }
         }
 
         exitScope();
+    }
+
+    @Override
+    public void enterFuncSignature(MinespeakParser.FuncSignatureContext ctx) {
+        if (ctx.isDuplicate)
+            this.isInvalidFunc = true;
     }
 
     @Override
@@ -115,7 +107,6 @@ public class ScopeListener extends MinespeakBaseListener {
 
             FuncEntry entry = entryFac.createFunctionEntry(funcName, ctx.type, paramIDs, ctx);
             this.addToScope(ctx, funcName, entry);
-            this.functions.put(funcName, entry);
         }
     }
 
@@ -430,23 +421,69 @@ public class ScopeListener extends MinespeakBaseListener {
     @Override
     public void exitFuncCall(MinespeakParser.FuncCallContext ctx) {
         FuncEntry function = functions.get(ctx.ID().getText());
+
+        if (function == null) {
+            Logger.shared.add(logFac.createNotDeclaredLog(ctx.ID().getText(), ctx));
+            return;
+        }
+
         List<SimpleEntry> formalParams = function.getParams();
         List<MinespeakParser.ExprContext> actualParams = ctx.expr();
 
-        if(actualParams.size() < formalParams.size()){
+        if (actualParams.size() < formalParams.size()){
             Logger.shared.add(logFac.createTooFewArgumentsError(ctx.ID().getText(), ctx));
             Logger.shared.add(logFac.createFuncDeclLocationNote(function.getCtx()));
-        } else if(actualParams.size() > formalParams.size()){
+        } else if (actualParams.size() > formalParams.size()){
             Logger.shared.add(logFac.createTooManyArgumentsError(ctx.ID().getText(), ctx));
             Logger.shared.add(logFac.createFuncDeclLocationNote(function.getCtx()));
         }
         
         for (int i = 0; i < formalParams.size(); i++) {
-            if(formalParams.get(i).getType() != actualParams.get(i).type) {
+            if (formalParams.get(i).getType() != actualParams.get(i).type) {
                 Logger.shared.add(logFac.createTypeError(actualParams.get(i).getText(),
                         actualParams.get(i),
                         actualParams.get(i).type,
                         formalParams.get(i).getType())
+                );
+            }
+        }
+    }
+
+    @Override
+    public void exitAssign(MinespeakParser.AssignContext ctx) {
+        Type type = lookupTypeInScope(ctx, ctx.ID().getText());
+        Type exprType = ctx.expr().type;
+        if  (ctx.arrayAccess() != null) {
+            if (type instanceof ArrayType && exprType instanceof ArrayType) {
+                type = ((ArrayType) type).type;
+                exprType = ((ArrayType) type).type;
+            } else {
+                Logger.shared.add(logFac.createTypeError(ctx.arrayAccess().getText(),
+                        ctx.arrayAccess(),
+                        ctx.arrayAccess().type,
+                        type)
+                );
+            }
+        }
+
+        if (type == Type._error) {
+            return;
+        }
+
+        Type inferredType = Type.inferType(type.getTypeAsInt(), MinespeakParser.ASSIGN, exprType.getTypeAsInt());;
+        if (ctx.compAssign() != null)
+            inferredType = Type.inferType(type.getTypeAsInt(), ctx.compAssign().op.getType(), exprType.getTypeAsInt());
+
+        if (inferredType == Type._error) {
+            if (ctx.compAssign() != null) {
+                Logger.shared.add(logFac.createInvalidOperatorError(
+                        ctx.compAssign().getText(), ctx.compAssign(), type, exprType)
+                );
+            } else {
+                Logger.shared.add(logFac.createTypeError(ctx.expr().getText(),
+                        ctx.expr(),
+                        exprType,
+                        type)
                 );
             }
         }
