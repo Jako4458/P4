@@ -188,6 +188,22 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitForStmnt(MinespeakParser.ForStmntContext ctx) {
+        int length = ctx.instan().primaryType().size();
+
+        for (int i = 0; i < length; i++) {
+            if(ctx.instan().primaryType(i).type != Type._num){
+                Logger.shared.add(logFac.createTypeWarning(ctx.instan().ID(i).getText(),
+                        ctx.instan().primaryType(i),
+                        ctx.instan().primaryType(i).type,
+                        Type._num)
+                );
+            }
+        }
+
+        if(ctx.expr().type != Type._bool){
+            Logger.shared.add(logFac.createTypeError(ctx.expr().getText(), ctx.expr(), ctx.expr().type, Type._bool));
+        }
+
         exitScope();
     }
 
@@ -220,6 +236,17 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitInstan(MinespeakParser.InstanContext ctx) {
+        int instanLength = ctx.primaryType().size();
+
+        for (int i = 0; i < instanLength; i++) {
+            if(ctx.primaryType(i).type != ctx.initialValue(i).expr().type){
+                Logger.shared.add(logFac.createTypeError(ctx.initialValue(i).expr().getText(),
+                        ctx.initialValue(i).expr(),
+                        ctx.initialValue(i).expr().type,
+                        ctx.primaryType(i).type)
+                );
+            }
+        }
         addMultipleToScope(ctx);
     }
 
@@ -334,7 +361,17 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitMulDivMod(MinespeakParser.MulDivModContext ctx) {
-        super.exitMulDivMod(ctx);
+        int left = ctx.expr(0).type.getTypeAsInt();
+        int right = ctx.expr(1).type.getTypeAsInt();
+
+        if(ctx.DIV() != null){
+            ctx.type = Type.inferType(left, MinespeakParser.DIV, right);
+        } else if(ctx.TIMES() != null) {
+            ctx.type = Type.inferType(left, MinespeakParser.TIMES, right);
+        } else if(ctx.MOD() != null) {
+            ctx.type = Type.inferType(left, MinespeakParser.MOD, right);
+        }
+
     }
 
     @Override

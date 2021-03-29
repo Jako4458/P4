@@ -27,4 +27,11 @@ public class LogFactory {
     public Log createVarNotArrayLog(String name, ParserRuleContext ctx) {
         return null;//return new VariableIsNotArrayError(name, ctx.start.getLine(), ctx.start.getCharPositionInLine());
     }
+
+    public Log createTypeWarning(String text, ParserRuleContext ctx, Type actual, Type expected) {
+        return new TypeWarningLog(text, ctx.start.getLine(), ctx.start.getCharPositionInLine(),
+                ((TerminalNodeImpl)actual.tree).symbol.getText(),
+                ((TerminalNodeImpl)expected.tree).symbol.getText()
+        );
+    }
 }
