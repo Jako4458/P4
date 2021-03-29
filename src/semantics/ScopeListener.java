@@ -21,6 +21,11 @@ public class ScopeListener extends MinespeakBaseListener {
         this.functions = new HashMap<>();
     }
 
+    public ScopeListener(Map<String, FuncEntry> funcSignatures) {
+        enterScope(null);
+        this.functions = funcSignatures;
+    }
+
     @Override
     public void enterProg(MinespeakParser.ProgContext ctx) {
         ctx.scope = scopeFac.createScope(this.currentScope);
