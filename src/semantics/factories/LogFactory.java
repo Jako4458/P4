@@ -42,10 +42,6 @@ public class LogFactory {
         );
     }
 
-    public Log createDuplicateFunc(String text, ParserRuleContext ctx) {
-        return new FunctionAlreadyDeclaredError(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
-    }
-
     public Log createCannotBeVoid(String text, ParserRuleContext ctx, Type type) {
         return new CannotBeVoid(text, ctx.start.getLine(), ctx.start.getCharPositionInLine(), ((TerminalNodeImpl)type.tree).symbol.getText());
     }

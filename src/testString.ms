@@ -4,6 +4,10 @@ func Test2() do
 
 endfunc
 
+func Test2() do
+
+endfunc
+
 func Test(param1:num) -> bool do
 
     do
