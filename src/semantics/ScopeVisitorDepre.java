@@ -10,20 +10,20 @@ import java.util.Map;
 
 public class ScopeVisitorDepre extends MinespeakBaseVisitor<MSValue> {
    private Scope scope;
-    private Map<String, Function> functions;
-
-    public ScopeVisitorDepre(Scope scope) {
-        this.scope = scope;
-        this.functions = new HashMap<>();
-    }
-
-    public ScopeVisitorDepre(){
-
-    }
-
-    public Map<String, Function> getFunctions() {
-        return this.functions;
-    }
+//    private Map<String, Function> functions;
+//
+//    public ScopeVisitorDepre(Scope scope) {
+//        this.scope = scope;
+//        this.functions = new HashMap<>();
+//    }
+//
+//    public ScopeVisitorDepre(){
+//
+//    }
+//
+//    public Map<String, Function> getFunctions() {
+//        return this.functions;
+//    }
 
     public Scope getScope() {
         return this.scope;

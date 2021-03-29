@@ -107,7 +107,7 @@ public class ScopeListener extends MinespeakBaseListener {
 
             String funcName = ctx.ID().getText();
 
-            FuncEntry entry = entryFac.createFunctionEntry(funcName, ctx.type, paramIDs);
+            FuncEntry entry = entryFac.createFunctionEntry(funcName, ctx.type, paramIDs, ctx);
             this.addToScope(ctx, funcName, entry);
             this.functions.put(funcName, entry);
         }
@@ -412,15 +412,17 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitFuncCall(MinespeakParser.FuncCallContext ctx) {
-        List<SimpleEntry> formalParams = functions.get(ctx.ID().getText()).getParams();
+        FuncEntry function = functions.get(ctx.ID().getText());
+        List<SimpleEntry> formalParams = function.getParams();
         List<MinespeakParser.ExprContext> actualParams = ctx.expr();
 
-        if(actualParams.size() < actualParams.size()){
-            System.out.println("FEJL FEJL FEJL FEJL");
+        if(actualParams.size() < formalParams.size()){
+            Logger.shared.add(logFac.createTooFewArgumentsError(ctx.ID().getText(), ctx));
+            Logger.shared.add(logFac.createFuncDeclLocationNote(function.getCtx()));
 
         } else if(actualParams.size() > formalParams.size()){
-            System.out.println("FEJL FEJL FEJL FEJL");
-
+            Logger.shared.add(logFac.createTooManyArgumentsError(ctx.ID().getText(), ctx));
+            Logger.shared.add(logFac.createFuncDeclLocationNote(function.getCtx()));
         }
         
         for (int i = 0; i < formalParams.size(); i++) {

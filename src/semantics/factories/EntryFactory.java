@@ -12,8 +12,8 @@ public class EntryFactory {
         return new SimpleEntry(id, type);
     }
 
-    public FuncEntry createFunctionEntry(String id, Type retType, List<SimpleEntry> paramIDs) {
-        FuncEntry func = new FuncEntry(isMCFunction, id, retType, paramIDs);
+    public FuncEntry createFunctionEntry(String id, Type retType, List<SimpleEntry> paramIDs, MinespeakParser.FuncSignatureContext ctx) {
+        FuncEntry func = new FuncEntry(isMCFunction, id, retType, paramIDs, ctx);
         this.isMCFunction = false;
         return func;
     }
