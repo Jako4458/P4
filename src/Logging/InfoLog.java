@@ -18,6 +18,6 @@ public class InfoLog extends Log {
 
     @Override
     public String getColour() {
-        return ANSI_COLORS.ANSI_YELLOW;
+        return ANSI_COLORS.ANSI_YELLOW_UNDERLINE;
     }
 }

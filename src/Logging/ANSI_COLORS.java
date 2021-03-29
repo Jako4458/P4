@@ -6,7 +6,7 @@ package Logging;
 
 public class ANSI_COLORS {
     public static final String ANSI_RESET = "\u001B[0m";
-    public static final String ANSI_RED = "\u001B[31m";
-    public static final String ANSI_YELLOW = "\u001B[33m";
-    public static final String ANSI_BLUE = "\u001B[34m";
+    public static final String ANSI_RED_UNDERLINE = "\u001B[4;31m";
+    public static final String ANSI_YELLOW_UNDERLINE = "\u001B[4;33m";
+    public static final String ANSI_BLUE_UNDERLINE = "\u001B[4;34m";
 }
