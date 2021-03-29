@@ -8,6 +8,7 @@ func Test2() do
 
 endfunc
 
+@mc
 func Test(param1:num) -> bool do
 
     do

@@ -19,12 +19,12 @@ locals [Scope scope]
 mcFunc: MCKEY Newline func;
 
 func
-locals [Scope scope, Type type, boolean isDuplicate]
+locals [Scope scope, Type type]
         : FUNC funcSignature DO newlines funcBody newlines? ENDFUNC Newline
         ;
 
 funcSignature
-locals [Type type]
+locals [Type type, boolean isDuplicate]
         : ID LPAREN params RPAREN (RETARROW primaryType)?
         ;
 
