@@ -1,3 +1,4 @@
+import Logging.Logger;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
     private boolean nextIsMCFunc = false;
     public Map<String, FuncEntry> functionSignatures = new HashMap<>();
     private List<SimpleEntry> currentParameters = new ArrayList<>();
+    private final LogFactory logFac = new LogFactory();
 
 
     @Override
@@ -67,6 +69,8 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
             functionSignatures.put(ctx.ID().getText(), new FuncEntry(
                     this.nextIsMCFunc, ctx.ID().getText(), type, params, ctx)
             );
+        } else {
+            Logger.shared.add(logFac.createDuplicateVarLog(ctx.ID().getText(), ctx));
         }
 
         return Type._void;
