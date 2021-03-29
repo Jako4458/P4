@@ -405,11 +405,14 @@ public class ScopeListener extends MinespeakBaseListener {
         List<SimpleEntry> formalParams = functions.get(ctx.ID().getText()).getParams();
         List<MinespeakParser.ExprContext> actualParams = ctx.expr();
 
-        if(formalParams.size() != actualParams.size()){
-            //return error
+        if(actualParams.size() < actualParams.size()){
             System.out.println("FEJL FEJL FEJL FEJL");
-        }
 
+        } else if(actualParams.size() > formalParams.size()){
+            System.out.println("FEJL FEJL FEJL FEJL");
+
+        }
+        
         for (int i = 0; i < formalParams.size(); i++) {
             if(formalParams.get(i).getType() != actualParams.get(i).type) {
                 Logger.shared.add(logFac.createTypeError(actualParams.get(i).getText(),
