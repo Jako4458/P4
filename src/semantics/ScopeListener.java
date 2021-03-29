@@ -51,14 +51,14 @@ public class ScopeListener extends MinespeakBaseListener {
     @Override
     public void exitMcFunc(MinespeakParser.McFuncContext ctx) {
         if (ctx.func().type != Type._void) {
-            Logger.shared.add(logFac.createMCFuncWrongReturnType(ctx.func().ID().getText(), ctx, ctx.func().type, Type._void));
+            Logger.shared.add(logFac.createMCFuncWrongReturnType(ctx.func().funcSignature().ID().getText(), ctx, ctx.func().type, Type._void));
         }
     }
 
     @Override
     public void enterFunc(MinespeakParser.FuncContext ctx) {
-        if (functions.containsKey(ctx.ID().getText())) {
-            Logger.shared.add(logFac.createDuplicateVarLog(ctx.ID().getText(), ctx));
+        if (functions.containsKey(ctx.funcSignature().ID().getText())) {
+            Logger.shared.add(logFac.createDuplicateVarLog(ctx.funcSignature().ID().getText(), ctx.funcSignature()));
             this.isInvalidFunc = true;
         } else {
             ctx.scope = scopeFac.createFuncScope(this.currentScope);
@@ -68,26 +68,35 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitFunc(MinespeakParser.FuncContext ctx) {
-        String name = ctx.ID().getText();
-        if (ctx.primaryType() != null)
-            ctx.type = ctx.primaryType().type;
-        else
-            ctx.type = Type._void;
+        String name = ctx.funcSignature().ID().getText();
+        ctx.type = ctx.funcSignature().type;
 
         if (this.isInvalidFunc || (ctx.type != ctx.funcBody().type)) {
             this.isInvalidFunc = false;
             this.entryFac.resetMCFunction();
             if (ctx.type != Type._void && ctx.funcBody().type == Type._void) {
-                Logger.shared.add(logFac.createTypeError(ctx.ID().getText(), ctx, ctx.type, Type._void));
+                Logger.shared.add(logFac.createTypeError(name, ctx, ctx.type, Type._void));
             } else if (ctx.type != ctx.funcBody().type) {
                 Logger.shared.add(logFac.createTypeError(ctx.funcBody().retVal().expr().getText(),
                         ctx.funcBody().retVal(), ctx.type,
                         ctx.funcBody().retVal().type)
                 );
             } else {
-                Logger.shared.add(logFac.createDuplicateFunc(ctx.ID().getText(), ctx));
+                Logger.shared.add(logFac.createDuplicateFunc(name, ctx));
             }
-        } else {
+        }
+
+        exitScope();
+    }
+
+    @Override
+    public void exitFuncSignature(MinespeakParser.FuncSignatureContext ctx) {
+        if (ctx.primaryType() != null)
+            ctx.type = ctx.primaryType().type;
+        else
+            ctx.type = Type._void;
+
+        if (!this.isInvalidFunc) {
             List<SimpleEntry> paramIDs = new ArrayList<>();
 
             for (MinespeakParser.ParamContext param : ctx.params().param()) {
@@ -96,12 +105,12 @@ public class ScopeListener extends MinespeakBaseListener {
                 paramIDs.add(entryFac.createFromType(paramName, paramType));
             }
 
-            FuncEntry entry = entryFac.createFunctionEntry(name, ctx.type, paramIDs);
-            this.addToScope(ctx, name, entry);
-            this.functions.put(name, entry);
-        }
+            String funcName = ctx.ID().getText();
 
-        exitScope();
+            FuncEntry entry = entryFac.createFunctionEntry(funcName, ctx.type, paramIDs);
+            this.addToScope(ctx, funcName, entry);
+            this.functions.put(funcName, entry);
+        }
     }
 
     @Override
@@ -109,9 +118,10 @@ public class ScopeListener extends MinespeakBaseListener {
         String name = ctx.ID().getText();
         ctx.type = ctx.primaryType().type;
         if (ctx.type == Type._void || ctx.type == Type._error) {
-            
+            Logger.shared.add(logFac.createCannotBeVoid(ctx.ID().getText(), ctx, ctx.type));
+        } else {
+            this.addToScope(ctx, name, entryFac.createFromType(name, ctx.type));
         }
-        this.addToScope(ctx, name, entryFac.createFromType(name, ctx.type));
     }
 
     @Override
