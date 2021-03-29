@@ -21,7 +21,7 @@ func Test(param1:num) -> bool do
 
     if flag do
 
-    else if flag do
+    elif flag do
 
     endif
 
