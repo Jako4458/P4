@@ -191,9 +191,11 @@ booleanLiteral : TRUE | FALSE
                ;
 
 vector2Literal : LESSER (numberLiteral | ID) COMMA (numberLiteral | ID) GREATER
+//vector2Literal : LESSER (numberLiteral | ID) COMMA (numberLiteral | ID) GREATER
                ;
 
-vector3Literal : LESSER (numberLiteral | ID) COMMA (numberLiteral | ID) COMMA (numberLiteral | ID) GREATER
+vector3Literal : LESSER (expr | ID) COMMA (expr | ID) COMMA (expr | ID) GREATER
+//vector3Literal : LESSER (numberLiteral | ID) COMMA (numberLiteral | ID) COMMA (numberLiteral | ID) GREATER
                ;
 
 newlines : Newline+ //-> skip
