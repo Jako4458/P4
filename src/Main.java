@@ -29,6 +29,8 @@ public class Main {
 
         System.out.println(Type.resultTypes);
 
+        STTest christian = new STTest();
+
         /*Scope scope = new Scope();
         ScopeVisitorDepre visitor = new ScopeVisitorDepre(scope);
         visitor.visit(tree);
