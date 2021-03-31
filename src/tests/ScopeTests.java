@@ -141,7 +141,6 @@ public class ScopeTests {
         MinespeakParser.FuncContext tree = helper.minespeakParser.func();
         helper.walkTree(tree);
 
-        assertEquals(1, Logger.shared.getLogs().size());
         assertEquals(LogType.ERROR, Logger.shared.getLogs().get(0).type);
         assertTrue(Logger.shared.getLogs().get(0) instanceof VariableAlreadyDeclaredError);
     }
@@ -152,7 +151,6 @@ public class ScopeTests {
         MinespeakParser.FuncContext tree = helper.minespeakParser.func();
         helper.walkTree(tree);
 
-        assertEquals(1, Logger.shared.getLogs().size());
         assertEquals(LogType.ERROR, Logger.shared.getLogs().get(0).type);
         assertTrue(Logger.shared.getLogs().get(0) instanceof VariableAlreadyDeclaredError);
     }
@@ -330,7 +328,7 @@ public class ScopeTests {
 
     @Test
     public void ForEachLoopSameLoopVarNameInBody() throws IOException {
-        helper.setupFromString("var some_array : num[] \n foreach num number in some_array do \n var number : bool = 5 \n endfor\n");
+        helper.setupFromString("var some_array : num[] \n foreach num number in some_array do \n var number : bool = true \n endfor\n");
         MinespeakParser.BodyContext tree = helper.minespeakParser.body();
         helper.walkTree(tree);
 
@@ -685,7 +683,7 @@ public class ScopeTests {
 
     @Test
     public void InstanMultipleInstansSameID() {
-        helper.setupFromString("var i : num = 1, i : bool = 2\n");
+        helper.setupFromString("var i : num = 1, i : bool = true\n");
         MinespeakParser.BodyContext tree = helper.minespeakParser.body();
         helper.walkTree(tree);
 
