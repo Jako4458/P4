@@ -11,8 +11,9 @@ import java.util.Map;
 public class ScopeListener extends MinespeakBaseListener {
     private Scope currentScope;
     private final Map<String, FuncEntry> functions;
-    private final ScopeFactory factory = new ScopeFactory();
+    private final ScopeFactory scopeFac = new ScopeFactory();
     private final EntryFactory entryFac = new EntryFactory();
+    private final LogFactory logFac = new LogFactory();
     private boolean isInvalidFunc = false;
 
     public ScopeListener() {
@@ -20,9 +21,14 @@ public class ScopeListener extends MinespeakBaseListener {
         this.functions = new HashMap<>();
     }
 
+    public ScopeListener(Map<String, FuncEntry> funcSignatures) {
+        enterScope(null);
+        this.functions = funcSignatures;
+    }
+
     @Override
     public void enterProg(MinespeakParser.ProgContext ctx) {
-        ctx.scope = factory.createScope(this.currentScope);
+        ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
@@ -33,7 +39,7 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void enterBlock(MinespeakParser.BlockContext ctx) {
-        ctx.scope = factory.createScope(this.currentScope);
+        ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
@@ -49,40 +55,58 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void enterFunc(MinespeakParser.FuncContext ctx) {
-        if (functions.containsKey(ctx.ID().getText())) {
-            Logger.shared.add(new FunctionAlreadyDeclaredError(ctx.ID().getText(), ctx.start.getLine()));
-            this.isInvalidFunc = true;
-        } else {
-            ctx.scope = factory.createFuncScope(this.currentScope);
-            enterScope(ctx.scope);
-        }
+        ctx.scope = scopeFac.createFuncScope(this.currentScope);
+        enterScope(ctx.scope);
     }
 
     @Override
     public void exitFunc(MinespeakParser.FuncContext ctx) {
-        if (this.isInvalidFunc) {
+        String name = ctx.funcSignature().ID().getText();
+        ctx.type = ctx.funcSignature().type;
+
+        if (this.isInvalidFunc || (ctx.type != ctx.funcBody().type)) {
             this.isInvalidFunc = false;
             this.entryFac.resetMCFunction();
-        } else {
-            String name = ctx.ID().getText();
-            if (ctx.primaryType() != null)
-                ctx.type = ctx.primaryType().type;
-            else
-                ctx.type = Type._void;
+            if (ctx.type != Type._void && ctx.funcBody().type == Type._void) {
+                Logger.shared.add(logFac.createTypeError(name, ctx, ctx.type, Type._void));
+            } else if (ctx.type != ctx.funcBody().type) {
+                Logger.shared.add(logFac.createTypeError(ctx.funcBody().retVal().expr().getText(),
+                        ctx.funcBody().retVal().expr(),
+                        ctx.funcBody().retVal().type,
+                        ctx.type)
+                );
+            }
+        }
 
+        exitScope();
+    }
+
+    @Override
+    public void enterFuncSignature(MinespeakParser.FuncSignatureContext ctx) {
+        if (ctx.isDuplicate)
+            this.isInvalidFunc = true;
+    }
+
+    @Override
+    public void exitFuncSignature(MinespeakParser.FuncSignatureContext ctx) {
+        if (ctx.primaryType() != null)
+            ctx.type = ctx.primaryType().type;
+        else
+            ctx.type = Type._void;
+
+        if (!this.isInvalidFunc) {
             List<SimpleEntry> paramIDs = new ArrayList<>();
 
             for (MinespeakParser.ParamContext param : ctx.params().param()) {
                 String paramName = param.ID().getText();
                 Type paramType = param.primaryType().type;
-                paramIDs.add(entryFac.createFromType(paramName, paramType));
+                paramIDs.add(entryFac.createFromType(paramName, paramType, ctx));
             }
 
-            FuncEntry entry = entryFac.createFunctionEntry(name, ctx.type, paramIDs);
-            this.addToScope(ctx, name, entry);
-            this.functions.put(name, entry);
+            String funcName = ctx.ID().getText();
 
-            exitScope();
+            FuncEntry entry = entryFac.createFunctionEntry(funcName, ctx.type, paramIDs, ctx);
+            this.addToScope(ctx, funcName, entry);
         }
     }
 
@@ -90,13 +114,18 @@ public class ScopeListener extends MinespeakBaseListener {
     public void exitParam(MinespeakParser.ParamContext ctx) {
         String name = ctx.ID().getText();
         ctx.type = ctx.primaryType().type;
-        this.addToScope(ctx, name, entryFac.createFromType(name, ctx.type));
+        if (ctx.type == Type._void || ctx.type == Type._error) {
+            Logger.shared.add(logFac.createCannotBeVoid(ctx.ID().getText(), ctx, ctx.type));
+        } else {
+            this.addToScope(ctx, name, entryFac.createFromType(name, ctx.type, ctx));
+        }
     }
 
     @Override
     public void enterFuncBody(MinespeakParser.FuncBodyContext ctx) {
-        ctx.scope = factory.createScope(this.currentScope);
+        ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
+
     }
 
     @Override
@@ -108,34 +137,42 @@ public class ScopeListener extends MinespeakBaseListener {
     @Override
     public void exitRetVal(MinespeakParser.RetValContext ctx) {
         ctx.type = ctx.expr().type;
-        this.addToScope(ctx, "return", entryFac.createFromType("return", ctx.type));
+        this.addToScope(ctx, "return", entryFac.createFromType("return", ctx.type, ctx));
     }
 
     @Override
     public void enterDoWhile(MinespeakParser.DoWhileContext ctx) {
-        ctx.scope = factory.createScope(this.currentScope);
+        ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
     @Override
     public void exitDoWhile(MinespeakParser.DoWhileContext ctx) {
+        if(ctx.expr().type != Type._bool){
+            Logger.shared.add(logFac.createTypeError(ctx.expr().getText(), ctx.expr(), ctx.expr().type, Type._bool));
+        }
+        System.out.println(ctx.getSourceInterval().b);
         exitScope();
     }
 
     @Override
     public void enterWhileStmnt(MinespeakParser.WhileStmntContext ctx) {
-        ctx.scope = factory.createScope(this.currentScope);
+        ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
     @Override
     public void exitWhileStmnt(MinespeakParser.WhileStmntContext ctx) {
+        if(ctx.expr().type != Type._bool){
+            Logger.shared.add(logFac.createTypeError(ctx.expr().getText(), ctx.expr(), ctx.expr().type, Type._bool));
+        }
+
         exitScope();
     }
 
     @Override
     public void enterForeach(MinespeakParser.ForeachContext ctx) {
-        ctx.scope = factory.createScope(this.currentScope);
+        ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
@@ -143,40 +180,73 @@ public class ScopeListener extends MinespeakBaseListener {
     public void exitForeachInit(MinespeakParser.ForeachInitContext ctx) {
         String name = ctx.ID().getText();
         Type type = ctx.primaryType().type;
-        this.addToScope(ctx, name, entryFac.createFromType(name, type));
+        this.addToScope(ctx, name, entryFac.createFromType(name, type, ctx));
         ctx.type = type;
     }
 
     @Override
     public void exitForeach(MinespeakParser.ForeachContext ctx) {
+        if(ctx.foreachInit().primaryType().type != ctx.foreachInit().expr().type){
+            Logger.shared.add(logFac.createTypeError(ctx.foreachInit().expr().getText(),
+                    ctx.foreachInit().expr(),
+                    ctx.foreachInit().expr().type,
+                    ctx.foreachInit().primaryType().type)
+            );
+        }
         exitScope();
     }
 
     @Override
     public void enterForStmnt(MinespeakParser.ForStmntContext ctx) {
-        ctx.scope = factory.createScope(this.currentScope);
+        ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
     @Override
     public void exitForStmnt(MinespeakParser.ForStmntContext ctx) {
+        int length = ctx.instan().primaryType().size();
+
+        for (int i = 0; i < length; i++) {
+            if(ctx.instan().primaryType(i).type != Type._num){
+                Logger.shared.add(logFac.createTypeWarning(ctx.instan().ID(i).getText(),
+                        ctx.instan().primaryType(i),
+                        ctx.instan().primaryType(i).type,
+                        Type._num)
+                );
+            }
+        }
+
+        if(ctx.expr().type != Type._bool){
+            Logger.shared.add(logFac.createTypeError(ctx.expr().getText(), ctx.expr(), ctx.expr().type, Type._bool));
+        }
+
         exitScope();
     }
 
     @Override
     public void enterIfStmnt(MinespeakParser.IfStmntContext ctx) {
-        ctx.scope = factory.createScope(this.currentScope);
+        ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
     @Override
     public void exitIfStmnt(MinespeakParser.IfStmntContext ctx) {
+        List<MinespeakParser.ExprContext> ifExprs = ctx.expr();
+        for (int i = 0; i < ifExprs.size(); i++) {
+            if(ifExprs.get(i).type != Type._bool) {
+                Logger.shared.add(logFac.createTypeError(ifExprs.get(i).getText(),
+                        ifExprs.get(i),
+                        ifExprs.get(i).type,
+                        Type._bool)
+                );
+            }
+        }
         exitScope();
     }
 
     @Override
     public void enterBody(MinespeakParser.BodyContext ctx) {
-        ctx.scope = factory.createScope(this.currentScope);
+        ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
@@ -187,19 +257,31 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitDcls(MinespeakParser.DclsContext ctx) {
-        addMultpleToScope(ctx);
+        addMultipleToScope(ctx);
     }
 
     @Override
     public void exitInstan(MinespeakParser.InstanContext ctx) {
-        addMultpleToScope(ctx);
+        int instanLength = ctx.primaryType().size();
+
+        for (int i = 0; i < instanLength; i++) {
+            if(ctx.primaryType(i).type != ctx.initialValue(i).expr().type){
+                Logger.shared.add(logFac.createTypeError(ctx.initialValue(i).expr().getText(),
+                        ctx.initialValue(i).expr(),
+                        ctx.initialValue(i).expr().type,
+                        ctx.primaryType(i).type)
+                );
+            }
+        }
+
+        addMultipleToScope(ctx);
     }
 
     @Override
     public void enterArrayAccess(MinespeakParser.ArrayAccessContext ctx) {
         Type tempType = this.lookupTypeInScope(ctx, ctx.ID().getText());
         if (!(tempType instanceof ArrayType))
-            Logger.shared.add(new VariableIsNotArrayError(ctx.ID().getText(), ctx.start.getLine()));
+            Logger.shared.add(logFac.createVarNotArrayLog(ctx.ID().getText(), ctx));
         else
             ctx.type = tempType;
     }
@@ -235,51 +317,7 @@ public class ScopeListener extends MinespeakBaseListener {
             ctx.type = Type._vector3;
         else {
             ctx.type = Type._error;
-            Logger.shared.add(new InvalidTypeError(ctx.getText(), ctx.start.getLine()));
-        }
-    }
-
-    private void exitScope() {
-        enterScope(this.currentScope.getParent());
-    }
-
-    private void enterScope(Scope scope) {
-        this.currentScope = scope;
-    }
-
-    private void addToScope(ParserRuleContext ctx, String key, SymEntry var) {
-        if (!this.currentScope.addVariable(key, var)) {
-            Logger.shared.add(new VariableAlreadyDeclaredError(key, ctx.start.getLine()));
-        }
-    }
-
-    private Type lookupTypeInScope(ParserRuleContext ctx, String key) {
-        SymEntry entry = this.currentScope.lookup(key);
-
-        if (entry == null)
-            Logger.shared.add(new VariableNotDeclaredError(key, ctx.start.getLine()));
-
-        return entry == null ? null : entry.getType();
-    }
-
-    private void addMultpleToScope(ParserRuleContext ctx) {
-        List<TerminalNode> ids;
-        List<MinespeakParser.PrimaryTypeContext> types;
-
-        if (ctx instanceof MinespeakParser.DclsContext) {
-            ids = ((MinespeakParser.DclsContext)ctx).ID();
-            types = ((MinespeakParser.DclsContext)ctx).primaryType();
-        } else if (ctx instanceof MinespeakParser.InstanContext) {
-            ids = ((MinespeakParser.InstanContext)ctx).ID();
-            types = ((MinespeakParser.InstanContext)ctx).primaryType();
-        } else {
-            return;
-        }
-
-        for (int i = 0; i < ids.size(); i++) {
-            String name = ids.get(i).getText();
-            Type type = types.get(i).type;
-            this.addToScope(ctx, name, entryFac.createFromType(name, type));
+            Logger.shared.add(logFac.createTypeError(ctx.getText(), ctx, ctx.type, ctx.type));
         }
     }
 
@@ -350,7 +388,105 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitMulDivMod(MinespeakParser.MulDivModContext ctx) {
-        super.exitMulDivMod(ctx);
+        int left = ctx.expr(0).type.getTypeAsInt();
+        int right = ctx.expr(1).type.getTypeAsInt();
+
+        if(ctx.DIV() != null){
+            ctx.type = Type.inferType(left, MinespeakParser.DIV, right);
+        } else if(ctx.TIMES() != null) {
+            ctx.type = Type.inferType(left, MinespeakParser.TIMES, right);
+        } else if(ctx.MOD() != null) {
+            ctx.type = Type.inferType(left, MinespeakParser.MOD, right);
+        }
+
+    }
+
+    @Override
+    public void exitFactor(MinespeakParser.FactorContext ctx) {
+        if (ctx.rvalue() != null) {
+            ctx.type = lookupTypeInScope(ctx, ctx.rvalue().ID().getText());
+        } else if (ctx.expr() != null) {
+            ctx.type = ctx.expr().type;
+        } else if (ctx.literal() != null) {
+            ctx.type = ctx.literal().type;
+        } else if (ctx.funcCall() != null) {
+            ctx.type = ctx.funcCall().type;
+        } else if (ctx.arrayAccess() != null) {
+            ctx.type = ctx.arrayAccess().type;
+        } else {
+            throw new RuntimeException();
+        }
+    }
+
+    @Override
+    public void exitFuncCall(MinespeakParser.FuncCallContext ctx) {
+        FuncEntry function = functions.get(ctx.ID().getText());
+
+        if (function == null) {
+            Logger.shared.add(logFac.createNotDeclaredLog(ctx.ID().getText(), ctx));
+            return;
+        }
+
+        List<SimpleEntry> formalParams = function.getParams();
+        List<MinespeakParser.ExprContext> actualParams = ctx.expr();
+
+        if (actualParams.size() < formalParams.size()){
+            Logger.shared.add(logFac.createTooFewArgumentsError(ctx.ID().getText(), ctx));
+            Logger.shared.add(logFac.createFuncDeclLocationNote(function.getCtx()));
+        } else if (actualParams.size() > formalParams.size()){
+            Logger.shared.add(logFac.createTooManyArgumentsError(ctx.ID().getText(), ctx));
+            Logger.shared.add(logFac.createFuncDeclLocationNote(function.getCtx()));
+        }
+        
+        for (int i = 0; i < formalParams.size(); i++) {
+            if (formalParams.get(i).getType() != actualParams.get(i).type) {
+                Logger.shared.add(logFac.createTypeError(actualParams.get(i).getText(),
+                        actualParams.get(i),
+                        actualParams.get(i).type,
+                        formalParams.get(i).getType())
+                );
+            }
+        }
+    }
+
+    @Override
+    public void exitAssign(MinespeakParser.AssignContext ctx) {
+        Type type = lookupTypeInScope(ctx, ctx.ID().getText());
+        Type exprType = ctx.expr().type;
+        if  (ctx.arrayAccess() != null) {
+            if (type instanceof ArrayType && exprType instanceof ArrayType) {
+                type = ((ArrayType) type).type;
+                exprType = ((ArrayType) type).type;
+            } else {
+                Logger.shared.add(logFac.createTypeError(ctx.arrayAccess().getText(),
+                        ctx.arrayAccess(),
+                        ctx.arrayAccess().type,
+                        type)
+                );
+            }
+        }
+
+        if (type == Type._error) {
+            return;
+        }
+
+        Type inferredType = Type.inferType(type.getTypeAsInt(), MinespeakParser.ASSIGN, exprType.getTypeAsInt());;
+        if (ctx.compAssign() != null)
+            inferredType = Type.inferType(type.getTypeAsInt(), ctx.compAssign().op.getType(), exprType.getTypeAsInt());
+
+        if (inferredType == Type._error) {
+            if (ctx.compAssign() != null) {
+                Logger.shared.add(logFac.createInvalidOperatorError(
+                        ctx.compAssign().getText(), ctx.compAssign(), type, exprType)
+                );
+            } else {
+                Logger.shared.add(logFac.createTypeError(ctx.expr().getText(),
+                        ctx.expr(),
+                        exprType,
+                        type)
+                );
+            }
+        }
     }
 
     @Override
@@ -368,13 +504,58 @@ public class ScopeListener extends MinespeakBaseListener {
         } else if(ctx.vector3Literal() != null) {
             ctx.type = Type._vector3;
         } else {
-            //log error
+            throw new RuntimeException();
         }
     }
 
     @Override
     public void exitNotNegFac(MinespeakParser.NotNegFacContext ctx) {
         ctx.type = ctx.factor().type;
+    }
+
+    private void exitScope() {
+        enterScope(this.currentScope.getParent());
+    }
+
+    private void enterScope(Scope scope) {
+        this.currentScope = scope;
+    }
+
+    private void addToScope(ParserRuleContext ctx, String key, SymEntry var) {
+        if (!this.currentScope.addVariable(key, var)) {
+            Logger.shared.add(logFac.createDuplicateVarLog(key, var.getCtx()));
+            Logger.shared.add(logFac.createVarDeclLocationNote(currentScope.lookup(key).getCtx()));
+        }
+    }
+
+    private Type lookupTypeInScope(ParserRuleContext ctx, String key) {
+        SymEntry entry = this.currentScope.lookup(key);
+
+        if (entry == null)
+            Logger.shared.add(logFac.createNotDeclaredLog(key, ctx));
+
+        return entry == null ? Type._error : entry.getType();
+    }
+
+    private void addMultipleToScope(ParserRuleContext ctx) {
+        List<TerminalNode> ids;
+        List<MinespeakParser.PrimaryTypeContext> types;
+
+        if (ctx instanceof MinespeakParser.DclsContext) {
+            ids = ((MinespeakParser.DclsContext)ctx).ID();
+            types = ((MinespeakParser.DclsContext)ctx).primaryType();
+        } else if (ctx instanceof MinespeakParser.InstanContext) {
+            ids = ((MinespeakParser.InstanContext)ctx).ID();
+            types = ((MinespeakParser.InstanContext)ctx).primaryType();
+        } else {
+            return;
+        }
+
+        for (int i = 0; i < ids.size(); i++) {
+            String name = ids.get(i).getText();
+            Type type = types.get(i).type;
+            this.addToScope(ctx, name, entryFac.createFromType(name, type, ctx));
+        }
     }
 
     private void resetFunctions() {

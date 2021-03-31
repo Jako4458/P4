@@ -1,7 +1,12 @@
 package Logging;
 
 public class VariableAlreadyDeclaredError extends ErrorLog {
-    public VariableAlreadyDeclaredError(String name, int line) {
-        super(String.format("Error at line %d: variable %s has already been declared", line, name));
+    public VariableAlreadyDeclaredError(String text, int lineNum, int characterIndex) {
+        super(text, lineNum, characterIndex);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Error: %s already declared.", getText());
     }
 }

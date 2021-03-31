@@ -1,3 +1,5 @@
+import org.antlr.v4.runtime.ParserRuleContext;
+
 public class ArrayEntry implements SymEntry {
     private String name;
     private ArrayType type;
@@ -19,6 +21,11 @@ public class ArrayEntry implements SymEntry {
     @Override
     public Type getType() {
         return this.type;
+    }
+
+    @Override
+    public ParserRuleContext getCtx() {
+        return null;
     }
 
     public int getSize() {

@@ -8,6 +8,8 @@ import java.util.List;
  */
 public class Logger implements ILogger {
     private final ArrayList<Log> logs;
+    private final int indentations = 5;
+    private String[] sourceProg;
 
     public static Logger shared = new Logger();
 
@@ -31,7 +33,8 @@ public class Logger implements ILogger {
     @Override
     public void print() {
         for (Log log : logs) {
-            String formattedMessage = format_message(log.message, log.type);
+            String formattedMessage = formatMessage(log);
+
 
             System.out.println(formattedMessage);
         }
@@ -41,21 +44,23 @@ public class Logger implements ILogger {
         return this.logs;
     }
 
-    private String format_message(String message, LogType type) {
-        if (message == null)
-            throw new NullPointerException("Cannot format null message.");
-        if (type == null)
+    private String formatMessage(Log log) {
+        String logMessage = log.toString();
+        String message;
+        if (logMessage.equals(""))
+            throw new NullPointerException("Cannot format empty message");
+
+        if (log.type == null)
             throw new NullPointerException("Cannot format null type.");
 
-        switch (type) {
-            case WARNING:
-                return String.format("Warning: %s", message);
-            case INFO:
-                return String.format("Info: %s", message);
-            case ERROR:
-                return String.format("Error: %s", message);
-            default:
-                throw new RuntimeException(String.format("Unable to format message due to unsupported log type: %s", message));
-        }
+        message = String.format("%s%s:%s:%s\u001B[0m %s\n", log.getColour(), log.type.toString(), log.getLineNum(), log.getCharacterIndex(), logMessage);
+        message += " ".repeat(indentations) + this.sourceProg[log.getLineNum() - 1] + "\n";
+        message += " ".repeat(indentations + log.getCharacterIndex()) + "↑\n";
+
+        return message;
+    }
+
+    public void setSourceProg(String[] sourceProg) {
+        this.sourceProg = sourceProg;
     }
 }
