@@ -193,11 +193,16 @@ public class FunctionSignatureWalkerTests {
         Type actualParamOneType = walker.functionSignatures.get("test").getParams().get(0).getType();
         int actualParamsSize = walker.functionSignatures.get("test").getParams().size();
 
+        String actualParamOneName = walker.functionSignatures.get("test").getParams().get(0).getName();
+        String expectedParamOneName = "et_tal";
+
         Type expectedParamOneType = Type._num;
         int expectedParamsSize = 1;
 
+
         assertEquals(expectedParamsSize, actualParamsSize);
         assertEquals(expectedParamOneType, actualParamOneType);
+        assertEquals(expectedParamOneName, actualParamOneName);
     }
 
     @Test
@@ -210,9 +215,14 @@ public class FunctionSignatureWalkerTests {
         Type actualParamOneType = walker.functionSignatures.get("test").getParams().get(0).getType();
         Type expectedParamOneType = Type._num;
 
+        String actualParamOneName = walker.functionSignatures.get("test").getParams().get(0).getName();
+        String expectedParamOneName = "et_tal";
+
         Type actualParamTwoType = walker.functionSignatures.get("test").getParams().get(1).getType();
         Type expectedParamTwoType = Type._bool;
 
+        String actualParamTwoName = walker.functionSignatures.get("test").getParams().get(1).getName();
+        String expectedParamTwoName = "en_bool";
 
         int actualParamsSize = walker.functionSignatures.get("test").getParams().size();
         int expectedParamsSize = 2;
@@ -220,6 +230,8 @@ public class FunctionSignatureWalkerTests {
         assertEquals(expectedParamsSize, actualParamsSize);
         assertEquals(expectedParamOneType, actualParamOneType);
         assertEquals(expectedParamTwoType, actualParamTwoType);
+        assertEquals(expectedParamOneName, actualParamOneName);
+        assertEquals(expectedParamTwoName, actualParamTwoName);
     }
 
     @Test
