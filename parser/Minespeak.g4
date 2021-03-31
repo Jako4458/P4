@@ -96,14 +96,14 @@ locals [Scope scope]
         : stmnts?
         ;
 
-access : CONST
+modifiers : CONST
        | VAR
        ;
 
-dcls : access ID COLON primaryType (COMMA ID COLON primaryType)*
+dcls : modifiers ID COLON primaryType (COMMA ID COLON primaryType)*
      ;
 
-instan : access ID COLON primaryType ASSIGN initialValue (COMMA ID COLON primaryType ASSIGN initialValue)*
+instan : modifiers ID COLON primaryType ASSIGN initialValue (COMMA ID COLON primaryType ASSIGN initialValue)*
        ;
 
 initialValue : rArray
