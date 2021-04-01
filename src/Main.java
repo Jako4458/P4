@@ -24,9 +24,17 @@ public class Main {
         CommonTokenStream commonTokenStream = new CommonTokenStream(minespeakLexer);
 
         MinespeakParser minespeakParser = new MinespeakParser(commonTokenStream);
+        ParseErrorListener parseErrorListener = new ParseErrorListener();
+        minespeakParser.addErrorListener(parseErrorListener);
+
+
 
         ParseTree tree = minespeakParser.prog();
         System.out.println(tree.toStringTree(minespeakParser));
+
+        if (parseErrorListener.getErrorFound()) {
+            return;
+        }
 
         SignatureWalker walker = new SignatureWalker();
         walker.visit(tree);
@@ -44,6 +52,8 @@ public class Main {
         //ParseTreeWalker.DEFAULT.walk(listener, tree);
 
         Logger.shared.print();
+        System.out.println("hej");
+
         System.out.println("░░░░░▄▄▄▄▀▀▀▀▀▀▀▀▄▄▄▄▄▄░░░░░░░\n" +
                            "░░░░░█░░░░▒▒▒▒▒▒▒▒▒▒▒▒░░▀▀▄░░░░\n" +
                            "░░░░█░░░▒▒▒▒▒▒░░░░░░░░▒▒▒░░█░░░\n" +
@@ -59,7 +69,6 @@ public class Main {
                            "░░░░░░░▀▄▄░▒▒▒▒░░░░░░░░░░▒░░░█░\n" +
                            "░░░░░░░░░░▀▀▄▄░▒▒▒▒▒▒▒▒▒▒░░░░█░\n" +
                            "░░░░░░░░░░░░░░▀▄▄▄▄▄░░░░░░░░█░░");
-
 
         //System.out.println(commonTokenStream.get(25, 29));
 //        System.out.println(tree);
