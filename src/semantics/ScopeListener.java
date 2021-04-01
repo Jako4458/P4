@@ -1,6 +1,5 @@
 import Logging.*;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.ArrayList;
@@ -95,12 +94,12 @@ public class ScopeListener extends MinespeakBaseListener {
             ctx.type = Type._void;
 
         if (!this.isInvalidFunc) {
-            List<SimpleEntry> paramIDs = new ArrayList<>();
+            List<SymEntry> paramIDs = new ArrayList<>();
 
             for (MinespeakParser.ParamContext param : ctx.params().param()) {
                 String paramName = param.ID().getText();
                 Type paramType = param.primaryType().type;
-                paramIDs.add(entryFac.createFromType(paramName, paramType, ctx));
+                paramIDs.add(entryFac.createFromType(paramName, paramType, ctx, MinespeakParser.VAR));
             }
 
             String funcName = ctx.ID().getText();
@@ -117,7 +116,7 @@ public class ScopeListener extends MinespeakBaseListener {
         if (ctx.type == Type._void || ctx.type == Type._error) {
             Logger.shared.add(logFac.createCannotBeVoid(ctx.ID().getText(), ctx, ctx.type));
         } else {
-            this.addToScope(ctx, name, entryFac.createFromType(name, ctx.type, ctx));
+            this.addToScope(ctx, name, entryFac.createFromType(name, ctx.type, ctx, MinespeakParser.VAR));
         }
     }
 
@@ -137,7 +136,7 @@ public class ScopeListener extends MinespeakBaseListener {
     @Override
     public void exitRetVal(MinespeakParser.RetValContext ctx) {
         ctx.type = ctx.expr().type;
-        this.addToScope(ctx, "return", entryFac.createFromType("return", ctx.type, ctx));
+        this.addToScope(ctx, "return", entryFac.createFromType("return", ctx.type, ctx, MinespeakParser.CONST));
     }
 
     @Override
@@ -180,7 +179,7 @@ public class ScopeListener extends MinespeakBaseListener {
     public void exitForeachInit(MinespeakParser.ForeachInitContext ctx) {
         String name = ctx.ID().getText();
         Type type = ctx.primaryType().type;
-        this.addToScope(ctx, name, entryFac.createFromType(name, type, ctx));
+        this.addToScope(ctx, name, entryFac.createFromType(name, type, ctx, MinespeakParser.VAR));
         ctx.type = type;
     }
 
@@ -427,7 +426,7 @@ public class ScopeListener extends MinespeakBaseListener {
             return;
         }
 
-        List<SimpleEntry> formalParams = function.getParams();
+        List<SymEntry> formalParams = function.getParams();
         List<MinespeakParser.ExprContext> actualParams = ctx.expr();
 
         if (actualParams.size() < formalParams.size()){
@@ -470,7 +469,7 @@ public class ScopeListener extends MinespeakBaseListener {
             return;
         }
 
-        Type inferredType = Type.inferType(type.getTypeAsInt(), MinespeakParser.ASSIGN, exprType.getTypeAsInt());;
+        Type inferredType = Type.inferType(type.getTypeAsInt(), MinespeakParser.ASSIGN, exprType.getTypeAsInt());
         if (ctx.compAssign() != null)
             inferredType = Type.inferType(type.getTypeAsInt(), ctx.compAssign().op.getType(), exprType.getTypeAsInt());
 
@@ -540,13 +539,16 @@ public class ScopeListener extends MinespeakBaseListener {
     private void addMultipleToScope(ParserRuleContext ctx) {
         List<TerminalNode> ids;
         List<MinespeakParser.PrimaryTypeContext> types;
+        int modifier;
 
         if (ctx instanceof MinespeakParser.DclsContext) {
             ids = ((MinespeakParser.DclsContext)ctx).ID();
             types = ((MinespeakParser.DclsContext)ctx).primaryType();
+            modifier = ((MinespeakParser.DclsContext)ctx).modifiers().CONST() != null ? MinespeakParser.CONST : MinespeakParser.VAR;
         } else if (ctx instanceof MinespeakParser.InstanContext) {
             ids = ((MinespeakParser.InstanContext)ctx).ID();
             types = ((MinespeakParser.InstanContext)ctx).primaryType();
+            modifier = ((MinespeakParser.InstanContext)ctx).modifiers().CONST() != null ? MinespeakParser.CONST : MinespeakParser.VAR;
         } else {
             return;
         }
@@ -554,7 +556,7 @@ public class ScopeListener extends MinespeakBaseListener {
         for (int i = 0; i < ids.size(); i++) {
             String name = ids.get(i).getText();
             Type type = types.get(i).type;
-            this.addToScope(ctx, name, entryFac.createFromType(name, type, ctx));
+            this.addToScope(ctx, name, entryFac.createFromType(name, type, ctx, modifier));
         }
     }
 

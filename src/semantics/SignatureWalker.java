@@ -10,8 +10,9 @@ import java.util.Map;
 public class SignatureWalker extends MinespeakBaseVisitor<Type> {
     private boolean nextIsMCFunc = false;
     public Map<String, FuncEntry> functionSignatures = new HashMap<>();
-    private List<SimpleEntry> currentParameters = new ArrayList<>();
+    private List<SymEntry> currentParameters = new ArrayList<>();
     private final LogFactory logFac = new LogFactory();
+    private final EntryFactory entryFac = new EntryFactory();
 
 
     @Override
@@ -61,7 +62,7 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
     @Override
     public Type visitFuncSignature(MinespeakParser.FuncSignatureContext ctx) {
         visit(ctx.params());
-        List<SimpleEntry> params = this.currentParameters;
+        List<SymEntry> params = this.currentParameters;
         Type type = Type._void;
 
         if (ctx.primaryType() != null)
@@ -87,8 +88,11 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
     @Override
     public Type visitParams(MinespeakParser.ParamsContext ctx) {
         for (MinespeakParser.ParamContext param : ctx.param()) {
-            currentParameters.add(new SimpleEntry(param.ID().getText(),
-                    visit(param.primaryType()), param)
+            currentParameters.add(entryFac.createFromType(
+                    param.ID().getText(),
+                    visit(param.primaryType()),
+                    param,
+                    MinespeakParser.VAR)
             );
         }
 
