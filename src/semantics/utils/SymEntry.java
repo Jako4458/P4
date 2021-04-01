@@ -6,4 +6,6 @@ public interface SymEntry {
     Type getType();
 
     ParserRuleContext getCtx();
+
+    int getModifier();
 }
