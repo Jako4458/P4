@@ -1,13 +1,13 @@
 import java.util.List;
 
 public class FuncEntry implements SymEntry {
-    private boolean isMCFunction;
-    private String name;
-    private Type retType;
-    private List<SimpleEntry> params;
-    private MinespeakParser.FuncSignatureContext ctx;
+    private final boolean isMCFunction;
+    private final String name;
+    private final Type retType;
+    private final List<SymEntry> params;
+    private final MinespeakParser.FuncSignatureContext ctx;
 
-    public FuncEntry(boolean isMCFunction, String name, Type retType, List<SimpleEntry> params, MinespeakParser.FuncSignatureContext ctx) {
+    public FuncEntry(boolean isMCFunction, String name, Type retType, List<SymEntry> params, MinespeakParser.FuncSignatureContext ctx) {
         this.isMCFunction = isMCFunction;
         this.name = name;
         this.retType = retType;
@@ -25,11 +25,16 @@ public class FuncEntry implements SymEntry {
         return this.retType;
     }
 
+    @Override
+    public int getModifier() {
+        return MinespeakParser.CONST;
+    }
+
     public boolean isMCFunction() {
         return this.isMCFunction;
     }
 
-    public List<SimpleEntry> getParams() {
+    public List<SymEntry> getParams() {
         return this.params;
     }
 
