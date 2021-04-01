@@ -1,7 +1,4 @@
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.ConsoleErrorListener;
+import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNodeImpl;
@@ -13,6 +10,8 @@ public class TestHelper {
     public MinespeakLexer minespeakLexer;
     public MinespeakParser minespeakParser;
     static String filePath = new File("").getAbsolutePath();
+    public Vocabulary vocabulary;
+    private ScopeListener listener;
 
     public void setupFromFile(String file) throws IOException {
         setup(CharStreams.fromFileName(filePath + file));
@@ -29,6 +28,7 @@ public class TestHelper {
         CommonTokenStream commonTokenStream = new CommonTokenStream(minespeakLexer);
 
         minespeakParser = new MinespeakParser(commonTokenStream);
+        this.vocabulary = minespeakParser.getVocabulary();
         TestsErrorListener listener = new TestsErrorListener();
 
         minespeakParser.removeErrorListener(ConsoleErrorListener.INSTANCE);
@@ -47,11 +47,21 @@ public class TestHelper {
     }
 
     public void walkTree(ParseTree tree) {
-        ScopeListener listener = new ScopeListener();
+        SignatureWalker sigWalker = new SignatureWalker();
+        sigWalker.visit(tree);
+        listener = new ScopeListener(sigWalker.functionSignatures);
         ParseTreeWalker.DEFAULT.walk(listener, tree);
     }
 
     public String getEntryName(Scope scope, String id) {
         return scope.lookup(id).getName();
+    }
+
+    public static String getTypeName(int type) {
+        return MinespeakParser.VOCABULARY.getLiteralName(type);
+    }
+
+    public ScopeListener getListener() {
+        return this.listener;
     }
 }

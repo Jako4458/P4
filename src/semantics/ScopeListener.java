@@ -560,7 +560,11 @@ public class ScopeListener extends MinespeakBaseListener {
         }
     }
 
-    private void resetFunctions() {
+    public void resetFunctions() {
         functions.clear();
+    }
+
+    public Map<String, FuncEntry> getFunctions() {
+        return this.functions;
     }
 }
