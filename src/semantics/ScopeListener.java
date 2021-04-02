@@ -68,7 +68,9 @@ public class ScopeListener extends MinespeakBaseListener {
             this.entryFac.resetMCFunction();
             if (ctx.type != Type._void && ctx.funcBody().type == Type._void) {
                 Logger.shared.add(logFac.createTypeError(name, ctx, ctx.type, Type._void));
-            } else if (ctx.type != ctx.funcBody().type) {
+            } else if (ctx.type != ctx.funcBody().type      // Checking array types can be annoying
+                    && !(ctx.type instanceof ArrayType && ctx.funcBody().type instanceof ArrayType
+                    && ((ArrayType)ctx.type).equalTypes((ArrayType)ctx.funcBody().type))) {
                 Logger.shared.add(logFac.createTypeError(ctx.funcBody().retVal().expr().getText(),
                         ctx.funcBody().retVal().expr(),
                         ctx.funcBody().retVal().type,
@@ -497,7 +499,7 @@ public class ScopeListener extends MinespeakBaseListener {
         } else if(ctx.numberLiteral() != null) {
             ctx.type = Type._num;
         } else if(ctx.StringLiteral() != null) {
-            ctx.type = Type._num;
+            ctx.type = Type._string;
         } else if(ctx.vector2Literal() != null) {
             ctx.type = Type._vector2;
         } else if(ctx.vector3Literal() != null) {
