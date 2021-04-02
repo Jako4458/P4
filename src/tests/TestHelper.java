@@ -5,6 +5,8 @@ import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TestHelper {
     public MinespeakLexer minespeakLexer;
@@ -68,4 +70,39 @@ public class TestHelper {
     public ScopeListener getListener() {
         return this.listener;
     }
+
+    public static String getSymbolFromInt(int symbol) {
+        return (MinespeakParser.VOCABULARY.getLiteralName(symbol)).replaceAll("'", "");
+    }
+
+    /*public static String getRepresentativeSymbol(String type) {
+        Vocabulary vocab = MinespeakParser.VOCABULARY;
+        switch (type) {
+            case vocab.getLiteralName(Type.BOOL):     return "true";
+            case MinespeakParser.VOCABULARY.getLiteralName(Type.NUM):      return "1";
+            case MinespeakParser.VOCABULARY.getLiteralName(Type.BLOCK):    return "#ACACIA_BUTTON";
+            case MinespeakParser.VOCABULARY.getLiteralName(Type.STRING):   return "\"test\"";
+            case MinespeakParser.VOCABULARY.getLiteralName(Type.VECTOR2):  return "<1, 1>";
+            case MinespeakParser.VOCABULARY.getLiteralName(Type.VECTOR3):  return "<1, 1, 1>";
+            default:            return "\"error\"";
+        }
+    }*/
+
+    public static String getRepresentativeSymbol(String type) {
+        return TestHelper.repSymbols.getOrDefault(type, "\"error\"");
+    }
+    public static String getRepresentativeSymbol(int type) {
+        return TestHelper.repSymbols.getOrDefault(getSymbolFromInt(type), "\"error\"");
+    }
+
+
+    static HashMap<String, String> repSymbols = new HashMap<>() {{
+        put(TestHelper.getSymbolFromInt(MinespeakParser.NUM), "1");
+        put(TestHelper.getSymbolFromInt(MinespeakParser.BLOCK), "#ACACIA_BUTTON");
+        put(TestHelper.getSymbolFromInt(MinespeakParser.STRING), "\"test\"");
+        put(TestHelper.getSymbolFromInt(MinespeakParser.VECTOR2), "<1, 1>");
+        put(TestHelper.getSymbolFromInt(MinespeakParser.VECTOR3), "<1, 1, 1>");
+        put(TestHelper.getSymbolFromInt(MinespeakParser.BOOL), "true");
+    }};
+
 }
