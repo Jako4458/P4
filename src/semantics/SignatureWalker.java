@@ -1,5 +1,4 @@
 import Logging.Logger;
-import Logging.MCFuncWrongReturnType;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.ArrayList;
@@ -79,7 +78,7 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
             );
         } else {
             ctx.isDuplicate = true;
-            Logger.shared.add(logFac.createDuplicateVarLog(ctx.ID().getText(), ctx));
+            Logger.shared.add(logFac.createVariableAlreadyDeclaredLog(ctx.ID().getText(), ctx));
         }
 
         return Type._void;

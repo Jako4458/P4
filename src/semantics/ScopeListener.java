@@ -403,7 +403,7 @@ public class ScopeListener extends MinespeakBaseListener {
     @Override
     public void exitFactor(MinespeakParser.FactorContext ctx) {
         if (ctx.rvalue() != null) {
-            ctx.type = lookupTypeInScope(ctx, ctx.rvalue().ID().getText());
+            ctx.type = ctx.rvalue().type; //lookupTypeInScope(ctx, ctx.rvalue().ID().getText());
         } else if (ctx.expr() != null) {
             ctx.type = ctx.expr().type;
         } else if (ctx.literal() != null) {
@@ -422,7 +422,7 @@ public class ScopeListener extends MinespeakBaseListener {
         FuncEntry function = functions.get(ctx.ID().getText());
 
         if (function == null) {
-            Logger.shared.add(logFac.createNotDeclaredLog(ctx.ID().getText(), ctx));
+            Logger.shared.add(logFac.createVariableNotDeclaredLog(ctx.ID().getText(), ctx));
             return;
         }
 
@@ -522,7 +522,7 @@ public class ScopeListener extends MinespeakBaseListener {
 
     private void addToScope(ParserRuleContext ctx, String key, SymEntry var) {
         if (!this.currentScope.addVariable(key, var)) {
-            Logger.shared.add(logFac.createDuplicateVarLog(key, var.getCtx()));
+            Logger.shared.add(logFac.createVariableAlreadyDeclaredLog(key, var.getCtx()));
             Logger.shared.add(logFac.createVarDeclLocationNote(currentScope.lookup(key).getCtx()));
         }
     }
@@ -531,7 +531,7 @@ public class ScopeListener extends MinespeakBaseListener {
         SymEntry entry = this.currentScope.lookup(key);
 
         if (entry == null)
-            Logger.shared.add(logFac.createNotDeclaredLog(key, ctx));
+            Logger.shared.add(logFac.createVariableNotDeclaredLog(key, ctx));
 
         return entry == null ? Type._error : entry.getType();
     }
