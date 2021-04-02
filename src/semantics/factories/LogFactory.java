@@ -21,7 +21,7 @@ public class LogFactory {
         );
     }
 
-    public Log createUnassignedVariableLog(String text, ParserRuleContext ctx){
+    public Log createUnassignedVariableWarningLog(String text, ParserRuleContext ctx){
         return new UnassignedVariableWarning(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
     }
 

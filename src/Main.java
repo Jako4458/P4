@@ -41,8 +41,8 @@ public class Main {
         ScopeListener scopeListener = new ScopeListener(walker.functionSignatures);
         ParseTreeWalker.DEFAULT.walk(scopeListener, tree);
 
-//        UnassignedVaribleListener unassignedVaribleListener = new UnassignedVaribleListener();
-//        ParseTreeWalker.DEFAULT.walk(unassignedVaribleListener, tree);
+        UnassignedVariableListener unassignedVaribleListener = new UnassignedVariableListener();
+        ParseTreeWalker.DEFAULT.walk(unassignedVaribleListener, tree);
 
         for (FuncEntry entry : walker.functionSignatures.values()) {
             System.out.print(entry.getName() + ": ");

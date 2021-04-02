@@ -1,15 +1,16 @@
 import Logging.Logger;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-public class UnassignedVaribleListener extends MinespeakBaseListener {
+public class UnassignedVariableListener extends MinespeakBaseListener {
     private Map<SymEntry, Boolean> declaredVariables = new HashMap<>();
     private Scope currentScope;
+    private LogFactory logFac = new LogFactory();
 
-    public UnassignedVaribleListener(){
+    public UnassignedVariableListener(){
         enterScope(null);
     }
 
@@ -20,12 +21,15 @@ public class UnassignedVaribleListener extends MinespeakBaseListener {
 
     @Override
     public void exitProg(MinespeakParser.ProgContext ctx) {
+
         for (Map.Entry<SymEntry, Boolean> entry : declaredVariables.entrySet()) {
+            int i = 0;
             boolean assigned = entry.getValue();
+            SymEntry symEntry = entry.getKey();
             if(assigned)
                 return;
 
-            System.out.println("GAMER");
+            Logger.shared.add(logFac.createUnassignedVariableWarningLog(symEntry.getName(), symEntry.getCtx()));
         }
         exitScope();
     }
