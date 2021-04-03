@@ -31,4 +31,6 @@ public abstract class Log {
     public abstract String getText();
 
     public abstract String getColour();
+
+
 }
