@@ -20,4 +20,9 @@ public class WarningLog extends Log {
     public String getColour() {
         return ANSI_COLORS.ANSI_BLUE_UNDERLINE;
     }
+
+    @Override
+    public String toString() {
+        return "Warning";
+    }
 }

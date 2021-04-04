@@ -38,8 +38,11 @@ public class Main {
 
         SignatureWalker walker = new SignatureWalker();
         walker.visit(tree);
-        ScopeListener listener = new ScopeListener(walker.functionSignatures);
-        ParseTreeWalker.DEFAULT.walk(listener, tree);
+        ScopeListener scopeListener = new ScopeListener(walker.functionSignatures);
+        ParseTreeWalker.DEFAULT.walk(scopeListener, tree);
+
+        UnassignedVariableListener unassignedVaribleListener = new UnassignedVariableListener();
+        ParseTreeWalker.DEFAULT.walk(unassignedVaribleListener, tree);
 
         for (FuncEntry entry : walker.functionSignatures.values()) {
             System.out.print(entry.getName() + ": ");
@@ -49,7 +52,7 @@ public class Main {
             System.out.println("\n");
         }
 
-        //ParseTreeWalker.DEFAULT.walk(listener, tree);
+        //ParseTreeWalker.DEFAULT.walk(scopeListener, tree);
 
         Logger.shared.print();
         System.out.println("hej");

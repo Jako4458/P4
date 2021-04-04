@@ -51,6 +51,7 @@ public class TestHelper {
         sigWalker.visit(tree);
         listener = new ScopeListener(sigWalker.functionSignatures);
         ParseTreeWalker.DEFAULT.walk(listener, tree);
+        ParseTreeWalker.DEFAULT.walk(new UnassignedVariableListener(), tree);
     }
 
     public <T> void walkTree(ParseTree tree, MinespeakBaseVisitor<T> visitor) {
