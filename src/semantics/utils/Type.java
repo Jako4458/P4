@@ -155,6 +155,8 @@ public class Type {
                 }
             } else {
                 resultTypes.put(opKey(NUM, assign, NUM), NUM);
+                if (assign == MinespeakParser.ADDASSIGN)
+                    resultTypes.put(opKey(STRING, assign, STRING), STRING);
             }
         }
 
