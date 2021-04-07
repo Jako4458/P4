@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import templates.STTest;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,7 +16,8 @@ public class Main {
         testString = "minespeak \n func Test() do \n $tp ~0 ~1 ~0 \n endfunc \n closespeak";
         //testString = "minespeak \n func Test(param1 : num) -> num do \n var n : bool = true \n \n endfunc \n\n\n\n closespeak";
         String filePath = new File("").getAbsolutePath();
-        CharStream charStream = CharStreams.fromFileName(filePath + "\\src\\testString.ms");
+//        CharStream charStream = CharStreams.fromFileName(filePath + "\\src\\testString.ms");
+        CharStream charStream = CharStreams.fromString(testString);
 
         //CharStream charStream = CharStreams.fromString(testString);
 
@@ -56,30 +58,14 @@ public class Main {
         //ParseTreeWalker.DEFAULT.walk(scopeListener, tree);
 
         Logger.shared.print();
-        System.out.println("hej");
-
-        System.out.println("░░░░░▄▄▄▄▀▀▀▀▀▀▀▀▄▄▄▄▄▄░░░░░░░\n" +
-                           "░░░░░█░░░░▒▒▒▒▒▒▒▒▒▒▒▒░░▀▀▄░░░░\n" +
-                           "░░░░█░░░▒▒▒▒▒▒░░░░░░░░▒▒▒░░█░░░\n" +
-                           "░░░█░░░░░░▄██▀▄▄░░░░░▄▄▄░░░░█░░\n" +
-                           "░▄▀▒▄▄▄▒░█▀▀▀▀▄▄█░░░██▄▄█░░░░█░\n" +
-                           "█░▒█▒▄░▀▄▄▄▀░░░░░░░░█░░░▒▒▒▒▒░█\n" +
-                           "█░▒█░█▀▄▄░░░░░█▀░░░░▀▄░░▄▀▀▀▄▒█\n" +
-                           "░█░▀▄░█▄░█▀▄▄░▀░▀▀░▄▄▀░░░░█░░█░\n" +
-                           "░░█░░░▀▄▀█▄▄░█▀▀▀▄▄▄▄▀▀█▀██░█░░\n" +
-                           "░░░█░░░░██░░▀█▄▄▄█▄▄█▄████░█░░░\n" +
-                           "░░░░█░░░░▀▀▄░█░░░█░█▀██████░█░░\n" +
-                           "░░░░░▀▄░░░░░▀▀▄▄▄█▄█▄█▄█▄▀░░█░░\n" +
-                           "░░░░░░░▀▄▄░▒▒▒▒░░░░░░░░░░▒░░░█░\n" +
-                           "░░░░░░░░░░▀▀▄▄░▒▒▒▒▒▒▒▒▒▒░░░░█░\n" +
-                           "░░░░░░░░░░░░░░▀▄▄▄▄▄░░░░░░░░█░░");
 
         //System.out.println(commonTokenStream.get(25, 29));
 //        System.out.println(tree);
 //
 //        System.out.println(Type.resultTypes);
 
-        STTest christian = new STTest();
+        CodeGenVisitor codeGenVisitor = new CodeGenVisitor();
+        codeGenVisitor.visit(tree);
 
         /*Scope scope = new Scope();
         ScopeVisitorDepre visitor = new ScopeVisitorDepre(scope);

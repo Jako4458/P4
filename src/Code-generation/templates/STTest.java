@@ -1,10 +1,12 @@
+package templates;
+
 import org.stringtemplate.v4.*;
 
 public class STTest {
 
-    public STTest(){
+    public STTest(String name){
         ST hello = new ST("Hello, <name>!");
-        hello.add("name", "Christian");
+        hello.add("name", name);
 
         String output = hello.render();
         System.out.println(output);
