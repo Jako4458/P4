@@ -1,14 +1,20 @@
-public class ArrayEntry implements SymEntry {
-    private String name;
-    private ArrayType type;
-    private Type baseType;
-    private int size;
+import org.antlr.v4.runtime.ParserRuleContext;
 
-    public ArrayEntry(String name, ArrayType type, int size) {
+public class ArrayEntry implements SymEntry {
+    private final String name;
+    private final ArrayType type;
+    private final Type baseType;
+    private final int size;
+    private final ParserRuleContext ctx;
+    private final int modifier;
+
+    public ArrayEntry(String name, ArrayType type, ParserRuleContext ctx, int modifier, int size) {
         this.name = name;
         this.type = type;
         this.baseType = this.type.type;
         this.size = size;
+        this.ctx = ctx;
+        this.modifier = modifier;
     }
 
     @Override
@@ -19,6 +25,16 @@ public class ArrayEntry implements SymEntry {
     @Override
     public Type getType() {
         return this.type;
+    }
+
+    @Override
+    public ParserRuleContext getCtx() {
+        return this.ctx;
+    }
+
+    @Override
+    public int getModifier() {
+        return this.modifier;
     }
 
     public int getSize() {

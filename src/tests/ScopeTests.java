@@ -5,8 +5,16 @@ import Logging.Logger;
 import Logging.VariableAlreadyDeclaredError;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
 
 public class ScopeTests {
     private TestHelper helper = new TestHelper();
@@ -141,7 +149,6 @@ public class ScopeTests {
         MinespeakParser.FuncContext tree = helper.minespeakParser.func();
         helper.walkTree(tree);
 
-        assertEquals(1, Logger.shared.getLogs().size());
         assertEquals(LogType.ERROR, Logger.shared.getLogs().get(0).type);
         assertTrue(Logger.shared.getLogs().get(0) instanceof VariableAlreadyDeclaredError);
     }
@@ -152,7 +159,6 @@ public class ScopeTests {
         MinespeakParser.FuncContext tree = helper.minespeakParser.func();
         helper.walkTree(tree);
 
-        assertEquals(1, Logger.shared.getLogs().size());
         assertEquals(LogType.ERROR, Logger.shared.getLogs().get(0).type);
         assertTrue(Logger.shared.getLogs().get(0) instanceof VariableAlreadyDeclaredError);
     }
@@ -249,7 +255,7 @@ public class ScopeTests {
 
     //region Test of scope for for-loop body
     @Test
-    public void ForLoopBodyVarAlreadyDeclared() throws IOException {
+    public void ForLoopBodyVarAlreadyDeclared() {
         helper.setupFromString("for var i: num = 0 until i < 10 where i += 1 do \n var test : bool = true \n var test : bool = true \n endfor");
         MinespeakParser.ForStmntContext tree = helper.minespeakParser.forStmnt();
         helper.walkTree(tree);
@@ -258,7 +264,7 @@ public class ScopeTests {
     }
 
     @Test
-    public void ForLoopBodyNewIHasCorrectType() throws IOException {
+    public void ForLoopBodyNewIHasCorrectType() {
         helper.setupFromString("for var i: num = 0 until i < 10 where i += 1 do \n var i : bool = true \n endfor");
         MinespeakParser.ForStmntContext tree = helper.minespeakParser.forStmnt();
         helper.walkTree(tree);
@@ -274,7 +280,7 @@ public class ScopeTests {
     }
 
     @Test
-    public void ForLoopBodyGetIterator() throws IOException {
+    public void ForLoopBodyGetIterator() {
         helper.setupFromString("for var i: num = 0 until i < 10 where i += 1 do \n i = 1 \n endfor");
         MinespeakParser.ForStmntContext tree = helper.minespeakParser.forStmnt();
         helper.walkTree(tree);
@@ -292,7 +298,7 @@ public class ScopeTests {
 
     //region Test of scope for foreach-loop iterator
     @Test
-    public void ForEachIteratorInScope() throws IOException {
+    public void ForEachIteratorInScope() {
         helper.setupFromString("var some_array : num[] \n foreach num number in some_array do \n \n endfor\n");
         MinespeakParser.BodyContext tree = helper.minespeakParser.body();
         helper.walkTree(tree);
@@ -305,15 +311,12 @@ public class ScopeTests {
 
         assertEquals(expectedIteratorType, actualIteratorType);
         assertEquals(expectedIteratorName, actualIteratorName);
-
-
     }
-
     //endregion
 
     //region Test of scope for foreach-loop body
     @Test
-    public void ForEachLoopVarInBody() throws IOException {
+    public void ForEachLoopVarInBody() {
         helper.setupFromString("var some_array : num[] \n foreach num number in some_array do \n \n endfor\n");
         MinespeakParser.BodyContext tree = helper.minespeakParser.body();
         helper.walkTree(tree);
@@ -329,8 +332,8 @@ public class ScopeTests {
     }
 
     @Test
-    public void ForEachLoopSameLoopVarNameInBody() throws IOException {
-        helper.setupFromString("var some_array : num[] \n foreach num number in some_array do \n var number : bool = 5 \n endfor\n");
+    public void ForEachLoopSameLoopVarNameInBody() {
+        helper.setupFromString("var some_array : num[] \n foreach num number in some_array do \n var number : bool = true \n endfor\n");
         MinespeakParser.BodyContext tree = helper.minespeakParser.body();
         helper.walkTree(tree);
 
@@ -345,7 +348,7 @@ public class ScopeTests {
     }
 
     @Test
-    public void ForEachBodyVarAlreadyDeclaredError() throws IOException {
+    public void ForEachBodyVarAlreadyDeclaredError() {
         helper.setupFromString("var some_array : num[] \n foreach num number in some_array do \n var test1:num = 0 \n var test1:num = 0 \n endfor\n");
         MinespeakParser.BodyContext tree = helper.minespeakParser.body();
         helper.walkTree(tree);
@@ -356,7 +359,7 @@ public class ScopeTests {
 
     //region Test of scope for while-loop expression
     @Test
-    public void WhileExpressionIsInWhileScope() throws IOException {
+    public void WhileExpressionIsInWhileScope() {
         helper.setupFromString("var flag : bool = true \n while flag do \n endwhile \n");
         MinespeakParser.BodyContext tree = helper.minespeakParser.body();
         helper.walkTree(tree);
@@ -407,7 +410,7 @@ public class ScopeTests {
     }
 
     @Test
-    public void WhileBodyVarAlreadyDeclaredError() throws IOException {
+    public void WhileBodyVarAlreadyDeclaredError() {
         helper.setupFromString("var flag : bool = true \n while flag do \n var flag : num = 1 \n var flag : num = 5 \n endwhile\n");
         MinespeakParser.BodyContext tree = helper.minespeakParser.body();
         helper.walkTree(tree);
@@ -685,19 +688,243 @@ public class ScopeTests {
 
     @Test
     public void InstanMultipleInstansSameID() {
-        helper.setupFromString("var i : num = 1, i : bool = 2\n");
+        helper.setupFromString("var i : num = 1, i : bool = true\n");
         MinespeakParser.BodyContext tree = helper.minespeakParser.body();
         helper.walkTree(tree);
 
         int actualType1 = helper.getEntryTypeAsInt(tree.scope, "i");
-        boolean duplicateExists = helper.entryExists(tree.scope, "j");
 
         String actualName1 = helper.getEntryName(tree.scope, "i");
 
         assertEquals(Type.NUM, actualType1);
         assertEquals("i", actualName1);
-        assertFalse(duplicateExists);
         assertTrue(Logger.shared.getLogs().get(0) instanceof VariableAlreadyDeclaredError);
+    }
+    //endregion
+
+    //region Test of simple entries in a scope
+    @ParameterizedTest(name = "{index} => entry with modifier {1}")
+    @MethodSource("modifierToName")
+    public void SimpleEntryGetModifier(int mod, String name) {
+        helper.setupFromString(String.format("%s i : num = 1\n", name));
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        SymEntry actualEntry = tree.scope.lookup("i");
+        assertTrue(actualEntry instanceof SimpleEntry);
+        assertEquals(mod, actualEntry.getModifier());
+    }
+
+    @ParameterizedTest(name = "{index} => entry with type {1}")
+    @MethodSource("typeToName")
+    public void SimpleEntryGetType(int type, String name) {
+        helper.setupFromString(String.format("const i : %s\n", name));
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        SymEntry actualEntry = tree.scope.lookup("i");
+        assertTrue(actualEntry instanceof SimpleEntry);
+        assertEquals(Type.getTypeFromInt(type), actualEntry.getType());
+    }
+
+    @ParameterizedTest(name = "{index} => entry with name {0}")
+    @ValueSource(strings = {"i", "j", "any_string", "aValidName2"})
+    public void SimpleEntryGetName(String name) {
+        helper.setupFromString(String.format("const %s : num\n", name));
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        SymEntry actualEntry = tree.scope.lookup(name);
+        assertTrue(actualEntry instanceof SimpleEntry);
+        assertEquals(name, actualEntry.getName());
+    }
+
+    @Test
+    public void SimpleEntryGetCTXIsDclsContext() {
+        helper.setupFromString("const i : num\n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        SymEntry actualEntry = tree.scope.lookup("i");
+        assertTrue(actualEntry instanceof SimpleEntry);
+        assertTrue(actualEntry.getCtx() instanceof MinespeakParser.DclsContext);
+    }
+    //endregion
+
+    //region Test of function entries in scope
+    @ParameterizedTest(name = "{index} => entry with return type {1}")
+    @MethodSource("typeToName")
+    public void FuncEntryGetTypeHasReturnType(int type, String name) {
+        helper.setupFromString(String.format("func Test() -> %s do \n \n endfunc \n", name));
+        MinespeakParser.FuncContext tree = helper.minespeakParser.func();
+        helper.walkTree(tree);
+
+        FuncEntry actualEntry = helper.getListener().getFunctions().get("Test");
+        assertNotNull(actualEntry);
+        assertEquals(Type.getTypeFromInt(type), actualEntry.getType());
+    }
+
+    @ParameterizedTest(name = "{index} => entry with name {0}")
+    @ValueSource(strings = {"i", "j", "any_string", "aValidName2"})
+    public void FuncEntryGetName(String name) {
+        helper.setupFromString(String.format("func %s() do \n \n endfunc \n", name));
+        MinespeakParser.FuncContext tree = helper.minespeakParser.func();
+        helper.walkTree(tree);
+
+        FuncEntry actualEntry = helper.getListener().getFunctions().get(name);
+        assertNotNull(actualEntry);
+        assertEquals(name, actualEntry.getName());
+    }
+
+    @Test
+    public void FuncEntryFunctionIsMCFunction() {
+        helper.setupFromString("@mc\nfunc Test() do \n \n endfunc \n");
+        MinespeakParser.McFuncContext tree = helper.minespeakParser.mcFunc();
+        helper.walkTree(tree);
+
+        FuncEntry actualEntry = helper.getListener().getFunctions().get("Test");
+        assertNotNull(actualEntry);
+        assertEquals("Test", actualEntry.getName());
+        assertTrue(actualEntry.isMCFunction());
+    }
+
+    @Test
+    public void FuncEntryModifierIsConst() {
+        helper.setupFromString("@mc\nfunc Test() do \n \n endfunc \n");
+        MinespeakParser.McFuncContext tree = helper.minespeakParser.mcFunc();
+        helper.walkTree(tree);
+
+        FuncEntry actualEntry = helper.getListener().getFunctions().get("Test");
+        assertNotNull(actualEntry);
+        assertEquals(MinespeakParser.CONST, actualEntry.getModifier());
+    }
+
+    @Test
+    public void FuncEntryGetCTX() {
+        helper.setupFromString("@mc\nfunc Test() do \n \n endfunc \n");
+        MinespeakParser.McFuncContext tree = helper.minespeakParser.mcFunc();
+        helper.walkTree(tree);
+
+        FuncEntry actualEntry = helper.getListener().getFunctions().get("Test");
+        assertNotNull(actualEntry);
+        assertNotNull(actualEntry.getCtx());
+        assertEquals("Test", actualEntry.getCtx().ID().getText());
+    }
+
+    @ParameterizedTest(name = "{index} => params are \"{1}\"")
+    @MethodSource("paramToList")
+    public void FuncEntryVariableParameters(int numOfParams, String asString, List<String> paramNames, List<Integer> paramTypes) {
+        helper.setupFromString(String.format("func Test(%s) do \n \n endfunc \n", asString));
+        MinespeakParser.FuncContext tree = helper.minespeakParser.func();
+        helper.walkTree(tree);
+
+        FuncEntry actualEntry = helper.getListener().getFunctions().get("Test");
+        assertNotNull(actualEntry);
+        assertEquals(numOfParams, actualEntry.getParams().size());
+        for (int i = 0; i < numOfParams; i++) {
+            assertEquals(paramNames.get(i), actualEntry.getParams().get(i).getName());
+            assertEquals(paramTypes.get(i), actualEntry.getParams().get(i).getType().getTypeAsInt());
+        }
+    }
+    //endregion
+
+    //region Test of array entries in scope
+    @ParameterizedTest(name = "{index} => array entry with modifier {1}")
+    @MethodSource("modifierToName")
+    public void ArrayEntryGetModifier(int mod, String name) {
+        helper.setupFromString(String.format("%s i : num[] = 1\n", name));
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        SymEntry actualEntry = tree.scope.lookup("i");
+        assertTrue(actualEntry instanceof ArrayEntry);
+        assertEquals(mod, actualEntry.getModifier());
+    }
+
+    @ParameterizedTest(name = "{index} => array entry with type {1}[]")
+    @MethodSource("typeToName")
+    public void ArrayEntryGetType(int type, String name) {
+        helper.setupFromString(String.format("const i : %s[]\n", name));
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        SymEntry actualEntry = tree.scope.lookup("i");
+        assertTrue(actualEntry instanceof ArrayEntry);
+        assertTrue(actualEntry.getType() instanceof ArrayType);
+        assertEquals(Type.getTypeFromInt(type), ((ArrayType) actualEntry.getType()).type);
+    }
+
+    @ParameterizedTest(name = "{index} => array entry with base type {1}")
+    @MethodSource("typeToName")
+    public void ArrayEntryGetBaseType(int type, String name) {
+        helper.setupFromString(String.format("const i : %s[]\n", name));
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        SymEntry actualEntry = tree.scope.lookup("i");
+        assertTrue(actualEntry instanceof ArrayEntry);
+        assertTrue(actualEntry.getType() instanceof ArrayType);
+        assertEquals(Type.getTypeFromInt(type), ((ArrayEntry) actualEntry).getBaseType());
+    }
+
+    @ParameterizedTest(name = "{index} => array entry with name {0}")
+    @ValueSource(strings = {"i", "j", "any_string", "aValidName2"})
+    public void ArrayEntryGetName(String name) {
+        helper.setupFromString(String.format("const %s : num[]\n", name));
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        SymEntry actualEntry = tree.scope.lookup(name);
+        assertTrue(actualEntry instanceof ArrayEntry);
+        assertEquals(name, actualEntry.getName());
+    }
+
+    @Test
+    public void ArrayEntryGetCTXIsDclsContext() {
+        helper.setupFromString("const i : num[]\n");
+        MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+        helper.walkTree(tree);
+
+        SymEntry actualEntry = tree.scope.lookup("i");
+        assertTrue(actualEntry instanceof ArrayEntry);
+        assertTrue(actualEntry.getCtx() instanceof MinespeakParser.DclsContext);
+    }
+    //endregion
+
+    //region Helper functions for testing
+    private static Stream<Arguments> typeToName() {
+        return Stream.of(
+                Arguments.arguments(Type.NUM, "num"),
+                Arguments.arguments(Type.BOOL, "bool"),
+                Arguments.arguments(Type.BLOCK, "block"),
+                Arguments.arguments(Type.STRING, "string"),
+                Arguments.arguments(Type.VECTOR2, "vector2"),
+                Arguments.arguments(Type.VECTOR3, "vector3")
+        );
+    }
+
+    private static Stream<Arguments> modifierToName() {
+        return Stream.of(
+                Arguments.arguments(MinespeakParser.CONST, "const"),
+                Arguments.arguments(MinespeakParser.VAR, "var")
+        );
+    }
+
+    private static Stream<Arguments> paramToList() {
+        return Stream.of(
+                Arguments.arguments(0, "",
+                        new ArrayList<String>(),
+                        new ArrayList<Integer>()
+                ),
+                Arguments.arguments(1, "param1: num",
+                        Arrays.asList("param1"),
+                        Arrays.asList(Type.NUM)
+                ),
+                Arguments.arguments(2, "param1: num, param2: bool",
+                        Arrays.asList("param1", "param2"),
+                        Arrays.asList(Type.NUM, Type.BOOL)
+                )
+        );
     }
     //endregion
 }

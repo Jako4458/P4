@@ -9,7 +9,7 @@ minespeak
         const mainTowerWallSize:num = 15
         const mainTowerWallHeight:num = 20
 
-        //const mat:block = ¤BLOCK_OF_DIAMOND
+        const mat:block = #BLOCK_OF_DIAMOND
 
 
         const wallTowerPos:vector3[4] =  [ (((wallSize + wallTowerSize)/2)*< -1, 0, -1>), (((wallSize + wallTowerSize)/2)*(< -1, 0, 1>)), (((wallSize + wallTowerSize)/2)*< 1, 0, 1>), (((wallSize + wallTowerSize)/2)*(< 1, 0, -1>)) ]
