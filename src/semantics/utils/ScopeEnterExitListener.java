@@ -114,4 +114,8 @@ public class ScopeEnterExitListener extends MinespeakBaseListener {
     private void enterScope(Scope scope) {
         this.currentScope = scope;
     }
+
+    private Scope getCurrentScope(){
+        return currentScope;
+    }
 }
