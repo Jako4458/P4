@@ -12,4 +12,8 @@ public class ArrayType extends Type{
     public String toString() {
         return "array["+type+"]";
     }
+
+    public boolean equalTypes(ArrayType other) {
+        return other.type == this.type;
+    }
 }
