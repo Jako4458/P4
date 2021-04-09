@@ -3,13 +3,14 @@ package templates;
 import org.stringtemplate.v4.ST;
 
 public class MCStatementST {
+    public String output;
 
     public MCStatementST(String command){
-        ST hello = new ST("<Command>");
-        hello.add("Command", command);
+        ST st = new ST("<Command> //<Comment>");
+        st.add("Comment", this.getClass().toString().substring(16));
+        st.add("Command", command);
 
-        String output = hello.render();
-        System.out.println(output);
+        output = st.render();
     }
 
 

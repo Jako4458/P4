@@ -4,16 +4,16 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
-import templates.STTest;
 
 import java.io.File;
 import java.io.IOException;
 
-public class Main {
-    public static void main(String[] args) {
 
-        String testString = "minespeak \n func Test() do \n $tp ~0 ~1 ~0 \n endfunc \n closespeak";
-        CharStream charStream = CharStreams.fromString(testString);
+public class Main {
+    public static void main(String[] args) throws IOException {
+
+        String filePath = new File("").getAbsolutePath();
+        CharStream charStream = CharStreams.fromFileName(filePath + "\\src\\testString.ms");
 
         Logger.shared.setSourceProg(charStream.toString().split(System.getProperty("line.separator")));
 
@@ -41,7 +41,7 @@ public class Main {
 
         Logger.shared.print();
 
-        CodeGenVisitor codeGenVisitor = new CodeGenVisitor();
+        CodeGenVisitor codeGenVisitor = new CodeGenVisitor(walker.functionSignatures);
         codeGenVisitor.visit(tree);
     }
 

@@ -1,14 +1,12 @@
 minespeak
 
-func Test(param1:num) do
-    var n: num
+    func Test(b:num) do
+        var a:num = 2 + 2
+        $tp ~v{a} ~0 ~0
+    endfunc
 
-    if a do
-        var n: num
-    endif
-
-endfunc
-
-
+    func Test2() do
+        Test(2)
+    endfunc
 
 closespeak

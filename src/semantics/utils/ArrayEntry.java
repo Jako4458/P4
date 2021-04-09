@@ -37,6 +37,21 @@ public class ArrayEntry implements SymEntry {
         return this.modifier;
     }
 
+    @Override
+    public void setValue(int value) {
+
+    }
+
+    @Override
+    public void setValue(String value) {
+
+    }
+
+    @Override
+    public Object getValue() {
+        return null;
+    }
+
     public int getSize() {
         return this.size;
     }

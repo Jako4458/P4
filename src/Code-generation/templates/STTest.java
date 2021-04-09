@@ -9,7 +9,6 @@ public class STTest {
         hello.add("name", name);
 
         String output = hello.render();
-        System.out.println(output);
     }
 
 

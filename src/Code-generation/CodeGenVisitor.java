@@ -1,10 +1,26 @@
+import org.antlr.v4.runtime.ParserRuleContext;
 import templates.MCStatementST;
 import templates.STTest;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class CodeGenVisitor extends MinespeakBaseVisitor{
+    private Scope currentScope;
+    private Map<String, FuncEntry> funcSignature;
+    private final EntryFactory entryFac = new EntryFactory();
+    private final ScopeFactory scopeFac = new ScopeFactory();
+
+    public CodeGenVisitor(Map<String, FuncEntry> funcSignature) {
+        this.funcSignature = funcSignature;
+    }
 
     @Override
     public Object visitProg(MinespeakParser.ProgContext ctx) {
+        currentScope = ctx.scope;
         return super.visitProg(ctx);
     }
 
@@ -25,6 +41,14 @@ public class CodeGenVisitor extends MinespeakBaseVisitor{
 
     @Override
     public Object visitFunc(MinespeakParser.FuncContext ctx) {
+        currentScope = ctx.scope;
+        var id = ctx.funcSignature().ID().getText();
+        var func = funcSignature.getOrDefault(id, null);
+
+        String a = visit(ctx.funcBody()).toString();
+        func.setValue(a);
+//        func.setValue("test");
+
         return super.visitFunc(ctx);
     }
 
@@ -45,6 +69,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor{
 
     @Override
     public Object visitFuncBody(MinespeakParser.FuncBodyContext ctx) {
+        currentScope = ctx.scope;
         return super.visitFuncBody(ctx);
     }
 
@@ -55,14 +80,41 @@ public class CodeGenVisitor extends MinespeakBaseVisitor{
 
     @Override
     public Object visitStmnts(MinespeakParser.StmntsContext ctx) {
-        return super.visitStmnts(ctx);
+
+        String a = "";
+
+        for (var child:ctx.children) {
+            var b = visit(child);
+            a += (b != null ? b : "");
+        }
+
+        return a;
     }
 
     @Override
     public Object visitStmnt(MinespeakParser.StmntContext ctx) {
-        String command = ctx.MCStmnt().getText().replace("$", "");
-        MCStatementST returnString = new MCStatementST(command);
-        return super.visitStmnt(ctx);
+        String command = "";
+        if (ctx.MCStmnt() != null) {
+            String stmnt = ctx.MCStmnt().getText();
+
+            Pattern varReplacePattern = Pattern.compile("v\\{(?<varName>\\w)*\\}");
+            Matcher matcher = varReplacePattern.matcher(stmnt);
+
+            while (matcher.find()) {
+                String varName = matcher.group("varName");
+                var varVal = currentScope.lookup(varName);
+                stmnt = stmnt.replace("v{" + varName + "}", varVal != null ? varVal.getValue().toString() : "MAKELOOKUP");
+            }
+
+            command = stmnt.replace("$", "");
+            super.visitStmnt(ctx);
+            return new MCStatementST(command).output;
+        }else {
+            for (var child:ctx.children) {
+                visit(child);
+            }
+            return "super.visitStmnt(ctx)";
+        }
     }
 
     @Override
@@ -117,6 +169,11 @@ public class CodeGenVisitor extends MinespeakBaseVisitor{
 
     @Override
     public Object visitInstan(MinespeakParser.InstanContext ctx) {
+        for (int i = 0; i < ctx.ID().size(); i++) {
+            String ID = ctx.ID(i).getText();
+
+            currentScope.lookup(ID).setValue(calcNumExpression(ctx.initialValue(i).expr()));
+        }
         return super.visitInstan(ctx);
     }
 
@@ -187,6 +244,20 @@ public class CodeGenVisitor extends MinespeakBaseVisitor{
 
     @Override
     public Object visitFuncCall(MinespeakParser.FuncCallContext ctx) {
-        return super.visitFuncCall(ctx);
+        var expr = ctx.expr(0).getText();
+        var func = funcSignature.getOrDefault(ctx.ID().getText(), null);
+
+        if (func == null) return null;
+        System.out.println(func.getValue().toString());
+
+        return null;
+        //return super.visitFuncCall(ctx);
+    }
+
+
+
+
+    public int calcNumExpression(MinespeakParser.ExprContext ctx) {
+        return 1;
     }
 }

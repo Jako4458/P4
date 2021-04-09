@@ -8,4 +8,10 @@ public interface SymEntry {
     ParserRuleContext getCtx();
 
     int getModifier();
+
+    void setValue(int value);
+
+    void setValue(String value);
+
+    Object getValue();
 }
