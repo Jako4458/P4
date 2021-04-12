@@ -195,11 +195,14 @@ numberLiteral : DecimalDigit
 booleanLiteral : TRUE | FALSE
                ;
 
-vector2Literal : LESSER (expr | ID) COMMA (expr | ID) GREATER
+vector2Literal : LESSER vecElement COMMA vecElement GREATER
                ;
 
-vector3Literal : LESSER (expr | ID) COMMA (expr | ID) COMMA (expr | ID) GREATER
+vector3Literal : LESSER vecElement COMMA vecElement COMMA vecElement GREATER
                ;
+
+vecElement  : (expr | ID)
+            ;
 
 newlines : Newline+ //-> skip
          ;
