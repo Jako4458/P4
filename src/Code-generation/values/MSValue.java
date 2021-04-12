@@ -1,4 +1,4 @@
-public class MSValue<T> implements Value{
+public class MSValue<T> extends Value{
     private T value;
     private Type type;
 
@@ -7,6 +7,11 @@ public class MSValue<T> implements Value{
         this.type = type;
     }
 
+    protected MSValue() {
+
+    }
+
+    @Override
     public T getValue() {
         return this.value;
     }
