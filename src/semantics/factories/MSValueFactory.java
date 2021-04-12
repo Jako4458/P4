@@ -30,8 +30,7 @@ public class MSValueFactory {
         return new Vector2Value(value, type);
     }
 
-    public Value createValue(Vector3 value, Type type) {
+    public Vector3Value createValue(Vector3 value, Type type) {
         return new Vector3Value(value, type);
     }
-
 }

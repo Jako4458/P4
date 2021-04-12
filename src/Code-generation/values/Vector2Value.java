@@ -3,6 +3,14 @@ public class Vector2Value extends MSValue<Vector2> {
         super(value, type);
     }
 
+    private Vector2Value() {
+
+    }
+
+    public static Vector2Value dupe() {
+        return new Vector2Value();
+    }
+
     @Override
     public String toString() {
         return this.getValue().toString();
