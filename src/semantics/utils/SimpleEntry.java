@@ -56,8 +56,9 @@ public class SimpleEntry implements SymEntry {
         else if (this.type == Type._bool)
             this.value = Boolean.parseBoolean(valueString);
         else if (this.type == Type._vector2 || this.type == Type._vector3){
-            valueString.replace("<", "");
-            valueString.replace(">", "");
+            valueString = valueString.replace("[", "");
+            valueString = valueString.replace("]", "");
+            valueString = valueString.replace(" ", "");
             String[] valuesStrings = valueString.split(",");
 
             this.value = new Vector<Integer>();
