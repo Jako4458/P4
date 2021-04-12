@@ -1,4 +1,4 @@
-public class MSValue<T> extends Value{
+public class MSValue<T> implements Value{
     private T value;
     private Type type;
 

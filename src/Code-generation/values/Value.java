@@ -1,2 +1,3 @@
-public abstract class Value {
+public interface Value {
+    Object getValue();
 }
