@@ -1,7 +1,5 @@
 import templates.MCStatementST;
 
-import javax.management.ValueExp;
-import java.sql.SQLOutput;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -12,6 +10,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor{
     private Scope currentScope;
     private Map<String, FuncEntry> funcSignature;
     private MSValueFactory msValueFactory = new MSValueFactory();
+    private boolean PosRelativeToPlayer = true;
 
     public CodeGenVisitor(Map<String, FuncEntry> funcSignature) {
         this.funcSignature = funcSignature;
@@ -161,6 +160,11 @@ public class CodeGenVisitor extends MinespeakBaseVisitor{
     }
 
     @Override
+    public Object visitRvalue(MinespeakParser.RvalueContext ctx) {
+        return currentScope.lookup(ctx.ID().getText()).getValue();
+    }
+
+    @Override
     public Object visitProg(MinespeakParser.ProgContext ctx) {
         currentScope = ctx.scope;
         return super.visitProg(ctx);
@@ -207,8 +211,18 @@ public class CodeGenVisitor extends MinespeakBaseVisitor{
 
             while (matcher.find()) {
                 String varName = matcher.group("varName");
-                var varVal = currentScope.lookup(varName);
-                stmnt = stmnt.replace("v{" + varName + "}", varVal != null ? varVal.getValue().toString() : "MAKELOOKUP");
+                SymEntry varVal = currentScope.lookup(varName);
+
+
+                if (varVal.getType() == Type._vector2 || varVal.getType() == Type._vector3){
+                    String formatString = "";
+                    for (int num: (Vector<Integer>) varVal.getValue()) {
+                        formatString += (PosRelativeToPlayer ? "~" : "^") + num + " ";
+                    }
+                    stmnt = stmnt.replace("v{" + varName + "}", formatString);
+                }
+                else
+                    stmnt = stmnt.replace("v{" + varName + "}", varVal != null ? varVal.getValue().toString() : "MAKELOOKUP");
             }
 
             command = stmnt.replace("$", "");
@@ -227,7 +241,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor{
 
             String exprEval = visit(ctx.initialValue(i).expr()).toString();
             currentScope.lookup(ID).setValue(exprEval);
-
         }
 
         return null;
