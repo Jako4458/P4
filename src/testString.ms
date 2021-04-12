@@ -1,8 +1,9 @@
 minespeak
 
     func Test(b:num) do
-        var a:num = 2 + 2
-        $tp ~v{a} ~0 ~0
+        var a:num = 0x41 + 4
+        var c:bool = true
+        $tp ~v{a} ~v{c} ~0
     endfunc
 
     func Test2() do
