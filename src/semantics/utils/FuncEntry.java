@@ -6,7 +6,7 @@ public class FuncEntry implements SymEntry {
     private final Type retType;
     private final List<SymEntry> params;
     private final MinespeakParser.FuncSignatureContext ctx;
-    private String value;
+    private Value value;
 
     public FuncEntry(boolean isMCFunction, String name, Type retType, List<SymEntry> params, MinespeakParser.FuncSignatureContext ctx) {
         this.isMCFunction = isMCFunction;
@@ -37,12 +37,24 @@ public class FuncEntry implements SymEntry {
     }
 
     @Override
-    public void setValue(String value) {
-        this.value = value;
+    public void setValue(Boolean value) {
     }
 
     @Override
-    public Object getValue() {
+    public void setValue(Vector2 value) {
+    }
+
+    @Override
+    public void setValue(Vector3 value) {
+    }
+
+    @Override
+    public void setValue(String value) {
+        this.value = new StringValue(value, Type._string);
+    }
+
+    @Override
+    public Value getValue() {
         return value;
     }
 

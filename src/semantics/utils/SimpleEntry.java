@@ -7,7 +7,7 @@ public class SimpleEntry implements SymEntry {
     private final String name;
     private final ParserRuleContext ctx;
     private final int modifier;
-    private Object value;
+    private Value value;
 
     public SimpleEntry(String id, Type type, ParserRuleContext ctx, int modifier) {
         this.name = id;
@@ -33,45 +33,35 @@ public class SimpleEntry implements SymEntry {
 
     public void setValue(int value) {
         if (this.type == Type._num)
-            this.value = value;
+            this.value = new NumValue(value, Type._num);
     }
 
-    public void setValue(boolean value) {
+    public void setValue(Boolean value) {
         if (this.type == Type._bool)
-            this.value = value;
+            this.value = new BoolValue(value, Type._num);
     }
 
-    public void setValue(Vector value) {
-        if (this.type == Type._vector2 || this.type == Type._vector3)
-            this.value = value;
+    public void setValue(Vector2 value) {
+        if (this.type == Type._vector2)
+            this.value = new Vector2Value(value, Type._vector2);
+    }
+
+    public void setValue(Vector3 value) {
+        if (this.type == Type._vector3)
+            this.value = new Vector3Value(value, Type._vector2);
     }
 
     @Override
     public void setValue(String valueString) {
 
-        if (this.type == Type._string || this.type == Type._block)
-            this.value = valueString;
-        else if (this.type == Type._num)
-            this.value = Integer.parseInt(valueString);
-        else if (this.type == Type._bool)
-            this.value = Boolean.parseBoolean(valueString);
-        else if (this.type == Type._vector2 || this.type == Type._vector3){
-            valueString = valueString.replace("[", "");
-            valueString = valueString.replace("]", "");
-            valueString = valueString.replace(" ", "");
-            String[] valuesStrings = valueString.split(",");
-
-            this.value = new Vector<Integer>();
-            for (String val:valuesStrings) {
-                ((Vector)this.value).add(Integer.parseInt(val));
-            }
-        }
-
-        return;
+        if (this.type == Type._string)
+            this.value = new StringValue(valueString, Type._string);
+        if (this.type == Type._block)
+            this.value = new BlockValue(valueString, Type._block);
     }
 
     @Override
-    public Object getValue() {
+    public Value getValue() {
         return value;
     }
 
