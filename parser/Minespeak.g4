@@ -171,8 +171,6 @@ returns [Type type]
         | BLOCK
         | BOOL
         | STRING
-        | BYTE
-        | FILE
         | VECTOR2
         | VECTOR3
         ;
@@ -195,14 +193,12 @@ numberLiteral : DecimalDigit
 booleanLiteral : TRUE | FALSE
                ;
 
-vector2Literal : LESSER vecElement COMMA vecElement GREATER
+vector2Literal : LESSER expr COMMA expr GREATER
                ;
 
-vector3Literal : LESSER vecElement COMMA vecElement COMMA vecElement GREATER
+vector3Literal : LESSER expr COMMA expr COMMA expr GREATER
                ;
 
-vecElement  : (expr | ID)
-            ;
 
 newlines : Newline+ //-> skip
          ;
