@@ -48,7 +48,7 @@ public class SimpleEntry implements SymEntry {
 
     public void setValue(Vector3 value) {
         if (this.type == Type._vector3)
-            this.value = new Vector3Value(value, Type._vector2);
+            this.value = new Vector3Value(value, Type._vector3);
     }
 
     @Override
