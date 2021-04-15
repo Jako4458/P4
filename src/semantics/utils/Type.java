@@ -211,15 +211,4 @@ public class Type {
         return ((long)left) << 32 | ((long)op) << 16 | right;
     }
 
-    public static Type resultType(Type left, int opTokenType, Type right){
-        return INVALID;
-    }
-
-    public static Type promote(Type from, int opTokenType, Type to){
-        return INVALID;
-    }
-
-    public static Type canAssign(Type from, Type to){
-        return INVALID;
-    }
 }
