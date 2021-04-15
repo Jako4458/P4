@@ -1,3 +1,4 @@
+import Logging.ErrorLog;
 import Logging.Logger;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.CharStream;
@@ -7,88 +8,93 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
-        //String testString = "minespeak \n func Test(param1 : num) -> num do \n var n : num = 5 \n if true do \n n = 2 \n else do \n n = 3 \n endif \n endfunc \n\n\n\n closespeak";
-        //testString = "minespeak \n func Test(param1 : num) -> num do \n var n : num = 5 \n if false do \n var b: num = 1 \n else do \n var a: num = 2 \n endif \n endfunc \n\n\n\n closespeak";
-        //testString = "minespeak \n func Test(param1 : num) -> num do \n var n : bool = true \n \n endfunc \n\n\n\n closespeak";
-        String filePath = new File("").getAbsolutePath();
-        CharStream charStream = CharStreams.fromFileName(filePath + "\\src\\testString.ms");
 
-        //CharStream charStream = CharStreams.fromString(testString);
+    private static Configuration config;
 
-        Logger.shared.setSourceProg(charStream.toString().split(System.getProperty("line.separator")));
 
-        MinespeakLexer minespeakLexer = new MinespeakLexer(charStream);
-        CommonTokenStream commonTokenStream = new CommonTokenStream(minespeakLexer);
 
-        MinespeakParser minespeakParser = new MinespeakParser(commonTokenStream);
+    public static void main(String[] args) {
+        // Configure the compiler through the compiler arguments.
+        Configuration config = new Configuration(args);
+
+        // Lexing
+        CommonTokenStream tokenStream = lex(config.source_file.toString());
+
+        // Parsing
+        ParseTree parseTree = parse(tokenStream);
+
+        // Syntax analysis
+        syntax_analysis(parseTree);
+
+        // Code gen
+        generate_code(parseTree);
+
+
+        // Dump all the logs
+        Logger.shared.print();
+    }
+
+    private static CommonTokenStream lex(String file) {
+        if (file == null)
+            return null;
+
+        CommonTokenStream stream = null;
+
+        try {
+            CharStream cstream = CharStreams.fromFileName(file);
+            MinespeakLexer minespeakLexer = new MinespeakLexer(cstream);
+            stream = new CommonTokenStream(minespeakLexer);
+        } catch (IOException e) {
+            Logger.shared.add(new ErrorLog(String.format("Unable to open file: %s", file), 0, 0));
+        }
+
+        return stream;
+    }
+
+    private static ParseTree parse(CommonTokenStream tstream) {
+        if (tstream == null)
+            return null;
+
+        MinespeakParser parser = new MinespeakParser(tstream);
         ParseErrorListener parseErrorListener = new ParseErrorListener();
-        minespeakParser.addErrorListener(parseErrorListener);
-
-
-
-        ParseTree tree = minespeakParser.prog();
-        System.out.println(tree.toStringTree(minespeakParser));
+        parser.addErrorListener(parseErrorListener);
+        ParseTree tree = parser.prog();
 
         if (parseErrorListener.getErrorFound()) {
-            return;
+            return null;
         }
+
+        return tree;
+    }
+
+    private static void syntax_analysis(ParseTree tree) {
+        if (tree == null)
+            return;
 
         SignatureWalker walker = new SignatureWalker();
         walker.visit(tree);
         ScopeListener scopeListener = new ScopeListener(walker.functionSignatures);
         ParseTreeWalker.DEFAULT.walk(scopeListener, tree);
 
-        UnassignedVariableListener unassignedVaribleListener = new UnassignedVariableListener();
-        ParseTreeWalker.DEFAULT.walk(unassignedVaribleListener, tree);
-
-        for (FuncEntry entry : walker.functionSignatures.values()) {
-            System.out.print(entry.getName() + ": ");
-            for (SymEntry param : entry.getParams()) {
-                System.out.print(param.getType().toString() + ", ");
-            }
-            System.out.println("\n");
-        }
-
-        //ParseTreeWalker.DEFAULT.walk(scopeListener, tree);
-
-        Logger.shared.print();
-        System.out.println("hej");
-
-        System.out.println("░░░░░▄▄▄▄▀▀▀▀▀▀▀▀▄▄▄▄▄▄░░░░░░░\n" +
-                           "░░░░░█░░░░▒▒▒▒▒▒▒▒▒▒▒▒░░▀▀▄░░░░\n" +
-                           "░░░░█░░░▒▒▒▒▒▒░░░░░░░░▒▒▒░░█░░░\n" +
-                           "░░░█░░░░░░▄██▀▄▄░░░░░▄▄▄░░░░█░░\n" +
-                           "░▄▀▒▄▄▄▒░█▀▀▀▀▄▄█░░░██▄▄█░░░░█░\n" +
-                           "█░▒█▒▄░▀▄▄▄▀░░░░░░░░█░░░▒▒▒▒▒░█\n" +
-                           "█░▒█░█▀▄▄░░░░░█▀░░░░▀▄░░▄▀▀▀▄▒█\n" +
-                           "░█░▀▄░█▄░█▀▄▄░▀░▀▀░▄▄▀░░░░█░░█░\n" +
-                           "░░█░░░▀▄▀█▄▄░█▀▀▀▄▄▄▄▀▀█▀██░█░░\n" +
-                           "░░░█░░░░██░░▀█▄▄▄█▄▄█▄████░█░░░\n" +
-                           "░░░░█░░░░▀▀▄░█░░░█░█▀██████░█░░\n" +
-                           "░░░░░▀▄░░░░░▀▀▄▄▄█▄█▄█▄█▄▀░░█░░\n" +
-                           "░░░░░░░▀▄▄░▒▒▒▒░░░░░░░░░░▒░░░█░\n" +
-                           "░░░░░░░░░░▀▀▄▄░▒▒▒▒▒▒▒▒▒▒░░░░█░\n" +
-                           "░░░░░░░░░░░░░░▀▄▄▄▄▄░░░░░░░░█░░");
-
-        //System.out.println(commonTokenStream.get(25, 29));
-//        System.out.println(tree);
-//
-//        System.out.println(Type.resultTypes);
-
-        /*Scope scope = new Scope();
-        ScopeVisitorDepre visitor = new ScopeVisitorDepre(scope);
-        visitor.visit(tree);
-
-
-        System.out.println("n is: " + (visitor.getScope().lookup("n") != null ? visitor.getScope().lookup("n").getValue() : "null"));
-        System.out.println("a is: " + (visitor.getScope().lookup("a") != null ? visitor.getScope().lookup("a").getValue() : "null"));
-        System.out.println("b is: " + (visitor.getScope().lookup("b") != null ? visitor.getScope().lookup("b").getValue() : "null"));
-        
-        System.out.println("n is: " + visitor.getScope().lookup("n").getValue());
-*/
+        UnassignedVariableListener unassignedVariableListener = new UnassignedVariableListener();
+        ParseTreeWalker.DEFAULT.walk(unassignedVariableListener, tree);
     }
 
+    public static void generate_code(ParseTree tree) {
+        //TODO: Codegen
+    }
+    
+}
+
+
+class Configuration {
+    public final File source_file;
+
+    public Configuration(String[] args) {
+        source_file = new File(args[0]);
+    }
 }
