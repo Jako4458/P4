@@ -8,14 +8,10 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Main {
 
     private static Configuration config;
-
-
 
     public static void main(String[] args) {
         // Configure the compiler through the compiler arguments.
@@ -27,11 +23,11 @@ public class Main {
         // Parsing
         ParseTree parseTree = parse(tokenStream);
 
-        // Syntax analysis
-        syntax_analysis(parseTree);
+        // Semantic analysis
+        semanticAnalysis(parseTree);
 
         // Code gen
-        generate_code(parseTree);
+        codeGeneration(parseTree);
 
 
         // Dump all the logs
@@ -71,7 +67,7 @@ public class Main {
         return tree;
     }
 
-    private static void syntax_analysis(ParseTree tree) {
+    private static void semanticAnalysis(ParseTree tree) {
         if (tree == null)
             return;
 
@@ -84,7 +80,7 @@ public class Main {
         ParseTreeWalker.DEFAULT.walk(unassignedVariableListener, tree);
     }
 
-    public static void generate_code(ParseTree tree) {
+    public static void codeGeneration(ParseTree tree) {
         //TODO: Codegen
     }
     
