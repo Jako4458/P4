@@ -54,7 +54,7 @@ public class Vector3 implements Vector {
     }
 
     public String toString(String PosPrefix) {
-        return PosPrefix + this.getX() + PosPrefix + this.getY() + PosPrefix + this.getZ();
+        return PosPrefix + this.getX() + " " + PosPrefix + this.getY() + " " + PosPrefix + this.getZ() + " ";
     }
 }
 
