@@ -36,9 +36,25 @@ public class Vector3 implements Vector {
         return this.z;
     }
 
+    static public Vector3 add(Vector3 vec1, Vector3 vec2) {
+        return new Vector3(vec1.getX() + vec2.getX(), vec1.getY() + vec2.getY(), vec1.getZ() + vec2.getZ());
+    }
+
+    static public Vector3 sub(Vector3 vec1, Vector3 vec2) {
+        return new Vector3(vec1.getX() - vec2.getX(), vec1.getY() - vec2.getY(), vec1.getZ() - vec2.getZ());
+    }
+
+    static public Vector3 neg(Vector3 vec) {
+        return new Vector3(-vec.getX(), -vec.getY(), -vec.getZ());
+    }
+
     @Override
     public String toString() {
         return "<" + this.x + "," + this.y + "," + this.z + ">";
+    }
+
+    public String toString(String PosPrefix) {
+        return PosPrefix + this.getX() + PosPrefix + this.getY() + PosPrefix + this.getZ();
     }
 }
 

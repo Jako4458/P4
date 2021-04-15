@@ -43,12 +43,23 @@ public class ArrayEntry implements SymEntry {
     }
 
     @Override
-    public void setValue(String value) {
-
+    public void setValue(Boolean value) {
     }
 
     @Override
-    public Object getValue() {
+    public void setValue(Vector2 value) {
+    }
+
+    @Override
+    public void setValue(Vector3 value) {
+    }
+
+    @Override
+    public void setValue(String value) {
+    }
+
+    @Override
+    public Value getValue() {
         return null;
     }
 

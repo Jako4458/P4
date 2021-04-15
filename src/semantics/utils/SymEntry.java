@@ -10,8 +10,12 @@ public interface SymEntry {
     int getModifier();
 
     void setValue(int value);
+    void setValue(Boolean value);
+    void setValue(Vector2 value);
+    void setValue(Vector3 value);
+
 
     void setValue(String value);
 
-    Object getValue();
+    Value getValue();
 }

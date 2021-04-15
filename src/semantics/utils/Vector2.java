@@ -33,8 +33,24 @@ public class Vector2 implements Vector {
         return null;
     }
 
+    static public Vector2 add(Vector2 vec1, Vector2 vec2) {
+        return new Vector2(vec1.getX() + vec2.getX(), vec1.getY() + vec2.getY());
+    }
+
+    static public Vector2 sub(Vector2 vec1, Vector2 vec2) {
+        return new Vector2(vec1.getX() - vec2.getX(), vec1.getY() - vec2.getY());
+    }
+
+    static public Vector2 neg(Vector2 vec) {
+        return new Vector2(-vec.getX(), -vec.getY());
+    }
+
     @Override
     public String toString() {
         return "<" + this.x + "," + this.y + ">";
+    }
+
+    public String toString(String PosPrefix) {
+        return PosPrefix + this.getX() + PosPrefix + this.getY();
     }
 }
