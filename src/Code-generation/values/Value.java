@@ -3,6 +3,10 @@ import java.lang.reflect.ParameterizedType;
 public abstract class Value {
     private Type type;
 
+    public Value(Type type) {
+        this.type = type;
+    }
+
     public <T extends Value> T getCasted(Class<T> classType) {
         switch (type.getTypeAsInt()) {
             case Type.NUM: return classType.cast((NumValue.dupe()).getClass().cast(this));
@@ -13,7 +17,6 @@ public abstract class Value {
             case Type.VECTOR3: return classType.cast((Vector3Value.dupe()).getClass().cast(this));
             default: return null;
         }
-
     }
 
     public abstract Object getValue();

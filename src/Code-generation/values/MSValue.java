@@ -3,12 +3,12 @@ public class MSValue<T> extends Value{
     private Type type;
 
     public MSValue(T value, Type type) {
+        super(type);
         this.value = value;
-        this.type = type;
     }
 
     protected MSValue() {
-
+        super(Type._void);
     }
 
     @Override
