@@ -1,13 +1,9 @@
-//import Logging.Logger;
-//import Logging.VariableAlreadyDeclaredError;
-
 import java.util.HashMap;
 
 public class Scope {
     private Scope parent;
     private HashMap<String, SymEntry> variables;
     private boolean isFunction;
-    private boolean nextFuncIsMCFunc;
 
     // Used for global scope
     public Scope() {
@@ -47,13 +43,5 @@ public class Scope {
 
     public Scope getParent() {
         return this.parent;
-    }
-
-    public boolean isFunction() {
-        return this.isFunction;
-    }
-
-    public void MarkNextFuncAsMCFunc() {
-        this.nextFuncIsMCFunc = true;
     }
 }
