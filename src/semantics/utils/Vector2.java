@@ -51,6 +51,6 @@ public class Vector2 implements Vector {
     }
 
     public String toString(String PosPrefix) {
-        return PosPrefix + this.getX() + PosPrefix + this.getY();
+        return PosPrefix + this.getX() + " " + PosPrefix + this.getY() + " ";
     }
 }

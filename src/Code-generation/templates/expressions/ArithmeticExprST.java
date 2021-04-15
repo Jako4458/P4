@@ -1,7 +1,5 @@
-package templates.expressions;
 
 import org.stringtemplate.v4.ST;
-import templates.Template;
 
 public class ArithmeticExprST implements Template {
     private String output;

@@ -42,7 +42,7 @@ public class SimpleEntry implements SymEntry {
 
     public void setValue(Boolean value) {
         if (this.type == Type._bool)
-            this.value = new BoolValue(value, Type._num);
+            this.value = new BoolValue(value, Type._bool);
     }
 
     public void setValue(Vector2 value) {
