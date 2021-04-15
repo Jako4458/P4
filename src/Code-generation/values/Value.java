@@ -1,7 +1,7 @@
 import java.lang.reflect.ParameterizedType;
 
 public abstract class Value {
-    private Type type;
+    protected Type type;
 
     public Value(Type type) {
         this.type = type;

@@ -1,6 +1,5 @@
 public class MSValue<T> extends Value{
     private T value;
-    private Type type;
 
     public MSValue(T value, Type type) {
         super(type);
