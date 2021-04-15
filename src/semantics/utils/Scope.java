@@ -23,6 +23,11 @@ public class Scope {
         this.variables = new HashMap<>();
     }
 
+    public Scope(Scope parent, HashMap<String, SymEntry> variables) {
+        this.parent = parent;
+        this.variables = variables;
+    }
+
     // Not good
     public boolean addVariable(String key, SymEntry var) {
         return variables.putIfAbsent(key, var) == null;
