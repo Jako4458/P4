@@ -6,7 +6,7 @@ public class MCStatementST {
 
     public MCStatementST(String command){
         ST st = new ST("<Command> //<Comment>");
-        st.add("Comment", this.getClass().toString().substring(16));
+        st.add("Comment", this.getClass().toString().substring(6)); //substring to remove "class "
         st.add("Command", command);
 
         output = st.render();

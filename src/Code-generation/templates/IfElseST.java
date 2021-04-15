@@ -6,7 +6,7 @@ public class IfElseST {
 
     public IfElseST(String expr, String stmnt, String elseStmnt){
         ST st = new ST("//<Comment>\nexecute if <expr> <stmnt> \n execute unless <expr> <elseStmnt>");
-        st.add("Comment", this.getClass().toString().substring(16));
+        st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
 
         st.add("expr", expr);
         st.add("stmnt", stmnt);

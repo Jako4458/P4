@@ -6,7 +6,7 @@ public class IfST {
 
     public IfST(String expr, String stmnt){
         ST st = new ST("execute if <expr> <stmnt> //<Comment>");
-        st.add("Comment", this.getClass().toString().substring(16));
+        st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
 
         st.add("expr", expr);
         st.add("stmnt", stmnt);
