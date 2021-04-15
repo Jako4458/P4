@@ -1,6 +1,10 @@
 
 public class STemplateFactory {
 
+    public MCStatementST CreateMCStatementST(String command) {
+        return new MCStatementST(command);
+    }
+
     public InstanST createInstanST(SymEntry entry) {
         if (entry.getType() == Type._vector2)
             return new InstanST(getName(entry), entry.getValue().getCasted(Vector2Value.class));

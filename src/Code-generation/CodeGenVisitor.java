@@ -1,4 +1,5 @@
 
+import java.util.ArrayList;
 import java.util.Map;
 
 import java.util.regex.Matcher;
@@ -6,10 +7,12 @@ import java.util.regex.Pattern;
 
 public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     private Scope currentScope;
+    private FuncEntry currentFunc;
     private Map<String, FuncEntry> funcSignature;
     private MSValueFactory msValueFactory = new MSValueFactory();
     private STemplateFactory templateFactory = new STemplateFactory();
-    private boolean PosRelativeToPlayer = true;
+
+    private ArrayList<Template> output = new ArrayList<>();
 
     public CodeGenVisitor(Map<String, FuncEntry> funcSignature) {
         this.funcSignature = funcSignature;
@@ -230,10 +233,9 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     public Value visitFunc(MinespeakParser.FuncContext ctx) {
         currentScope = ctx.scope;
         var id = ctx.funcSignature().ID().getText();
-        var func = funcSignature.getOrDefault(id, null);
+        currentFunc = funcSignature.getOrDefault(id, null);
 
         Value a = visit(ctx.funcBody());
-        func.setValue(a);
         return null;
     }
 
@@ -246,24 +248,18 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     @Override
     public Value visitStmnts(MinespeakParser.StmntsContext ctx) {
 
-        String stmntsText = "";
-
         for (var child:ctx.children) {
             var b = visit(child);
-            stmntsText += (b != null ? Value.value(b.getCasted(StringValue.class)) : "");
         }
-
-        return msValueFactory.createValue(stmntsText, Type._string);
+        return null;
     }
 
     @Override
     public Value visitStmnt(MinespeakParser.StmntContext ctx) {
-        String command = "";
-        if (ctx.MCStmnt() != null) {
+        if (ctx.MCStmnt() != null)
             return visitMCStmnt(ctx);
-        } else {
-            return super.visitStmnt(ctx);
-        }
+
+        return super.visitStmnt(ctx);
     }
 
     @Override
@@ -278,27 +274,26 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
             if (expr.type == Type._num) {
                 var lookup = currentScope.lookup(ID);
                 lookup.setValue(Value.value(exprEval.getCasted(NumValue.class)));
-                return msValueFactory.createValue(templateFactory.createInstanST(lookup).getOutput(), Type._string);
-//                return msValueFactory.createValue(templateFactory.createInstanST(ID,Value.value(exprEval.getCasted(NumValue.class)).toString()), Type._string);
+                currentFunc.addTemplate(templateFactory.createInstanST(lookup));
             }
             else if (expr.type == Type._block)
                 currentScope.lookup(ID).setValue(Value.value(exprEval.getCasted(BlockValue.class)));
             else if (expr.type == Type._bool) {
                 var lookup = currentScope.lookup(ID);
                 lookup.setValue(Value.value(exprEval.getCasted(BoolValue.class)));
-                return msValueFactory.createValue(templateFactory.createInstanST(lookup).getOutput(), Type._string);
+                currentFunc.addTemplate(templateFactory.createInstanST(lookup));
             }
             else if (expr.type == Type._string)
                 currentScope.lookup(ID).setValue(Value.value(exprEval.getCasted(StringValue.class)));
             else if (expr.type == Type._vector2) {
                 var lookup = currentScope.lookup(ID);
                 lookup.setValue(Value.value(exprEval.getCasted(Vector2Value.class)));
-                return msValueFactory.createValue(templateFactory.createInstanST(lookup).getOutput(), Type._string);
+                currentFunc.addTemplate(templateFactory.createInstanST(lookup));
             }
             else if (expr.type == Type._vector3) {
                 var lookup = currentScope.lookup(ID);
                 lookup.setValue(Value.value(exprEval.getCasted(Vector3Value.class)));
-                return msValueFactory.createValue(templateFactory.createInstanST(lookup).getOutput(), Type._string);
+                currentFunc.addTemplate(templateFactory.createInstanST(lookup));
             }
         }
 
@@ -312,14 +307,30 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
 //        for (int i = 0; i < func.getParams().size(); i++) {
 //            var val = visit(ctx.expr(i));
-//            currentScope.lookup(func.getParams().get(i).getName()).setValue(2);
+//
+//            if (val.type == Type._num)
+//                currentScope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(NumValue.class)));
+//            else if (val.type == Type._block)
+//                currentScope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(BlockValue.class)));
+//            else if (val.type == Type._bool)
+//                currentScope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(BoolValue.class)));
+//            else if (val.type == Type._string)
+//                currentScope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(StringValue.class)));
+//            else if (val.type == Type._vector2)
+//                currentScope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(Vector2Value.class)));
+//            else if (val.type == Type._vector3)
+//                currentScope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(Vector3Value.class)));
+//            else
+//                Error();
 //        }
-//        ctx.expr()
-        if (func == null)
-            return null;
 
-        System.out.println(Value.value(func.getValue().getCasted(StringValue.class)));
-        return msValueFactory.createValue(func.getValue().toString(), Type._string);
+        output.addAll(func.getOutput());
+
+        for (Template t:output) {
+            System.out.println(t.getOutput());
+        }
+
+        return null;
     }
 
     /*
@@ -328,7 +339,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
     private Value visitMCStmnt(MinespeakParser.StmntContext ctx) {
         String stmnt = ctx.MCStmnt().getText();
-        return msValueFactory.createValue(new MCStatementST(formatString(stmnt)).getOutput(), Type._string);
+        currentFunc.addTemplate(templateFactory.CreateMCStatementST(formatString(stmnt)));
+        return null;
     }
 
     private String formatString(String stmnt) {

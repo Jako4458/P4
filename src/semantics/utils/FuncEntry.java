@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 
 public class FuncEntry implements SymEntry {
@@ -7,6 +8,8 @@ public class FuncEntry implements SymEntry {
     private final List<SymEntry> params;
     private final MinespeakParser.FuncSignatureContext ctx;
     private Value value;
+
+    private ArrayList<Template> output = new ArrayList<>();
 
     public FuncEntry(boolean isMCFunction, String name, Type retType, List<SymEntry> params, MinespeakParser.FuncSignatureContext ctx) {
         this.isMCFunction = isMCFunction;
@@ -31,9 +34,16 @@ public class FuncEntry implements SymEntry {
         return MinespeakParser.CONST;
     }
 
-    @Override
-    public void setValue(int value) {
+    public void addTemplate(Template template) {
+        this.output.add(template);
     }
+
+    public ArrayList<Template> getOutput() {
+        return this.output;
+    }
+
+    @Override
+    public void setValue(int value) {    }
 
     @Override
     public void setValue(Value value) {
