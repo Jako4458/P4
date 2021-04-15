@@ -31,6 +31,10 @@ public class SimpleEntry implements SymEntry {
         return this.modifier;
     }
 
+    public void setValue(Value value) {
+        this.value = value;
+    }
+
     public void setValue(int value) {
         if (this.type == Type._num)
             this.value = new NumValue(value, Type._num);

@@ -9,6 +9,7 @@ public interface SymEntry {
 
     int getModifier();
 
+    void setValue(Value value);
     void setValue(int value);
     void setValue(Boolean value);
     void setValue(Vector2 value);

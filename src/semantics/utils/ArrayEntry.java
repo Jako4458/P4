@@ -43,6 +43,10 @@ public class ArrayEntry implements SymEntry {
     }
 
     @Override
+    public void setValue(Value value) {
+    }
+
+    @Override
     public void setValue(Boolean value) {
     }
 
