@@ -5,7 +5,7 @@ public class MCStatementST {
     public String output;
 
     public MCStatementST(String command){
-        ST st = new ST("<Command> //<Comment>");
+        ST st = new ST("<Command> #<Comment> \n");
         st.add("Comment", this.getClass().toString().substring(6)); //substring to remove "class "
         st.add("Command", command);
 

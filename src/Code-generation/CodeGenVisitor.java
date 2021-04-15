@@ -9,6 +9,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     private Scope currentScope;
     private Map<String, FuncEntry> funcSignature;
     private MSValueFactory msValueFactory = new MSValueFactory();
+    private STemplateFactory templateFactory = new STemplateFactory();
     private boolean PosRelativeToPlayer = true;
 
     public CodeGenVisitor(Map<String, FuncEntry> funcSignature) {
@@ -38,9 +39,9 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         else if (ctx.factor().type == Type._num)
             return msValueFactory.createValue(ctx.SUB() != null ? -factorNum : factorNum, ctx.type);
         else if (ctx.factor().type == Type._vector2)
-            return msValueFactory.createValue(Vector2.neg(factorVec2), Type._vector2);
+            return msValueFactory.createValue(ctx.SUB() != null ? Vector2.neg(factorVec2) : factorVec2, Type._vector2);
         else if (ctx.factor().type == Type._vector3)
-            return msValueFactory.createValue(Vector3.neg(factorVec3), Type._vector3);
+            return msValueFactory.createValue(ctx.SUB() != null ? Vector3.neg(factorVec3) : factorVec3, Type._vector3);
 
         Error();
         return null;
@@ -85,12 +86,12 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
             else if (ctx.type == Type._vector3)
                 return msValueFactory.createValue(Vector3.add(vec31, vec32), ctx.type);
         else if (ctx.SUB() != null)
-                if (ctx.type == Type._num)
-                    return msValueFactory.createValue(num1 - num2, ctx.type);
-                else if (ctx.type == Type._vector2)
-                    return msValueFactory.createValue(Vector2.sub(vec21, vec22), ctx.type);
-                else if (ctx.type == Type._vector3)
-                    return msValueFactory.createValue(Vector3.sub(vec31, vec32), ctx.type);
+            if (ctx.type == Type._num)
+                return msValueFactory.createValue(num1 - num2, ctx.type);
+            else if (ctx.type == Type._vector2)
+                return msValueFactory.createValue(Vector2.sub(vec21, vec22), ctx.type);
+            else if (ctx.type == Type._vector3)
+                return msValueFactory.createValue(Vector3.sub(vec31, vec32), ctx.type);
 
         Error();
         return null;
@@ -232,7 +233,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         var id = ctx.funcSignature().ID().getText();
         var func = funcSignature.getOrDefault(id, null);
 
-        String a = visit(ctx.funcBody()).toString();
+        Value a = visit(ctx.funcBody());
         func.setValue(a);
         return null;
     }
@@ -250,7 +251,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
         for (var child:ctx.children) {
             var b = visit(child);
-            stmntsText += (b != null ? b : "");
+            stmntsText += (b != null ? Value.value(b.getCasted(StringValue.class)) : "");
         }
 
         return msValueFactory.createValue(stmntsText, Type._string);
@@ -260,40 +261,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     public Value visitStmnt(MinespeakParser.StmntContext ctx) {
         String command = "";
         if (ctx.MCStmnt() != null) {
-            String stmnt = ctx.MCStmnt().getText();
-
-            Pattern varReplacePattern = Pattern.compile("v\\{(?<varName>\\w)*\\}");
-            Matcher matcher = varReplacePattern.matcher(stmnt);
-
-            while (matcher.find()) {
-                String varName = matcher.group("varName");
-                Type type = currentScope.lookup(varName).getType();
-                Value varVal = currentScope.lookup(varName).getValue();
-
-                String formatString ="";
-
-                if (type == Type._num)
-                    formatString = Value.value(varVal.getCasted(NumValue.class)).toString();
-                else if (type == Type._block)
-                    formatString = Value.value(varVal.getCasted(BlockValue.class));
-                else if (type == Type._bool)
-                    formatString = Value.value(varVal.getCasted(BoolValue.class)).toString();
-                else if (type == Type._string)
-                    formatString = Value.value(varVal.getCasted(StringValue.class));
-                else if (type == Type._vector2)
-                    formatString = Value.value(varVal.getCasted(Vector2Value.class)).toString(PosRelativeToPlayer ? "~" : "^");
-                else if (type == Type._vector3)
-                    formatString = Value.value(varVal.getCasted(Vector3Value.class)).toString(PosRelativeToPlayer ? "~" : "^");
-                else
-                    Error();
-
-                stmnt = stmnt.replace("v{" + varName + "}", formatString);
-            }
-
-            command = stmnt.replace("$", "");
-//            super.visitStmnt(ctx);
-            return msValueFactory.createValue(new MCStatementST(command).output, Type._string);
-        }else {
+            return visitMCStmnt(ctx);
+        } else {
             return super.visitStmnt(ctx);
         }
     }
@@ -307,19 +276,31 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
             var expr = ctx.initialValue(i).expr();
             Value exprEval = visit(expr);
 
-            if (expr.type == Type._num)
-                currentScope.lookup(ID).setValue(Value.value(exprEval.getCasted(NumValue.class)));
+            if (expr.type == Type._num) {
+                var lookup = currentScope.lookup(ID);
+                lookup.setValue(Value.value(exprEval.getCasted(NumValue.class)));
+                return msValueFactory.createValue(templateFactory.createInstanST(lookup).output, Type._string);
+//                return msValueFactory.createValue(templateFactory.createInstanST(ID,Value.value(exprEval.getCasted(NumValue.class)).toString()), Type._string);
+            }
             else if (expr.type == Type._block)
                 currentScope.lookup(ID).setValue(Value.value(exprEval.getCasted(BlockValue.class)));
-            else if (expr.type == Type._bool)
-                currentScope.lookup(ID).setValue(Value.value(exprEval.getCasted(BoolValue.class)));
+            else if (expr.type == Type._bool) {
+                var lookup = currentScope.lookup(ID);
+                lookup.setValue(Value.value(exprEval.getCasted(BoolValue.class)));
+                return msValueFactory.createValue(templateFactory.createInstanST(lookup).output, Type._string);
+            }
             else if (expr.type == Type._string)
                 currentScope.lookup(ID).setValue(Value.value(exprEval.getCasted(StringValue.class)));
-            else if (expr.type == Type._vector2)
-                currentScope.lookup(ID).setValue(Value.value(exprEval.getCasted(Vector2Value.class)));
-            else if (expr.type == Type._vector3)
-                currentScope.lookup(ID).setValue(Value.value(exprEval.getCasted(Vector3Value.class)));
-
+            else if (expr.type == Type._vector2) {
+                var lookup = currentScope.lookup(ID);
+                lookup.setValue(Value.value(exprEval.getCasted(Vector2Value.class)));
+                return msValueFactory.createValue(templateFactory.createInstanST(lookup).output, Type._string);
+            }
+            else if (expr.type == Type._vector3) {
+                var lookup = currentScope.lookup(ID);
+                lookup.setValue(Value.value(exprEval.getCasted(Vector3Value.class)));
+                return msValueFactory.createValue(templateFactory.createInstanST(lookup).output, Type._string);
+            }
         }
 
         return null;
@@ -338,15 +319,54 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         if (func == null)
             return null;
 
-        System.out.println(func.getValue().toString());
+        System.out.println(Value.value(func.getValue().getCasted(StringValue.class)));
         return msValueFactory.createValue(func.getValue().toString(), Type._string);
     }
-
-
 
     /*
      Helper
      */
+
+    private Value visitMCStmnt(MinespeakParser.StmntContext ctx) {
+        String stmnt = ctx.MCStmnt().getText();
+        return msValueFactory.createValue(new MCStatementST(formatString(stmnt)).output, Type._string);
+    }
+
+    private String formatString(String stmnt) {
+        String command;
+        Pattern varReplacePattern = Pattern.compile("(?<prefix>\\~|\\^)?v\\{(?<varName>\\w)*\\}");
+        Matcher matcher = varReplacePattern.matcher(stmnt);
+
+        while (matcher.find()) {
+            String prefix = matcher.group("prefix");
+            prefix = prefix != null ? prefix : "";
+            String varName = matcher.group("varName");
+            Type type = currentScope.lookup(varName).getType();
+            Value varVal = currentScope.lookup(varName).getValue();
+
+            String formatString ="";
+
+            if (type == Type._num)
+                formatString = prefix + Value.value(varVal.getCasted(NumValue.class)).toString();
+            else if (type == Type._block)
+                formatString = prefix + Value.value(varVal.getCasted(BlockValue.class));
+            else if (type == Type._bool)
+                formatString = prefix + Value.value(varVal.getCasted(BoolValue.class)).toString();
+            else if (type == Type._string)
+                formatString = prefix + Value.value(varVal.getCasted(StringValue.class));
+            else if (type == Type._vector2)
+                formatString = Value.value(varVal.getCasted(Vector2Value.class)).toString(prefix != "" ? prefix : "~");
+            else if (type == Type._vector3)
+                formatString = Value.value(varVal.getCasted(Vector3Value.class)).toString(prefix != "" ? prefix : "~");
+            else
+                Error();
+
+            stmnt = stmnt.replace(prefix + "v{" + varName + "}", formatString);
+        }
+
+        command = stmnt.replace("$", "");
+        return command;
+    }
 
     private void Error(){
         System.out.println("SHOULD NOT HAPPEN!");
