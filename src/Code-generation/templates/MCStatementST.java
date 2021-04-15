@@ -1,9 +1,8 @@
-package templates;
 
 import org.stringtemplate.v4.ST;
 
-public class MCStatementST {
-    public String output;
+public class MCStatementST implements Template{
+    private String output;
 
     public MCStatementST(String command){
         ST st = new ST("<Command> #<Comment> \n");
@@ -13,5 +12,8 @@ public class MCStatementST {
         output = st.render();
     }
 
-
+    @Override
+    public String getOutput() {
+        return output;
+    }
 }

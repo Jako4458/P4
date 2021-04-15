@@ -1,4 +1,3 @@
-import templates.MCStatementST;
 
 import java.util.Map;
 
@@ -279,7 +278,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
             if (expr.type == Type._num) {
                 var lookup = currentScope.lookup(ID);
                 lookup.setValue(Value.value(exprEval.getCasted(NumValue.class)));
-                return msValueFactory.createValue(templateFactory.createInstanST(lookup).output, Type._string);
+                return msValueFactory.createValue(templateFactory.createInstanST(lookup).getOutput(), Type._string);
 //                return msValueFactory.createValue(templateFactory.createInstanST(ID,Value.value(exprEval.getCasted(NumValue.class)).toString()), Type._string);
             }
             else if (expr.type == Type._block)
@@ -287,19 +286,19 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
             else if (expr.type == Type._bool) {
                 var lookup = currentScope.lookup(ID);
                 lookup.setValue(Value.value(exprEval.getCasted(BoolValue.class)));
-                return msValueFactory.createValue(templateFactory.createInstanST(lookup).output, Type._string);
+                return msValueFactory.createValue(templateFactory.createInstanST(lookup).getOutput(), Type._string);
             }
             else if (expr.type == Type._string)
                 currentScope.lookup(ID).setValue(Value.value(exprEval.getCasted(StringValue.class)));
             else if (expr.type == Type._vector2) {
                 var lookup = currentScope.lookup(ID);
                 lookup.setValue(Value.value(exprEval.getCasted(Vector2Value.class)));
-                return msValueFactory.createValue(templateFactory.createInstanST(lookup).output, Type._string);
+                return msValueFactory.createValue(templateFactory.createInstanST(lookup).getOutput(), Type._string);
             }
             else if (expr.type == Type._vector3) {
                 var lookup = currentScope.lookup(ID);
                 lookup.setValue(Value.value(exprEval.getCasted(Vector3Value.class)));
-                return msValueFactory.createValue(templateFactory.createInstanST(lookup).output, Type._string);
+                return msValueFactory.createValue(templateFactory.createInstanST(lookup).getOutput(), Type._string);
             }
         }
 
@@ -329,7 +328,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
     private Value visitMCStmnt(MinespeakParser.StmntContext ctx) {
         String stmnt = ctx.MCStmnt().getText();
-        return msValueFactory.createValue(new MCStatementST(formatString(stmnt)).output, Type._string);
+        return msValueFactory.createValue(new MCStatementST(formatString(stmnt)).getOutput(), Type._string);
     }
 
     private String formatString(String stmnt) {

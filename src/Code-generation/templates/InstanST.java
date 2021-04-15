@@ -1,9 +1,8 @@
-package templates;
 
 import org.stringtemplate.v4.ST;
 
-public class InstanST {
-    public String output;
+public class InstanST implements Template {
+    private String output;
 
     public InstanST(String varName, String value){
         ST st = new ST("scoreboard objectives add <varName> dummy \nscoreboard players set @s <varName> <value> #<Comment>\n");
@@ -22,8 +21,8 @@ public class InstanST {
         InstanST InstanX = new InstanST(varName + "_x", vec2.getValue().getX().toString());
         InstanST InstanY = new InstanST(varName + "_y", vec2.getValue().getY().toString());
 
-        st.add("InstanX", InstanX.output);
-        st.add("InstanY", InstanY.output);
+        st.add("InstanX", InstanX.getOutput());
+        st.add("InstanY", InstanY.getOutput());
 
         output = st.render();
     }
@@ -36,11 +35,15 @@ public class InstanST {
         InstanST InstanY = new InstanST(varName + "_y", vec3.getValue().getY().toString());
         InstanST InstanZ = new InstanST(varName + "_z", vec3.getValue().getZ().toString());
 
-        st.add("InstanX", InstanX.output);
-        st.add("InstanY", InstanY.output);
-        st.add("InstanZ", InstanZ.output);
+        st.add("InstanX", InstanX.getOutput());
+        st.add("InstanY", InstanY.getOutput());
+        st.add("InstanZ", InstanZ.getOutput());
         output = st.render();
     }
 
 
+    @Override
+    public String getOutput() {
+        return this.output;
+    }
 }
