@@ -1,3 +1,5 @@
+package templates;
+
 import org.stringtemplate.v4.ST;
 
 public class InstanST {

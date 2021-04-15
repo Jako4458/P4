@@ -1,3 +1,4 @@
+package templates;
 
 import org.stringtemplate.v4.ST;
 
