@@ -1,8 +1,33 @@
+import org.antlr.v4.runtime.tree.ParseTree;
 
 public class STemplateFactory {
 
+    public MCFuncCallST CreateMCFuncCallST(FuncEntry entry) {
+        return new MCFuncCallST(entry.getName());
+    }
+
+    public FuncCallST CreateFuncCallST(FuncEntry entry) {
+
+        var combinedST = entry.getOutput().stream().reduce(
+                                                (str1, str2) -> new BlankST(str1.getOutput() + str2.getOutput())
+                                            ).get();
+
+        String paramList = " ";
+
+        for (var param:entry.getParams()) {
+            paramList += entry.scope.lookup(param.getName()).prettyPrint() + ", ";
+        }
+        paramList += " ";
+
+        return new FuncCallST(entry.getName() + paramList + entry.toString(), combinedST.getOutput());
+    }
+
     public MCStatementST CreateMCStatementST(String command) {
         return new MCStatementST(command);
+    }
+
+    public ParameterDependantStmntST createParamDependantStmntST(ParseTree ctx){
+        return new ParameterDependantStmntST(ctx);
     }
 
     public InstanST createInstanST(SymEntry entry) {

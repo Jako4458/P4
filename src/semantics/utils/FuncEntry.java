@@ -7,6 +7,7 @@ public class FuncEntry implements SymEntry {
     private final Type retType;
     private final List<SymEntry> params;
     private final MinespeakParser.FuncSignatureContext ctx;
+    public Scope scope;
     private Value value;
 
     private ArrayList<Template> output = new ArrayList<>();
@@ -42,6 +43,10 @@ public class FuncEntry implements SymEntry {
         return this.output;
     }
 
+    public void setOutput(ArrayList<Template> newOutput) {
+        this.output = newOutput;
+    }
+
     @Override
     public void setValue(int value) {    }
 
@@ -69,6 +74,11 @@ public class FuncEntry implements SymEntry {
     @Override
     public Value getValue() {
         return value;
+    }
+
+    @Override
+    public String prettyPrint() {
+        return null;
     }
 
     public boolean isMCFunction() {

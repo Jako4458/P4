@@ -1,7 +1,7 @@
-
 import java.util.ArrayList;
 import java.util.Map;
 
+import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,22 +19,44 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     }
 
     @Override
+    public Value visitProg(MinespeakParser.ProgContext ctx) {
+        currentScope = ctx.scope;
+
+        for (FuncEntry func:this.funcSignature.values()) {
+            visit(func.getCtx().parent);
+        }
+//        super.visitProg(ctx);
+
+        for (FuncEntry func:funcSignature.values()) {
+            if (func.isMCFunction()) {
+                recompileFunction(func);
+                output.add(templateFactory.CreateFuncCallST(func));
+            }
+        }
+
+        for (Template t:output) {
+            System.out.println(t.getOutput());
+        }
+        return null;
+    }
+
+    @Override
     public Value visitNotNegFac(MinespeakParser.NotNegFacContext ctx) {
 
         boolean factorBool= false;
         int factorNum= 0;
         Vector2 factorVec2 = null;
         Vector3 factorVec3 = null;
-        var a = visit(ctx.factor());
+        var factor = visit(ctx.factor());
 
         if (ctx.type == Type._bool)
-            factorBool = Value.value(visit(ctx.factor()).getCasted(BoolValue.class));
+            factorBool = Value.value(factor.getCasted(BoolValue.class));
         else if (ctx.type == Type._num)
-            factorNum = Value.value(visit(ctx.factor()).getCasted(NumValue.class));
+            factorNum = Value.value(factor.getCasted(NumValue.class));
         else if (ctx.type == Type._vector2)
-            factorVec2 = Value.value(visit(ctx.factor()).getCasted(Vector2Value.class));
+            factorVec2 = Value.value(factor.getCasted(Vector2Value.class));
         else if (ctx.type == Type._vector3)
-            factorVec3 = Value.value(visit(ctx.factor()).getCasted(Vector3Value.class));
+            factorVec3 = Value.value(factor.getCasted(Vector3Value.class));
 
         if (ctx.factor().type == Type._bool)
             return msValueFactory.createValue(ctx.NOT() != null ? !factorBool : factorBool, ctx.type);
@@ -224,32 +246,40 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     }
 
     @Override
-    public Value visitProg(MinespeakParser.ProgContext ctx) {
-        currentScope = ctx.scope;
-        return super.visitProg(ctx);
-    }
-
-    @Override
     public Value visitFunc(MinespeakParser.FuncContext ctx) {
-        currentScope = ctx.scope;
-        var id = ctx.funcSignature().ID().getText();
-        currentFunc = funcSignature.getOrDefault(id, null);
+        currentFunc = funcSignature.getOrDefault(ctx.funcSignature().ID().getText(), null);
+        currentFunc.scope = ctx.funcBody().scope;
+        currentScope = currentFunc.scope;
 
-        Value a = visit(ctx.funcBody());
+        visit(ctx.funcBody());
         return null;
     }
 
     @Override
     public Value visitFuncBody(MinespeakParser.FuncBodyContext ctx) {
-        currentScope = ctx.scope;
-        return super.visitFuncBody(ctx);
+        if (ctx.stmnts() != null)
+            visit(ctx.stmnts());
+        if (ctx.retVal() != null)
+            currentFunc.setValue(visit(ctx.retVal()));
+        return null;
+    }
+
+    @Override
+    public Value visitRetVal(MinespeakParser.RetValContext ctx) {
+        return visit(ctx.expr());
     }
 
     @Override
     public Value visitStmnts(MinespeakParser.StmntsContext ctx) {
 
         for (var child:ctx.children) {
-            var b = visit(child);
+            try {
+                visit(child);
+            } catch (NullPointerException e) {
+                currentFunc.addTemplate(templateFactory.createParamDependantStmntST(child));
+            } catch (NoSuchElementException e) {
+                currentFunc.addTemplate(templateFactory.createParamDependantStmntST(child));
+            }
         }
         return null;
     }
@@ -260,6 +290,12 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
             return visitMCStmnt(ctx);
 
         return super.visitStmnt(ctx);
+    }
+
+    @Override
+    public Value visitBody(MinespeakParser.BodyContext ctx) {
+        currentScope = ctx.scope;
+        return super.visitBody(ctx);
     }
 
     @Override
@@ -301,35 +337,25 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     }
 
     @Override
+    public Value visitBlock(MinespeakParser.BlockContext ctx) {
+        currentScope = ctx.scope;
+        return super.visitBlock(ctx);
+    }
+
+    @Override
     public Value visitFuncCall(MinespeakParser.FuncCallContext ctx) {
-        var expr = ctx.expr(0).getText();
         var func = funcSignature.getOrDefault(ctx.ID().getText(), null);
 
-//        for (int i = 0; i < func.getParams().size(); i++) {
-//            var val = visit(ctx.expr(i));
-//
-//            if (val.type == Type._num)
-//                currentScope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(NumValue.class)));
-//            else if (val.type == Type._block)
-//                currentScope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(BlockValue.class)));
-//            else if (val.type == Type._bool)
-//                currentScope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(BoolValue.class)));
-//            else if (val.type == Type._string)
-//                currentScope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(StringValue.class)));
-//            else if (val.type == Type._vector2)
-//                currentScope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(Vector2Value.class)));
-//            else if (val.type == Type._vector3)
-//                currentScope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(Vector3Value.class)));
-//            else
-//                Error();
-//        }
-
-        output.addAll(func.getOutput());
-
-        for (Template t:output) {
-            System.out.println(t.getOutput());
+        if (!func.isMCFunction()){
+            loadParamsToScope(ctx, func);
+            recompileFunction(func);
+            currentFunc.addTemplate(templateFactory.CreateFuncCallST(func));
+            return func.getValue();
         }
-
+        else {
+            recompileFunction(func);
+            currentFunc.addTemplate(templateFactory.CreateMCFuncCallST(func));
+        }
         return null;
     }
 
@@ -377,6 +403,54 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
         command = stmnt.replace("$", "");
         return command;
+    }
+
+    private void loadParamsToScope(MinespeakParser.FuncCallContext ctx, FuncEntry func) {
+        for (int i = 0; i < func.getParams().size(); i++) {
+            var val = visit(ctx.expr(i));
+            SymEntry a;
+
+            if (val.type == Type._num)
+                func.scope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(NumValue.class)));
+            else if (val.type == Type._block)
+                func.scope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(BlockValue.class)));
+            else if (val.type == Type._bool)
+                func.scope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(BoolValue.class)));
+            else if (val.type == Type._string)
+                func.scope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(StringValue.class)));
+            else if (val.type == Type._vector2)
+                func.scope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(Vector2Value.class)));
+            else if (val.type == Type._vector3)
+                func.scope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(Vector3Value.class)));
+            else
+                Error();
+        }
+    }
+
+    private void recompileFunction(FuncEntry func) {
+        var tempScope = currentScope;
+        var tempFunc = currentFunc;
+
+        for (Template t: func.getOutput()) {
+            if (t instanceof ParameterDependantStmntST) {
+                currentScope = func.scope;
+                break;
+            }
+        }
+        currentFunc = func;
+
+        for (int i = 0; i < func.getOutput().size(); i++) {
+            Template t = func.getOutput().get(i);
+            if (t instanceof ParameterDependantStmntST) {
+                ParameterDependantStmntST wt = ((ParameterDependantStmntST) t);
+                visit(wt.context);  // do stmnt again
+                wt.setOutput(func.getOutput().get(func.getOutput().size() - 1).getOutput()); // move new output to failed stmnt
+                func.getOutput().remove(func.getOutput().size() - 1);     // remove new stmnt from end
+            }
+        }
+
+        currentScope = tempScope;
+        currentFunc = tempFunc;
     }
 
     private void Error(){

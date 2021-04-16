@@ -39,4 +39,9 @@ public abstract class Value {
     static public Vector3 value(Vector3Value value) {
         return value.getValue();
     }
+
+    @Override
+    public String toString() {
+        return getValue().toString();
+    }
 }

@@ -19,4 +19,6 @@ public interface SymEntry {
     void setValue(String value);
 
     Value getValue();
+
+    String prettyPrint();
 }

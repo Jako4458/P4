@@ -69,6 +69,11 @@ public class SimpleEntry implements SymEntry {
         return value;
     }
 
+    @Override
+    public String prettyPrint() {
+        return this.getName() + ":" + this.value.toString();
+    }
+
 
     public ParserRuleContext getCtx() {
         return this.ctx;

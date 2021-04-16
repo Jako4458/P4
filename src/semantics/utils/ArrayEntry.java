@@ -67,6 +67,11 @@ public class ArrayEntry implements SymEntry {
         return null;
     }
 
+    @Override
+    public String prettyPrint() {
+        return null;
+    }
+
     public int getSize() {
         return this.size;
     }
