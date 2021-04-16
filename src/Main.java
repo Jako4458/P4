@@ -26,7 +26,7 @@ public class Main {
         System.out.println("Parsing...");
         ParseTree parseTree = parse(tokenStream);
 
-        // Syntax analysis
+        // Semantic analysis
         System.out.println("Semantics...");
         semantics_analysis(parseTree);
 
