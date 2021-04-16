@@ -2,6 +2,7 @@ import logging.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -363,12 +364,26 @@ public class ScopeListener extends MinespeakBaseListener {
         if(ctx.ADD() != null){
             ctx.type = Type.inferType(left, MinespeakParser.ADD, right);
         } else if (ctx.SUB() != null) {
+            if (isArrayType(ctx.expr(0).type) &&
+                    isArrayType((ctx.expr(1).type))) {
+
+                ctx.type = Type._error;
+                return;
+            }
+
             ctx.type = Type.inferType(left, MinespeakParser.SUB, right);
         }
     }
 
     @Override
     public void exitPow(MinespeakParser.PowContext ctx) {
+        if (isArrayType(ctx.expr(0).type) &&
+                isArrayType((ctx.expr(1).type))) {
+
+            ctx.type = Type._error;
+            return;
+        }
+
         int left = ctx.expr(0).type.getTypeAsInt();
         int right = ctx.expr(1).type.getTypeAsInt();
 
@@ -377,6 +392,13 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitOr(MinespeakParser.OrContext ctx) {
+        if (isArrayType(ctx.expr(0).type) &&
+                isArrayType((ctx.expr(1).type))) {
+
+            ctx.type = Type._error;
+            return;
+        }
+
         int left = ctx.expr(0).type.getTypeAsInt();
         int right = ctx.expr(1).type.getTypeAsInt();
 
@@ -385,6 +407,13 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitAnd(MinespeakParser.AndContext ctx) {
+        if (isArrayType(ctx.expr(0).type) &&
+                isArrayType((ctx.expr(1).type))) {
+
+            ctx.type = Type._error;
+            return;
+        }
+
         int left = ctx.expr(0).type.getTypeAsInt();
         int right = ctx.expr(1).type.getTypeAsInt();
 
@@ -404,8 +433,17 @@ public class ScopeListener extends MinespeakBaseListener {
 
     }
 
+
+
     @Override
     public void exitRelations(MinespeakParser.RelationsContext ctx) {
+        if (isArrayType(ctx.expr(0).type) &&
+            isArrayType((ctx.expr(1).type))) {
+
+            ctx.type = Type._error;
+            return;
+        }
+
         int left = ctx.expr(0).type.getTypeAsInt();
         int right = ctx.expr(1).type.getTypeAsInt();
 
@@ -422,6 +460,13 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitMulDivMod(MinespeakParser.MulDivModContext ctx) {
+        if (isArrayType(ctx.expr(0).type) &&
+                isArrayType((ctx.expr(1).type))) {
+
+            ctx.type = Type._error;
+            return;
+        }
+
         int left = ctx.expr(0).type.getTypeAsInt();
         int right = ctx.expr(1).type.getTypeAsInt();
 
@@ -549,6 +594,19 @@ public class ScopeListener extends MinespeakBaseListener {
     @Override
     public void exitNotNegFac(MinespeakParser.NotNegFacContext ctx) {
         ctx.type = ctx.factor().type;
+
+        if (ctx.NOT() != null) {
+            if (ctx.type != Type._bool) {
+                ctx.type = Type._error;
+                Logger.shared.add(logFac.createTypeError(ctx.factor().getText(), ctx, ctx.type, Type._bool));
+            }
+        } else if(ctx.SUB() != null) {
+            if(ctx.type != Type._vector2 && ctx.type != Type._vector3 && ctx.type != Type._num) {
+                ctx.type = Type._error;
+                Type[] types = {Type._vector2, Type._vector3, Type._num};
+                Logger.shared.add(logFac.createTypeError(ctx.factor().getText(), ctx, ctx.type, types));
+            }
+        }
     }
 
     private void exitScope() {
