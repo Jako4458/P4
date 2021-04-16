@@ -9,8 +9,7 @@ import java.util.Set;
 
 /** Represents possible type trees
  *
- *  Used only in expressions.
- *  Same method as that used for Mantra by Terrence Parr, rewrtitten here for the Minespeak language
+ *  Similiar method as that used for Mantra by Terrence Parr, rewrtitten here for the Minespeak language
  *  https://github.com/mantra/compiler/blob/master/src/java/mantra/symbols/Type.java
  */
 
@@ -113,32 +112,48 @@ public class Type {
            add(MinespeakParser.SUBASSIGN);
         }};
 
-
+        /* Expressions:
+            num + num, num - num, num * num, num / num, num Pow num, num % num
+         */
         for (int op : arithmeticOps) {
             resultTypes.put(opKey(NUM, op, NUM), NUM);
         }
 
+        /* Expressions:
+            num < num, num > num, num <= num, num >= num
+         */
         for (int op : relationalOps) {
             resultTypes.put(opKey(NUM, op, NUM), BOOL);
         }
 
+        /* Expressions:
+            bool ! bool, bool && bool, bool || bool
+         */
         for (int op : logicalOps) {
             resultTypes.put(opKey(BOOL, op, BOOL), BOOL);
         }
 
+        /* Expressions:
+            type_x == type_x, type_x != type_x
+         */
         for (int op : universalOps) {
             for (int type : primitiveTypes) {
                 resultTypes.put(opKey(type, op, type), BOOL);
             }
         }
 
+        /* Expressions:
+            vector2 + vector2, vector3 + vector3, vector2 - vector2, vector3 - vector3
+         */
         for (int op : vectorOps) {
             for (int type : vectorTypes) {
                 resultTypes.put(opKey(type, op, type), type);
             }
         }
 
-        // Multiplication of vector by scalar
+        /* Expressions:
+            num * vector2, vector2 * num, vector3 * num, num * vector3
+         */
         for (int type : vectorTypes) {
             resultTypes.put(opKey(NUM, MinespeakParser.TIMES, type), type);
             resultTypes.put(opKey(type, MinespeakParser.TIMES, NUM), type);
@@ -148,6 +163,7 @@ public class Type {
             //resultTypes.put(opKey(type, MinespeakParser.DIV, NUM), type);
         }
 
+        // Assignments
         for (int assign : assignments) {
             if (assign == MinespeakParser.ASSIGN) {
                 for (int primitiveType : primitiveTypes) {
@@ -160,16 +176,14 @@ public class Type {
             }
         }
 
-        // String concatenation with +
+        /* Expressions:
+            string + string
+         */
         resultTypes.put(opKey(STRING, MinespeakParser.ADD, STRING), STRING);
 
     }
 
     public Type(ParseTree tree) { this.tree = tree; }
-
-    public static boolean isValidOp(int left, int op, int right) {
-        return Type.resultTypes.get(Type.opKey(left, op, right)) != null;
-    }
 
     public static Type inferType(int left, int op, int right) {
         return getTypeFromInt(Type.resultTypes.getOrDefault(Type.opKey(left, op, right), -1));
