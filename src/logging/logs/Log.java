@@ -1,4 +1,6 @@
-package Logging;
+package logging.logs;
+
+import logging.LogType;
 
 /**
  * An abstract class for representing a log entry.

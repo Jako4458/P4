@@ -1,4 +1,4 @@
-package Logging;
+package logging;
 
 public enum LogType {
     ERROR,

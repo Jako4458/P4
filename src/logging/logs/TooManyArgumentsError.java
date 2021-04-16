@@ -1,6 +1,8 @@
-package Logging;
+package logging.logs;
 
-public class TooManyArgumentsError extends ErrorLog{
+import logging.logs.ErrorLog;
+
+public class TooManyArgumentsError extends ErrorLog {
     public TooManyArgumentsError(String text, int lineNum, int characterIndex) {
         super(text, lineNum, characterIndex);
     }

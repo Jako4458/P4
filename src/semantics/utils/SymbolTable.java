@@ -1,8 +1,8 @@
 public interface SymbolTable {
 
-    SymEntry getEntry(String hashCode);
-    SymEntry addEntry(SymEntry entry);
-    SymEntry lookup(SymEntry entry);
-    SymEntry lookup(String hashCode);
+    public SymEntry getEntry(String hashCode);
+    public SymEntry addEntry(SymEntry entry);
+    public SymEntry lookup(SymEntry entry);
+    public SymEntry lookup(String hashCode);
 
 }

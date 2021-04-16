@@ -1,4 +1,4 @@
-package Logging;
+package logging.logs;
 
 public class MCFuncWrongReturnType extends TypeError {
     public MCFuncWrongReturnType(String errorText, int lineNum, int characterIndex, String actualType, String expectedType) {

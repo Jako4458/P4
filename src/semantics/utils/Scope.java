@@ -1,6 +1,7 @@
 import java.util.HashMap;
 
-public class Scope {
+public class
+Scope {
     private Scope parent;
     private HashMap<String, SymEntry> variables;
     private boolean isFunction;
