@@ -1,7 +1,7 @@
-import java.util.ArrayList;
-import java.util.Map;
+import org.antlr.v4.runtime.tree.ParseTree;
 
-import java.util.NoSuchElementException;
+import java.util.*;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -11,6 +11,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     private Map<String, FuncEntry> funcSignature;
     private MSValueFactory msValueFactory = new MSValueFactory();
     private STemplateFactory templateFactory = new STemplateFactory();
+    private Map<ParseTree, String> factorNameTable = new HashMap<>();
 
     private ArrayList<Template> output = new ArrayList<>();
 
@@ -42,6 +43,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
     @Override
     public Value visitNotNegFac(MinespeakParser.NotNegFacContext ctx) {
+        if (ctx.factor().rvalue() != null)
+            factorNameTable.put(ctx, ctx.factor().rvalue().ID().getText());
 
         boolean factorBool= false;
         int factorNum= 0;
@@ -73,8 +76,16 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
     @Override
     public Value visitPow(MinespeakParser.PowContext ctx) {
-        int num1 = Value.value(visit(ctx.expr(0)).getCasted(NumValue.class));
+        int num1 = Value.value(visit(ctx.expr(0)).getCasted(NumValue.class)); // a
         int num2 = Value.value(visit(ctx.expr(1)).getCasted(NumValue.class));
+
+        var expr1Name = factorNameTable.getOrDefault(ctx.expr(0), templateFactory.factor1UUID);
+        var expr2Name = factorNameTable.getOrDefault(ctx.expr(1), templateFactory.factor2UUID);
+
+        expr1Name = expr1Name.equals(templateFactory.factor1UUID) ? templateFactory.factor1UUID : currentScope.lookup(expr1Name).getVarName();
+        num2 = expr2Name.equals(templateFactory.factor2UUID) ? num2 :  Value.value(currentScope.lookup(expr2Name).getValue().getCasted(NumValue.class));
+
+        currentFunc.addTemplate(templateFactory.createArithmeticExprST(expr1Name, num2, "Pow"));
         return msValueFactory.createValue((int) Math.pow(num1, num2), ctx.type);
     }
 
@@ -302,7 +313,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     public Value visitInstan(MinespeakParser.InstanContext ctx) {
         for (int i = 0; i < ctx.ID().size(); i++) {
             String ID = ctx.ID(i).getText();
-
 
             var expr = ctx.initialValue(i).expr();
             Value exprEval = visit(expr);
