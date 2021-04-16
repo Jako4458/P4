@@ -110,7 +110,9 @@ initialValue : rArray
              | expr
              ;
 
-rArray   : LSQUARE (expr (COMMA expr)*)? RSQUARE
+rArray
+returns [Type type]
+        : LSQUARE (expr (COMMA expr)*)? RSQUARE
         ;
 
 arrayAccess

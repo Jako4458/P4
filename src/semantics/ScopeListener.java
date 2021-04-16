@@ -68,9 +68,7 @@ public class ScopeListener extends MinespeakBaseListener {
             this.entryFac.resetMCFunction();
             if (ctx.type != Type._void && ctx.funcBody().type == Type._void) {
                 Logger.shared.add(logFac.createTypeError(name, ctx, ctx.type, Type._void));
-            } else if (ctx.type != ctx.funcBody().type      // Checking array types can be annoying
-                    && !(ctx.type instanceof ArrayType && ctx.funcBody().type instanceof ArrayType
-                    && ((ArrayType)ctx.type).equalTypes((ArrayType)ctx.funcBody().type))) {
+            } else if (ctx.type != ctx.funcBody().type && !typesAreEqual(ctx.type, ctx.funcBody().type)) {
                 Logger.shared.add(logFac.createTypeError(ctx.funcBody().retVal().expr().getText(),
                         ctx.funcBody().retVal().expr(),
                         ctx.funcBody().retVal().type,
@@ -268,16 +266,33 @@ public class ScopeListener extends MinespeakBaseListener {
         int instanLength = ctx.primaryType().size();
 
         for (int i = 0; i < instanLength; i++) {
-            if(ctx.primaryType(i).type != ctx.initialValue(i).expr().type){
-                Logger.shared.add(logFac.createTypeError(ctx.initialValue(i).expr().getText(),
-                        ctx.initialValue(i).expr(),
-                        ctx.initialValue(i).expr().type,
-                        ctx.primaryType(i).type)
-                );
+            if (ctx.initialValue(i).rArray() != null) {
+                if (!typesAreEqual(ctx.primaryType(i).type, ctx.initialValue(i).rArray().type)) {
+                    Logger.shared.add(logFac.createTypeError(ctx.initialValue(i).rArray().getText(),
+                            ctx.initialValue(i).rArray(),
+                            ctx.initialValue(i).rArray().type,
+                            ctx.primaryType(i).type)
+                    );
+                }
+            } else if (ctx.initialValue(i).expr() != null){
+                if (!typesAreEqual(ctx.primaryType(i).type, ctx.initialValue(i).expr().type)) {
+                    Logger.shared.add(logFac.createTypeError(ctx.initialValue(i).expr().getText(),
+                            ctx.initialValue(i).expr(),
+                            ctx.initialValue(i).expr().type,
+                            ctx.primaryType(i).type)
+                    );
+                }
             }
         }
-
         addMultipleToScope(ctx);
+    }
+
+    private boolean typesAreEqual(Type t1, Type t2) {
+        if (t1 instanceof ArrayType && t2 instanceof ArrayType) {
+            return ((ArrayType)t1).equalTypes((ArrayType)t2);
+        } else {
+            return t1 == t2;
+        }
     }
 
     @Override
@@ -290,6 +305,19 @@ public class ScopeListener extends MinespeakBaseListener {
             Logger.shared.add(logFac.createVarNotArrayLog(ctx.ID().getText(), ctx));
         else
             ctx.type = ((ArrayType)tempType).type;
+    }
+
+    @Override
+    public void exitRArray(MinespeakParser.RArrayContext ctx) {
+        if (ctx.expr().isEmpty())
+            return;
+        Type baseType = ctx.expr().get(0).type;
+        for (var expr : ctx.expr()) {
+            if (expr.type != baseType) {
+                // log error
+            }
+        }
+        ctx.type = new ArrayType(ctx, baseType);
     }
 
     @Override
@@ -442,18 +470,18 @@ public class ScopeListener extends MinespeakBaseListener {
         } else if (actualParams.size() > formalParams.size()){
             Logger.shared.add(logFac.createTooManyArgumentsError(ctx.ID().getText(), ctx));
             Logger.shared.add(logFac.createFuncDeclLocationNote(function.getCtx()));
-        }
-        
-        for (int i = 0; i < formalParams.size(); i++) {
-            Type fType = formalParams.get(i).getType();
-            Type aType = actualParams.get(i).type;
-            if ((fType != aType && !(fType instanceof ArrayType) && !(aType instanceof ArrayType))
-                    || (fType instanceof ArrayType && aType instanceof ArrayType && ((ArrayType)fType).type != ((ArrayType)aType).type)) {
-                Logger.shared.add(logFac.createTypeError(actualParams.get(i).getText(),
-                        actualParams.get(i),
-                        actualParams.get(i).type,
-                        formalParams.get(i).getType())
-                );
+        } else {
+            for (int i = 0; i < formalParams.size(); i++) {
+                Type fType = formalParams.get(i).getType();
+                Type aType = actualParams.get(i).type;
+                if ((fType != aType && !(fType instanceof ArrayType) && !(aType instanceof ArrayType))
+                        || (fType instanceof ArrayType && aType instanceof ArrayType && ((ArrayType) fType).type != ((ArrayType) aType).type)) {
+                    Logger.shared.add(logFac.createTypeError(actualParams.get(i).getText(),
+                            actualParams.get(i),
+                            actualParams.get(i).type,
+                            formalParams.get(i).getType())
+                    );
+                }
             }
         }
         ctx.type = function.getType();
