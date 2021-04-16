@@ -260,8 +260,6 @@ NUM: 'num';
 BLOCK: 'block';
 BOOL: 'bool';
 STRING: 'string';
-BYTE: 'byte';
-FILE: 'file';
 VECTOR2: 'vector2';
 VECTOR3: 'vector3';
 TRUE: 'true';
