@@ -8,6 +8,13 @@ public class LogFactory {
     }
 
     public Log createTypeError(String text, ParserRuleContext ctx, Type actual, Type expected) {
+        if (actual instanceof ArrayType) {
+            return new TypeError(text, ctx.start.getLine(), ctx.start.getCharPositionInLine(),
+                    ((TerminalNodeImpl)actual.tree).symbol.getText() + " array",
+                    ((TerminalNodeImpl)expected.tree).symbol.getText()
+            );
+        }
+
         return new TypeError(text, ctx.start.getLine(), ctx.start.getCharPositionInLine(),
                 ((TerminalNodeImpl)actual.tree).symbol.getText(),
                 ((TerminalNodeImpl)expected.tree).symbol.getText()
