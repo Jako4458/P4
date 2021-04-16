@@ -200,7 +200,7 @@ public class TypecheckingTests {
     //region Test of types for non-compound assignments (Integration tests)
     @ParameterizedTest(name = "{index} => {0} assignment with non-array types")
     @MethodSource("primitiveTypes")
-    public void NonCompoundAssignment(String typeName) {
+    public void NonCompoundAssignmentPrimitiveTypes(String typeName) {
         for (int i = 0; i < primitiveTypesArray().size(); i++) {
             if (!TestHelper.getSymbolFromInt(primitiveTypesArray().get(i)).equals(typeName)) {
                 helper.setupFromString(String.format("var n: %s\n n = %s\n", typeName,
@@ -218,6 +218,26 @@ public class TypecheckingTests {
                 MinespeakParser.BodyContext tree = helper.minespeakParser.body();
                 helper.walkTree(tree);
 
+                assertTrue(Logger.shared.getLogs().isEmpty());
+            }
+        }
+    }
+
+    @ParameterizedTest(name = "{index} => {0} assignment with non-array types")
+    @MethodSource("primitiveTypes")
+    public void NonCompoundAssignmentArrayTypes(String typeName) {
+        for (int i = 0; i < primitiveTypesArray().size(); i++) {
+            helper.setupFromString(String.format("var n: %s[2]\n n = [%s, %s]\n", typeName,
+                TestHelper.getRepresentativeSymbol(primitiveTypesArray().get(i)),
+                    TestHelper.getRepresentativeSymbol(primitiveTypesArray().get(i))));
+            MinespeakParser.BodyContext tree = helper.minespeakParser.body();
+            helper.walkTree(tree);
+            if (!TestHelper.getSymbolFromInt(primitiveTypesArray().get(i)).equals(typeName)) {
+                assertFalse(Logger.shared.getLogs().isEmpty());
+                assertTrue(Logger.shared.getLogs().get(0) instanceof TypeError
+                        || Logger.shared.getLogs().get(0) instanceof InvalidOperatorError);
+                this.reset();
+            } else {
                 assertTrue(Logger.shared.getLogs().isEmpty());
             }
         }
