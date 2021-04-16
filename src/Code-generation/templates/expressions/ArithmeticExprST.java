@@ -31,34 +31,29 @@ public class ArithmeticExprST implements Template {
 
     private ST createPowTemplate(String a, int b, String prefix, String exprID) {
         ST template;
-        if (b == 0) {
-            template = new ST("<prefix> scoreboard objectives add <exprID> dummy\n<prefix> scoreboard players set @s <exprID> 1");
-            template.add("exprID", exprID);
-        } else {
-            String follow = "";
-            if (b > 0) {
-                template = new ST(
-                        "<prefix> scoreboard objectives add <exprID> dummy\n" +
-                                "<prefix> scoreboard players operation @s <exprID> = @s <aID>\n" +
-                                "<follow>");
+        String follow = "";
 
-                template.add("aID", a);
-                for (int i = b - 1; i > 0; i--) {
-                    follow = follow.concat(String.format("%s scoreboard players operation @s %s *= @s %s\n", prefix, exprID, a));
-                }
-            } else {
-                template = new ST(
-                        "<prefix> scoreboard objectives add <exprID> dummy\n" +
-                                "<prefix> scoreboard players set @s <exprID> 1\n" +
-                                "<follow>");
-                for (int i = b; i < 0; i++) {
-                    follow = follow.concat(String.format("%s scoreboard players operation @s %s /= @s %s\n", prefix, exprID, a));
-                }
+        if (b > 0) {
+            template = new ST(
+                    "<prefix> scoreboard objectives add <exprID> dummy\n" +
+                            "<prefix> scoreboard players operation @s <exprID> = @s <aID>\n" +
+                            "<follow>");
 
+            template.add("aID", a);
+            for (int i = b - 1; i > 0; i--) {
+                follow = follow.concat(String.format("%s scoreboard players operation @s %s *= @s %s\n", prefix, exprID, a));
             }
-            template.add("exprID", exprID);
-            template.add("follow", follow);
+        } else {
+            template = new ST(
+                    "<prefix> scoreboard objectives add <exprID> dummy\n" +
+                            "<prefix> scoreboard players set @s <exprID> 1\n" +
+                            "<follow>");
+            for (int i = b; i < 0; i++) {
+                follow = follow.concat(String.format("%s scoreboard players operation @s %s /= @s %s\n", prefix, exprID, a));
+            }
         }
+        template.add("exprID", exprID);
+        template.add("follow", follow);
         template.add("prefix", prefix);
         return template;
     }
