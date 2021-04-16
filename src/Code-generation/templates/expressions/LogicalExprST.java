@@ -14,14 +14,14 @@ public class LogicalExprST implements Template {
 
     private ST generateAndTemplate(String a, String b, String prefix, String exprID, String tempID) {
         ST template = new ST(
-                "<prefix> scoreboard objectives add <exprID> dummy\n" +
-                        "<prefix> scoreboard objectives add <tempID> dummy\n" +
-                        "<prefix> scoreboard players set @s <exprID> 0\n" +
-                        "<prefix> scoreboard players set @s <tempID> 0\n" +
-                        "<prefix> scoreboard players operation @s <tempID> += @s <aID>\n" +
-                        "<prefix> scoreboard players operation @s <tempID> += @s <bID>\n" +
-                        "<prefix> execute if score @s <tempID> matches 2..2 run scoreboard players set @s <exprID> 1\n" +
-                        "<prefix> scoreboard objectives remove <tempID>"
+                "<prefix>scoreboard objectives add <exprID> dummy\n" +
+                        "<prefix>scoreboard objectives add <tempID> dummy\n" +
+                        "<prefix>scoreboard players set @s <exprID> 0\n" +
+                        "<prefix>scoreboard players set @s <tempID> 0\n" +
+                        "<prefix>scoreboard players operation @s <tempID> += @s <aID>\n" +
+                        "<prefix>scoreboard players operation @s <tempID> += @s <bID>\n" +
+                        "<prefix>execute if score @s <tempID> matches 2..2 run scoreboard players set @s <exprID> 1\n" +
+                        "<prefix>scoreboard objectives remove <tempID>"
         );
         template.add("prefix", prefix);
         template.add("exprID", exprID);
@@ -33,14 +33,14 @@ public class LogicalExprST implements Template {
 
     private ST generateOrTemplate(String a, String b, String prefix, String exprID, String tempID) {
         ST template = new ST(
-                "<prefix> scoreboard objectives add <exprID> dummy\n" +
-                        "<prefix> scoreboard objectives add <tempID> dummy\n" +
-                        "<prefix> scoreboard players set @s <exprID> 0\n" +
-                        "<prefix> scoreboard players set @s <tempID> 0\n" +
-                        "<prefix> scoreboard players operation @s <tempID> += @s <aID>\n" +
-                        "<prefix> scoreboard players operation @s <tempID> += @s <bID>\n" +
-                        "<prefix> execute if score @s <tempID> matches 1.. run scoreboard players set @s <exprID> 1\n" +
-                        "<prefix> scoreboard objectives remove <tempID>"
+                "<prefix>scoreboard objectives add <exprID> dummy\n" +
+                        "<prefix>scoreboard objectives add <tempID> dummy\n" +
+                        "<prefix>scoreboard players set @s <exprID> 0\n" +
+                        "<prefix>scoreboard players set @s <tempID> 0\n" +
+                        "<prefix>scoreboard players operation @s <tempID> += @s <aID>\n" +
+                        "<prefix>scoreboard players operation @s <tempID> += @s <bID>\n" +
+                        "<prefix>execute if score @s <tempID> matches 1.. run scoreboard players set @s <exprID> 1\n" +
+                        "<prefix>scoreboard objectives remove <tempID>"
         );
         template.add("prefix", prefix);
         template.add("exprID", exprID);

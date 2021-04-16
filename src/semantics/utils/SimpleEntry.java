@@ -21,6 +21,10 @@ public class SimpleEntry implements SymEntry {
         return this.name;
     }
 
+    public String getVarName() {
+        return this.name + "_" + this.toString();
+    }
+
     @Override
     public Type getType() {
         return this.type;

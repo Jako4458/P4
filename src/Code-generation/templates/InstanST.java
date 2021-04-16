@@ -4,14 +4,14 @@ import org.stringtemplate.v4.ST;
 public class InstanST implements Template {
     private String output;
 
-    public InstanST(String varName, String value){
+    public InstanST(String varName, String exprName){
         ST st = new ST( "scoreboard objectives add <varName> dummy \n" +
-                                "scoreboard players set @s <varName> <value> #<Comment>\n");
+                                "scoreboard players set @s <varName> = @s <exprName> #<Comment>\n");
 
         st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
 
         st.add("varName", varName);
-        st.add("value", value);
+        st.add("exprName", exprName);
 
         output = st.render();
     }

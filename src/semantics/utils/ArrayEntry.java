@@ -23,6 +23,11 @@ public class ArrayEntry implements SymEntry {
     }
 
     @Override
+    public String getVarName() {
+        return null;
+    }
+
+    @Override
     public Type getType() {
         return this.type;
     }

@@ -14,9 +14,9 @@ public class NegationExprST implements Template {
 
     private ST generateNegativeTemplate(String a, String prefix, String exprID) {
         ST template = new ST(
-                "<prefix> scoreboard objectives add <exprID> dummy\n" +
-                        "<prefix> scoreboard players set @s <exprID> 0\n" +
-                        "<prefix> scoreboard players operation @s <exprID> -= <aID>"
+                "<prefix>scoreboard objectives add <exprID> dummy\n" +
+                        "<prefix>scoreboard players set @s <exprID> 0\n" +
+                        "<prefix>scoreboard players operation @s <exprID> -= <aID>"
         );
         template.add("prefix", prefix);
         template.add("exprID", exprID);
@@ -27,9 +27,9 @@ public class NegationExprST implements Template {
 
     private ST generateNegationTemplate(String a, String prefix, String exprID) {
         ST template = new ST(
-                "<prefix> scoreboard objectives add <exprID> dummy\n" +
-                        "<prefix> execute if score @s <aID> matches 1..1 run scoreboard players set @s <exprID> 0\n" +
-                        "<prefix> execute if score @s <aID> matches 0..0 run scoreboard players set @s <exprID> 1"
+                "<prefix>scoreboard objectives add <exprID> dummy\n" +
+                        "<prefix>execute if score @s <aID> matches 1..1 run scoreboard players set @s <exprID> 0\n" +
+                        "<prefix>execute if score @s <aID> matches 0..0 run scoreboard players set @s <exprID> 1"
         );
         template.add("prefix", prefix);
         template.add("exprID", exprID);

@@ -3,7 +3,8 @@ minespeak
     func Test2() -> num do
         var a:num = Test(2, <1,2,3>)
         Test(3, <3,2,1>)
-        return 3
+        var b:num = a Pow 3
+        return a Pow 3
     endfunc
 
     func Test(b:num, f:vector3) -> num do

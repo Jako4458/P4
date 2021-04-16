@@ -1,6 +1,38 @@
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import java.util.UUID;
+
 public class STemplateFactory {
+    private Integer exprCounter = 0;
+    public String factor1UUID = UUID.randomUUID().toString();
+    public String factor2UUID = UUID.randomUUID().toString();
+
+    private Integer getExprCounter() {return ++exprCounter; }
+
+    public ArithmeticExprST createArithmeticExprST (String expr1Name, String expr2Name, String operator) {
+        return new ArithmeticExprST(expr1Name, expr2Name, operator, "", "expr_" + getExprCounter());
+    }
+    public ArithmeticExprST createArithmeticExprST (String expr1Name, String expr2Name, String operator, String prefix) {
+        return new ArithmeticExprST(expr1Name, expr2Name, operator, prefix, "expr_" + getExprCounter());
+    }
+    public ArithmeticExprST createArithmeticExprST (String expr1Name, int expr2, String operator) {
+        return createArithmeticExprST(expr1Name, expr2, operator, "");
+    }
+
+    public ArithmeticExprST createArithmeticExprST (String expr1Name, int expr2, String operator, String prefix) {
+        return new ArithmeticExprST(expr1Name, expr2, operator, prefix, "expr_" + getExprCounter());
+    }
+
+    public ArithmeticExprST createArithmeticExprST (SymEntry entry1, SymEntry entry2, String operator) {
+        return createArithmeticExprST(entry1, entry2, operator, "");
+    }
+
+    public ArithmeticExprST createArithmeticExprST (SymEntry entry1, SymEntry entry2, String operator, String prefix) {
+        if (operator.equals("Pow"))
+            return new ArithmeticExprST(entry1.getVarName(), Value.value(entry2.getValue().getCasted(NumValue.class)), operator, prefix, "expr_" + exprCounter);
+
+        return createArithmeticExprST(entry1.getVarName(), entry2.getVarName(), operator, prefix);
+    }
 
     public MCFuncCallST CreateMCFuncCallST(FuncEntry entry) {
         return new MCFuncCallST(entry.getName());
@@ -32,12 +64,13 @@ public class STemplateFactory {
 
     public InstanST createInstanST(SymEntry entry) {
         if (entry.getType() == Type._vector2)
-            return new InstanST(getName(entry), entry.getValue().getCasted(Vector2Value.class));
+            return new InstanST(entry.getVarName(), entry.getValue().getCasted(Vector2Value.class));
         if (entry.getType() == Type._vector3)
-            return new InstanST(getName(entry), entry.getValue().getCasted(Vector3Value.class));
+            return new InstanST(entry.getVarName(), entry.getValue().getCasted(Vector3Value.class));
 
-        return new InstanST(getName(entry), getValAsString(entry));
+        return new InstanST(entry.getVarName(), "expr_" + exprCounter.toString());
     }
+
 
     private String getValAsString(SymEntry entry) {
 
@@ -52,7 +85,4 @@ public class STemplateFactory {
 
         return entry.toString();
     }
-
-    private String getName(SymEntry entry) {return entry.getName() + "_" + entry.toString();}
-
 }
