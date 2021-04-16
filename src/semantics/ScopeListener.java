@@ -221,6 +221,11 @@ public class ScopeListener extends MinespeakBaseListener {
             Logger.shared.add(logFac.createTypeError(ctx.expr().getText(), ctx.expr(), ctx.expr().type, Type._bool));
         }
 
+        Type assignType = lookupTypeInScope(ctx.assign(), ctx.assign().ID().getText());
+        if (assignType != Type._num) {
+            Logger.shared.add(logFac.createTypeError(ctx.assign().getText(), ctx.assign(), assignType, Type._num));
+        }
+
         exitScope();
     }
 
@@ -233,13 +238,9 @@ public class ScopeListener extends MinespeakBaseListener {
     @Override
     public void exitIfStmnt(MinespeakParser.IfStmntContext ctx) {
         List<MinespeakParser.ExprContext> ifExprs = ctx.expr();
-        for (int i = 0; i < ifExprs.size(); i++) {
-            if(ifExprs.get(i).type != Type._bool) {
-                Logger.shared.add(logFac.createTypeError(ifExprs.get(i).getText(),
-                        ifExprs.get(i),
-                        ifExprs.get(i).type,
-                        Type._bool)
-                );
+        for (MinespeakParser.ExprContext ifExpr : ifExprs) {
+            if (ifExpr.type != Type._bool) {
+                Logger.shared.add(logFac.createTypeError(ifExpr.getText(), ifExpr, ifExpr.type, Type._bool));
             }
         }
         exitScope();
@@ -287,14 +288,6 @@ public class ScopeListener extends MinespeakBaseListener {
         addMultipleToScope(ctx);
     }
 
-    private boolean typesAreEqual(Type t1, Type t2) {
-        if (t1 instanceof ArrayType && t2 instanceof ArrayType) {
-            return ((ArrayType)t1).equalTypes((ArrayType)t2);
-        } else {
-            return t1 == t2;
-        }
-    }
-
     @Override
     public void exitArrayAccess(MinespeakParser.ArrayAccessContext ctx) {
         Type tempType = this.lookupTypeInScope(ctx, ctx.ID().getText());
@@ -314,7 +307,7 @@ public class ScopeListener extends MinespeakBaseListener {
         Type baseType = ctx.expr().get(0).type;
         for (var expr : ctx.expr()) {
             if (expr.type != baseType) {
-                // log error
+                Logger.shared.add(logFac.createTypeError(expr.getText(), expr, expr.type, baseType));
             }
         }
         ctx.type = new ArrayType(ctx, baseType);
@@ -438,7 +431,7 @@ public class ScopeListener extends MinespeakBaseListener {
     @Override
     public void exitFactor(MinespeakParser.FactorContext ctx) {
         if (ctx.rvalue() != null) {
-            ctx.type = ctx.rvalue().type; //lookupTypeInScope(ctx, ctx.rvalue().ID().getText());
+            ctx.type = ctx.rvalue().type;
         } else if (ctx.expr() != null) {
             ctx.type = ctx.expr().type;
         } else if (ctx.literal() != null) {
@@ -447,6 +440,8 @@ public class ScopeListener extends MinespeakBaseListener {
             ctx.type = ctx.funcCall().type;
         } else if (ctx.arrayAccess() != null) {
             ctx.type = ctx.arrayAccess().type;
+        } else if (ctx.rArray() != null) {
+            ctx.type = ctx.rArray().type;
         } else {
             throw new RuntimeException();
         }
@@ -474,8 +469,7 @@ public class ScopeListener extends MinespeakBaseListener {
             for (int i = 0; i < formalParams.size(); i++) {
                 Type fType = formalParams.get(i).getType();
                 Type aType = actualParams.get(i).type;
-                if ((fType != aType && !(fType instanceof ArrayType) && !(aType instanceof ArrayType))
-                        || (fType instanceof ArrayType && aType instanceof ArrayType && ((ArrayType) fType).type != ((ArrayType) aType).type)) {
+                if (!typesAreEqual(fType, aType)) {
                     Logger.shared.add(logFac.createTypeError(actualParams.get(i).getText(),
                             actualParams.get(i),
                             actualParams.get(i).type,
@@ -529,7 +523,7 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitLiteral(MinespeakParser.LiteralContext ctx) {
-        if(ctx.booleanLiteral() != null) {
+        if (ctx.booleanLiteral() != null) {
             ctx.type = Type._bool;
         } else if(ctx.BlockLiteral() != null) {
             ctx.type = Type._block;
@@ -549,6 +543,14 @@ public class ScopeListener extends MinespeakBaseListener {
     @Override
     public void exitNotNegFac(MinespeakParser.NotNegFacContext ctx) {
         ctx.type = ctx.factor().type;
+    }
+
+    private boolean typesAreEqual(Type t1, Type t2) {
+        if (t1 instanceof ArrayType && t2 instanceof ArrayType) {
+            return ((ArrayType)t1).equalTypes((ArrayType)t2);
+        } else {
+            return t1 == t2;
+        }
     }
 
     private void exitScope() {
