@@ -12,11 +12,11 @@ public class ArithmeticExprST implements Template {
 
     public ArithmeticExprST(String a, String b, String operator, String prefix, String exprID) {
         if (!operator.equals("Pow")) {
-            this.output = createArithmeticTemplate(a, b, prefix, exprID).render();
+            this.output = createArithmeticTemplate(a, b, operator, prefix, exprID).render();
         }
     }
 
-    private ST createArithmeticTemplate(String a, String b, String prefix, String exprID) {
+    private ST createArithmeticTemplate(String a, String b, String operator, String prefix, String exprID) {
         ST template = new ST(
                 "<prefix> scoreboard objectives add <exprID> dummy\n" +
                 "<prefix> scoreboard players operation @s <exprID> = @s <aID>\n" +
@@ -25,6 +25,7 @@ public class ArithmeticExprST implements Template {
         template.add("prefix", prefix);
         template.add("aID", a);
         template.add("bID", b);
+        template.add("op", operator);
         template.add("exprID", exprID);
         return template;
     }
