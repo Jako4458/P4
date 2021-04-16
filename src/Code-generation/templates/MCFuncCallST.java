@@ -1,15 +1,14 @@
 
 import org.stringtemplate.v4.ST;
 
-public class FuncCallST implements Template{
+public class MCFuncCallST implements Template{
     private String output;
 
-    public FuncCallST(String funcName, String call){
-        ST st = new ST("#<funcName> - <Comment>\n<call>");
+    public MCFuncCallST(String funcName){
+        ST st = new ST("execute run <funcName> - <Comment>\n");
 
         st.add("Comment", this.getClass().toString().substring(6)); //substring to remove "class "
         st.add("funcName", funcName);
-        st.add("call", call);
 
         output = st.render();
     }

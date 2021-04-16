@@ -5,7 +5,9 @@ public class InstanST implements Template {
     private String output;
 
     public InstanST(String varName, String value){
-        ST st = new ST("scoreboard objectives add <varName> dummy \nscoreboard players set @s <varName> <value> #<Comment>\n");
+        ST st = new ST( "scoreboard objectives add <varName> dummy \n" +
+                                "scoreboard players set @s <varName> <value> #<Comment>\n");
+
         st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
 
         st.add("varName", varName);
