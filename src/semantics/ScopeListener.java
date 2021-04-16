@@ -599,11 +599,11 @@ public class ScopeListener extends MinespeakBaseListener {
         }
     }
 
-    public void resetFunctions() {
-        functions.clear();
-    }
-
     public Map<String, FuncEntry> getFunctions() {
         return this.functions;
+    }
+
+    private boolean isArrayType(Type type) {
+        return (type instanceof ArrayType);
     }
 }
