@@ -50,6 +50,10 @@ public class LogFactory {
         return new VariableNotDeclaredError(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
     }
 
+    public Log createVariableCannotBeModifiedLog(String text, ParserRuleContext ctx) {
+        return new VariableCannotBeModifiedError(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
+    }
+
     public Log createVarNotArrayLog(String name, ParserRuleContext ctx) {
         return null;//return new VariableIsNotArrayError(name, ctx.start.getLine(), ctx.start.getCharPositionInLine());
     }

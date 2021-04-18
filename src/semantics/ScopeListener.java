@@ -528,7 +528,19 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitAssign(MinespeakParser.AssignContext ctx) {
-        Type type = lookupTypeInScope(ctx, ctx.ID().getText());
+        SymEntry entry = this.currentScope.lookup(ctx.ID().getText());
+        if (entry == null) {
+            Logger.shared.add(logFac.createVariableNotDeclaredLog(ctx.ID().getText(), ctx));
+            return;
+        }
+
+        // Checking whether the variable to be assigned to is var
+        if (entry.getModifier() == MinespeakParser.CONST) {
+            Logger.shared.add(logFac.createVariableCannotBeModifiedLog(ctx.ID().getText(), ctx));
+        }
+
+        // Type checking for the expression and the entry stored
+        Type type = entry.getType();
         Type exprType = ctx.expr().type;
         if  (ctx.arrayAccess() != null) {
             if (type instanceof ArrayType && exprType instanceof ArrayType) {
@@ -547,6 +559,7 @@ public class ScopeListener extends MinespeakBaseListener {
             return;
         }
 
+        // Using the type system to infer whether the assignment is type correct.
         Type inferredType = Type.inferType(type.getTypeAsInt(), MinespeakParser.ASSIGN, exprType.getTypeAsInt());
         if (ctx.compAssign() != null)
             inferredType = Type.inferType(type.getTypeAsInt(), ctx.compAssign().op.getType(), exprType.getTypeAsInt());
