@@ -29,11 +29,11 @@ public class STemplateFactory {
     }
 
     // EqualityExprST
-    public EqualityExprST CreateEqualityExprST (String a, String b, String operator) {
-        return CreateEqualityExprST(a, b, operator, "");
+    public EqualityExprST CreateEqualityExprST (String a, String b, String operator, Type type) {
+        return CreateEqualityExprST(a, b, operator, type, "");
     }
-    public EqualityExprST CreateEqualityExprST (String a, String b, String operator, String prefix) {
-        return new EqualityExprST(a, b, operator, prefix, "expr_" + getExprCounter());
+    public EqualityExprST CreateEqualityExprST (String a, String b, String operator, Type type, String prefix) {
+        return new EqualityExprST(a, b, operator, "expr_" + getExprCounter(), type, prefix);
     }
 
     // LogicalExprST
