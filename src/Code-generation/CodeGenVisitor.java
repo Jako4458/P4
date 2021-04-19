@@ -1,5 +1,5 @@
-import org.antlr.v4.runtime.tree.ParseTree;
 
+import org.antlr.v4.runtime.tree.ParseTree;
 import java.util.*;
 
 import java.util.regex.Matcher;
@@ -22,6 +22,11 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     @Override
     public Value visitProg(MinespeakParser.ProgContext ctx) {
         currentScope = ctx.scope;
+
+        output.add(templateFactory.createDclST(templateFactory.factor1UUID, Type._num));
+        output.add(templateFactory.createDclST(templateFactory.factor2UUID, Type._num));
+        output.add(templateFactory.createDclST(templateFactory.vecFactor1UUID, Type._vector3));
+        output.add(templateFactory.createDclST(templateFactory.vecFactor2UUID, Type._vector3));
 
         for (FuncEntry func:this.funcSignature.values()) {
             visit(func.getCtx().parent);
@@ -76,11 +81,14 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
     @Override
     public Value visitPow(MinespeakParser.PowContext ctx) {
-        int num1 = Value.value(visit(ctx.expr(0)).getCasted(NumValue.class)); // a
-        int num2 = Value.value(visit(ctx.expr(1)).getCasted(NumValue.class));
+        Integer num1 = Value.value(visit(ctx.expr(0)).getCasted(NumValue.class)); // a
+        Integer num2 = Value.value(visit(ctx.expr(1)).getCasted(NumValue.class));
 
         var expr1Name = factorNameTable.getOrDefault(ctx.expr(0), templateFactory.factor1UUID);
         var expr2Name = factorNameTable.getOrDefault(ctx.expr(1), templateFactory.factor2UUID);
+
+        output.add(new AssignST(expr1Name, num1.toString()));
+        output.add(new AssignST(expr2Name, num2.toString()));
 
         expr1Name = expr1Name.equals(templateFactory.factor1UUID) ? templateFactory.factor1UUID : currentScope.lookup(expr1Name).getVarName();
         num2 = expr2Name.equals(templateFactory.factor2UUID) ? num2 :  Value.value(currentScope.lookup(expr2Name).getValue().getCasted(NumValue.class));
@@ -219,21 +227,40 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     @Override
     public Value visitAnd(MinespeakParser.AndContext ctx) {
         Value v1 = visit(ctx.expr(0));
+        Value v2 = visit(ctx.expr(0));
 
         var b1 = Value.value(v1.getCasted(BoolValue.class));
-        Value v2 = visit(ctx.expr(0));
         var b2 = Value.value(v2.getCasted(BoolValue.class));
 
+        var expr1Name = factorNameTable.getOrDefault(ctx.expr(0), templateFactory.factor1UUID);
+        var expr2Name = factorNameTable.getOrDefault(ctx.expr(1), templateFactory.factor2UUID);
+
+        if (expr1Name.equals(templateFactory.factor1UUID))
+            output.add(new AssignST(expr1Name, b1 ? 1 : 0));
+        if (expr2Name.equals(templateFactory.factor2UUID))
+            output.add(new AssignST(expr2Name, b2 ? 1 : 0));
+
+        currentFunc.addTemplate(templateFactory.CreateLogicalExprST(expr1Name, expr2Name, "and"));
         return msValueFactory.createValue((b1 && b2), Type._bool);
     }
 
     @Override
     public Value visitOr(MinespeakParser.OrContext ctx) {
         Value v1 = visit(ctx.expr(0));
+        Value v2 = visit(ctx.expr(1));
+
         var b1 = Value.value(v1.getCasted(BoolValue.class));
-        Value v2 = visit(ctx.expr(0));
         var b2 = Value.value(v2.getCasted(BoolValue.class));
 
+        var expr1Name = factorNameTable.getOrDefault(ctx.expr(0), templateFactory.factor1UUID);
+        var expr2Name = factorNameTable.getOrDefault(ctx.expr(1), templateFactory.factor2UUID);
+
+        if (expr1Name.equals(templateFactory.factor1UUID))
+            output.add(new AssignST(expr1Name, b1 ? 1 : 0));
+        if (expr2Name.equals(templateFactory.factor2UUID))
+            output.add(new AssignST(expr2Name, b2 ? 1 : 0));
+
+        currentFunc.addTemplate(templateFactory.CreateLogicalExprST(expr1Name, expr2Name, "or"));
         return msValueFactory.createValue((b1 || b2), Type._bool);
     }
 
