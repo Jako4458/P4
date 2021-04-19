@@ -23,6 +23,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     public Value visitProg(MinespeakParser.ProgContext ctx) {
         currentScope = ctx.scope;
 
+        output.add(templateFactory.CreateMCStatementST("scoreboard players reset @s")); // for debug
+
         output.add(templateFactory.createDclST(templateFactory.factor1UUID, Type._num));
         output.add(templateFactory.createDclST(templateFactory.factor2UUID, Type._num));
         output.add(templateFactory.createDclST(templateFactory.vecFactor1UUID, Type._vector3));
@@ -66,8 +68,11 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         else if (ctx.type == Type._vector3)
             factorVec3 = Value.value(factor.getCasted(Vector3Value.class));
 
-        if (ctx.factor().type == Type._bool)
+        var expr1Name = factorNameTable.getOrDefault(ctx.factor(), templateFactory.factor1UUID);
+
+        if (ctx.factor().type == Type._bool){
             return msValueFactory.createValue(ctx.NOT() != null ? !factorBool : factorBool, ctx.type);
+        }
         else if (ctx.factor().type == Type._num)
             return msValueFactory.createValue(ctx.SUB() != null ? -factorNum : factorNum, ctx.type);
         else if (ctx.factor().type == Type._vector2)
@@ -226,42 +231,12 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
     @Override
     public Value visitAnd(MinespeakParser.AndContext ctx) {
-        Value v1 = visit(ctx.expr(0));
-        Value v2 = visit(ctx.expr(0));
-
-        var b1 = Value.value(v1.getCasted(BoolValue.class));
-        var b2 = Value.value(v2.getCasted(BoolValue.class));
-
-        var expr1Name = factorNameTable.getOrDefault(ctx.expr(0), templateFactory.factor1UUID);
-        var expr2Name = factorNameTable.getOrDefault(ctx.expr(1), templateFactory.factor2UUID);
-
-        if (expr1Name.equals(templateFactory.factor1UUID))
-            output.add(new AssignST(expr1Name, b1 ? 1 : 0));
-        if (expr2Name.equals(templateFactory.factor2UUID))
-            output.add(new AssignST(expr2Name, b2 ? 1 : 0));
-
-        currentFunc.addTemplate(templateFactory.CreateLogicalExprST(expr1Name, expr2Name, "and"));
-        return msValueFactory.createValue((b1 && b2), Type._bool);
+        return calcLogicalExpr(ctx.expr(0), ctx.expr(1), "and");
     }
 
     @Override
     public Value visitOr(MinespeakParser.OrContext ctx) {
-        Value v1 = visit(ctx.expr(0));
-        Value v2 = visit(ctx.expr(1));
-
-        var b1 = Value.value(v1.getCasted(BoolValue.class));
-        var b2 = Value.value(v2.getCasted(BoolValue.class));
-
-        var expr1Name = factorNameTable.getOrDefault(ctx.expr(0), templateFactory.factor1UUID);
-        var expr2Name = factorNameTable.getOrDefault(ctx.expr(1), templateFactory.factor2UUID);
-
-        if (expr1Name.equals(templateFactory.factor1UUID))
-            output.add(new AssignST(expr1Name, b1 ? 1 : 0));
-        if (expr2Name.equals(templateFactory.factor2UUID))
-            output.add(new AssignST(expr2Name, b2 ? 1 : 0));
-
-        currentFunc.addTemplate(templateFactory.CreateLogicalExprST(expr1Name, expr2Name, "or"));
-        return msValueFactory.createValue((b1 || b2), Type._bool);
+        return calcLogicalExpr(ctx.expr(0), ctx.expr(1), "or");
     }
 
     @Override
@@ -488,6 +463,32 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
         currentScope = tempScope;
         currentFunc = tempFunc;
+    }
+
+    private Value calcLogicalExpr(MinespeakParser.ExprContext e1, MinespeakParser.ExprContext e2, String operator) {
+        Value v1 = visit(e1);
+        Value v2 = visit(e2);
+
+        var b1 = Value.value(v1.getCasted(BoolValue.class));
+        var b2 = Value.value(v2.getCasted(BoolValue.class));
+
+        var expr1Name = factorNameTable.getOrDefault(e1, templateFactory.factor1UUID);
+        var expr2Name = factorNameTable.getOrDefault(e2, templateFactory.factor2UUID);
+
+        if (expr1Name.equals(templateFactory.factor1UUID))
+            output.add(new AssignST(expr1Name, b1 ? 1 : 0));
+        if (expr2Name.equals(templateFactory.factor2UUID))
+            output.add(new AssignST(expr2Name, b2 ? 1 : 0));
+
+        currentFunc.addTemplate(templateFactory.CreateLogicalExprST(expr1Name, expr2Name, operator));
+
+        if (operator == "and")
+            return msValueFactory.createValue((b1 && b2), Type._bool);
+        else if (operator == "or")
+            return msValueFactory.createValue((b1 || b2), Type._bool);
+
+        Error();
+        return null;
     }
 
     private void Error(){
