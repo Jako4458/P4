@@ -1,7 +1,8 @@
 minespeak
 
     func Test(b:num) do
-        var a:bool = false or true
+        var a:num = -2
+        $tp ~v{a}
     endfunc
 
     @mc
