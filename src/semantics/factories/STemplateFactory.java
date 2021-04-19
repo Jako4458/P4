@@ -45,11 +45,11 @@ public class STemplateFactory {
     }
 
     // NegationExprST
-    public NegationExprST CreateNegationExprST(String a, String operator) {
-        return CreateNegationExprST(a, operator, "");
+    public NegationExprST CreateNegationExprST(String a, String operator, Type type) {
+        return CreateNegationExprST(a, operator, "", type);
     }
-    public NegationExprST CreateNegationExprST(String a, String operator, String prefix) {
-        return new NegationExprST(a, operator, prefix, "expr_" + getExprCounter());
+    public NegationExprST CreateNegationExprST(String a, String operator, String prefix, Type type) {
+        return new NegationExprST(a, operator, prefix, "expr_" + getExprCounter(), type);
     }
 
     // RelationExprST
