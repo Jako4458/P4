@@ -14,11 +14,11 @@ public class STemplateFactory {
 
 
     // ArithmeticExprST
-    public ArithmeticExprST createArithmeticExprST (String expr1Name, String expr2Name, String operator) {
-        return createArithmeticExprST(expr1Name, expr2Name, operator, "");
+    public ArithmeticExprST createArithmeticExprST (String expr1Name, String expr2Name, String operator, Type type1, Type type2) {
+        return createArithmeticExprST(expr1Name, expr2Name, operator, type1, type2, "");
     }
-    public ArithmeticExprST createArithmeticExprST (String expr1Name, String expr2Name, String operator, String prefix) {
-        return new ArithmeticExprST(expr1Name, expr2Name, operator, prefix, "expr_" + getExprCounter());
+    public ArithmeticExprST createArithmeticExprST (String expr1Name, String expr2Name, String operator, Type type1, Type type2, String prefix) {
+        return new ArithmeticExprST(expr1Name, expr2Name, operator, "expr_" + getExprCounter(), type1, type2, prefix);
     }
     public ArithmeticExprST createArithmeticExprST (String expr1Name, int expr2, String operator) {
         return createArithmeticExprST(expr1Name, expr2, operator, "");
