@@ -8,10 +8,10 @@ import java.util.regex.Pattern;
 public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     private Scope currentScope;
     private FuncEntry currentFunc;
-    private Map<String, FuncEntry> funcSignature;
-    private MSValueFactory msValueFactory = new MSValueFactory();
-    private STemplateFactory templateFactory = new STemplateFactory();
-    private Map<ParseTree, String> factorNameTable = new HashMap<>();
+    private final Map<String, FuncEntry> funcSignature;
+    private final MSValueFactory msValueFactory = new MSValueFactory();
+    private final STemplateFactory templateFactory = new STemplateFactory();
+    private final Map<ParseTree, String> factorNameTable = new HashMap<>();
 
     private ArrayList<Template> output = new ArrayList<>();
 
@@ -288,9 +288,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         for (var child:ctx.children) {
             try {
                 visit(child);
-            } catch (NullPointerException e) {
-                currentFunc.addTemplate(templateFactory.createParamDependantStmntST(child));
-            } catch (NoSuchElementException e) {
+            } catch (NullPointerException | NoSuchElementException e) {
                 currentFunc.addTemplate(templateFactory.createParamDependantStmntST(child));
             }
         }
@@ -404,9 +402,9 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
             else if (type == Type._string)
                 formatString = prefix + Value.value(varVal.getCasted(StringValue.class));
             else if (type == Type._vector2)
-                formatString = Value.value(varVal.getCasted(Vector2Value.class)).toString(prefix != "" ? prefix : "~");
+                formatString = Value.value(varVal.getCasted(Vector2Value.class)).toString(!prefix.equals("") ? prefix : "~");
             else if (type == Type._vector3)
-                formatString = Value.value(varVal.getCasted(Vector3Value.class)).toString(prefix != "" ? prefix : "~");
+                formatString = Value.value(varVal.getCasted(Vector3Value.class)).toString(!prefix.equals("") ? prefix : "~");
             else
                 Error();
 
