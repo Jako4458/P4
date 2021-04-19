@@ -21,7 +21,7 @@ public class DclST implements Template {
 
             DclST DclX = new DclST(varName + "_x", Type._num);
             DclST DclY = new DclST(varName + "_y", Type._num);
-            DclST DclZ = new DclST(varName + "_Z", Type._num);
+            DclST DclZ = new DclST(varName + "_z", Type._num);
 
             st.add("DclX", DclX.getOutput());
             st.add("DclY", DclY.getOutput());
