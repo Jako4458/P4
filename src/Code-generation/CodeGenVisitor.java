@@ -50,8 +50,11 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
     @Override
     public Value visitNotNegFac(MinespeakParser.NotNegFacContext ctx) {
-        if (ctx.factor().rvalue() != null)
-            factorNameTable.put(ctx, ctx.factor().rvalue().ID().getText());
+        String exprName = null;
+        if (ctx.factor().rvalue() != null){
+            exprName = ctx.factor().rvalue().ID().getText();
+            factorNameTable.put(ctx, exprName);
+        }
 
         boolean factorBool= false;
         int factorNum= 0;
@@ -59,26 +62,36 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         Vector3 factorVec3 = null;
         var factor = visit(ctx.factor());
 
-        if (ctx.type == Type._bool)
+        exprName = exprName != null ? exprName : templateFactory.factor1UUID;
+
+        if (ctx.type == Type._bool){
             factorBool = Value.value(factor.getCasted(BoolValue.class));
-        else if (ctx.type == Type._num)
-            factorNum = Value.value(factor.getCasted(NumValue.class));
-        else if (ctx.type == Type._vector2)
-            factorVec2 = Value.value(factor.getCasted(Vector2Value.class));
-        else if (ctx.type == Type._vector3)
-            factorVec3 = Value.value(factor.getCasted(Vector3Value.class));
-
-        var expr1Name = factorNameTable.getOrDefault(ctx.factor(), templateFactory.factor1UUID);
-
-        if (ctx.factor().type == Type._bool){
+            currentFunc.addTemplate(new AssignST(exprName, factorBool ? 1 : 0));
+            if (ctx.NOT() != null)
+                currentFunc.addTemplate(templateFactory.CreateNegationExprST(exprName, "not", Type._bool));
             return msValueFactory.createValue(ctx.NOT() != null ? !factorBool : factorBool, ctx.type);
         }
-        else if (ctx.factor().type == Type._num)
+        else if (ctx.type == Type._num) {
+            factorNum = Value.value(factor.getCasted(NumValue.class));
+            currentFunc.addTemplate(new AssignST(exprName, factorNum));
+            if (ctx.NOT() != null)
+                currentFunc.addTemplate(templateFactory.CreateNegationExprST(exprName, "-", Type._num));
             return msValueFactory.createValue(ctx.SUB() != null ? -factorNum : factorNum, ctx.type);
-        else if (ctx.factor().type == Type._vector2)
+        }
+        else if (ctx.type == Type._vector2) {
+            factorVec2 = Value.value(factor.getCasted(Vector2Value.class));
+            currentFunc.addTemplate(new AssignST(exprName, factorVec2));
+            if (ctx.NOT() != null)
+                currentFunc.addTemplate(templateFactory.CreateNegationExprST(exprName, "-", Type._vector2));
             return msValueFactory.createValue(ctx.SUB() != null ? Vector2.neg(factorVec2) : factorVec2, Type._vector2);
-        else if (ctx.factor().type == Type._vector3)
+        }
+        else if (ctx.type == Type._vector3) {
+            factorVec3 = Value.value(factor.getCasted(Vector3Value.class));
+            currentFunc.addTemplate(new AssignST(exprName, factorVec3));
+            if (ctx.NOT() != null)
+                currentFunc.addTemplate(templateFactory.CreateNegationExprST(exprName, "-", Type._vector3));
             return msValueFactory.createValue(ctx.SUB() != null ? Vector3.neg(factorVec3) : factorVec3, Type._vector3);
+        }
 
         Error();
         return null;
@@ -92,8 +105,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         var expr1Name = factorNameTable.getOrDefault(ctx.expr(0), templateFactory.factor1UUID);
         var expr2Name = factorNameTable.getOrDefault(ctx.expr(1), templateFactory.factor2UUID);
 
-        output.add(new AssignST(expr1Name, num1.toString()));
-        output.add(new AssignST(expr2Name, num2.toString()));
+        currentFunc.addTemplate(new AssignST(expr1Name, num1.toString()));
+        currentFunc.addTemplate(new AssignST(expr2Name, num2.toString()));
 
         expr1Name = expr1Name.equals(templateFactory.factor1UUID) ? templateFactory.factor1UUID : currentScope.lookup(expr1Name).getVarName();
         num2 = expr2Name.equals(templateFactory.factor2UUID) ? num2 :  Value.value(currentScope.lookup(expr2Name).getValue().getCasted(NumValue.class));

@@ -18,7 +18,6 @@ public class InstanST implements Template {
     }
     public InstanST(String varName, int exprVal){
         ST st = new ST( "#<Comment>\nscoreboard objectives add <varName> dummy \n" +
-                                "scoreboard players set @s <varName> 0\n" +
                                 "scoreboard players set @s <varName><exprVal> \n");
 
         st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "

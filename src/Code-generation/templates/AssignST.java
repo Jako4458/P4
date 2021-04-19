@@ -27,12 +27,12 @@ public class AssignST implements Template {
         output = st.render();
     }
 
-    public AssignST(String varName, Vector2Value vec2){
+    public AssignST(String varName, Vector2 vec2){
         ST st = new ST("<AssignX><AssignY>");
         st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
 
-        AssignST AssignX = new AssignST(varName + "_x", vec2.getValue().getX());
-        AssignST AssignY = new AssignST(varName + "_y", vec2.getValue().getY());
+        AssignST AssignX = new AssignST(varName + "_x", vec2.getX());
+        AssignST AssignY = new AssignST(varName + "_y", vec2.getY());
 
         st.add("AssignX", AssignX.getOutput());
         st.add("AssignY", AssignY.getOutput());
@@ -40,13 +40,13 @@ public class AssignST implements Template {
         output = st.render();
     }
 
-    public AssignST(String varName, Vector3Value vec3){
+    public AssignST(String varName, Vector3 vec3){
         ST st = new ST("<AssignX><AssignY><AssignZ>");
         st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
 
-        AssignST AssignX = new AssignST(varName + "_x", vec3.getValue().getX());
-        AssignST AssignY = new AssignST(varName + "_y", vec3.getValue().getY());
-        AssignST AssignZ = new AssignST(varName + "_z", vec3.getValue().getZ());
+        AssignST AssignX = new AssignST(varName + "_x", vec3.getX());
+        AssignST AssignY = new AssignST(varName + "_y", vec3.getY());
+        AssignST AssignZ = new AssignST(varName + "_z", vec3.getZ());
 
         st.add("AssignX", AssignX.getOutput());
         st.add("AssignY", AssignY.getOutput());
