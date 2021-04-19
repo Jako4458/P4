@@ -22,7 +22,8 @@ public class SimpleEntry implements SymEntry {
     }
 
     public String getVarName() {
-        return this.name + "_" + this.toString();
+        var name = (this.name + "_" + this.toString().replace("@", "").substring(11));
+        return name.length() <= 10 ? name : name.substring(0,11);
     }
 
     @Override
