@@ -9,7 +9,6 @@ public class DclST implements Template {
 
         if (type == Type._vector2) {
             st = new ST("<DclX><DclY>");
-            st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
 
             DclST DclX = new DclST(varName + "_x", Type._num);
             DclST DclY = new DclST(varName + "_y", Type._num);
@@ -19,7 +18,6 @@ public class DclST implements Template {
         }
         else if (type == Type._vector3) {
             st = new ST("<DclX><DclY><DclZ>");
-            st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
 
             DclST DclX = new DclST(varName + "_x", Type._num);
             DclST DclY = new DclST(varName + "_y", Type._num);
@@ -30,7 +28,8 @@ public class DclST implements Template {
             st.add("DclZ", DclZ.getOutput());
         }
         else {
-            st = new ST( "scoreboard objectives add <varName> dummy #<Comment>\n");
+            st = new ST(    "#<Comment>\nscoreboard objectives add <varName> dummy \n" +
+                                    "scoreboard players set @s <varName> 0\n");
 
             st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
 

@@ -13,7 +13,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
         String filePath = new File("").getAbsolutePath();
-        CharStream charStream = CharStreams.fromFileName(filePath + "\\src\\testString.ms");
+        CharStream charStream = CharStreams.fromFileName(filePath + "\\src\\testString2.ms");
 
         Logger.shared.setSourceProg(charStream.toString().split(System.getProperty("line.separator")));
 
