@@ -20,7 +20,7 @@ public class ArithmeticExprST implements Template {
         ST template = new ST(
                 "<prefix>scoreboard objectives add <exprID> dummy\n" +
                 "<prefix>scoreboard players operation @s <exprID> = @s <aID>\n" +
-                        "<prefix>scoreboard players operation @s <exprID> <op>= @s <bID>"
+                        "<prefix>scoreboard players operation @s <exprID> <op>= @s <bID>\n"
         );
         template.add("prefix", prefix);
         template.add("aID", a);
@@ -50,7 +50,7 @@ public class ArithmeticExprST implements Template {
                             "<prefix>scoreboard players set @s <exprID> 1\n" +
                             "<follow>");
             for (int i = b; i < 0; i++) {
-                follow = follow.concat(String.format("%s scoreboard players operation @s %s /= @s %s\n", prefix, exprID, a));
+                follow = follow.concat(String.format("%sscoreboard players operation @s %s /= @s %s\n", prefix, exprID, a));
             }
         }
         template.add("exprID", exprID);

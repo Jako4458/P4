@@ -1,15 +1,13 @@
 import org.stringtemplate.v4.ST;
 
 public class LogicalExprST implements Template {
-    private final String output;
+    private String output;
 
     public LogicalExprST(String a, String b, String operator, String prefix, String exprID, String tempID) {
         if (operator.equals("and"))
             this.output = generateAndTemplate(a, b, prefix, exprID, tempID).render();
         else if (operator.equals("or"))
             this.output = generateOrTemplate(a, b, prefix, exprID, tempID).render();
-        else
-            this.output = "";
     }
 
     private ST generateAndTemplate(String a, String b, String prefix, String exprID, String tempID) {
@@ -21,7 +19,7 @@ public class LogicalExprST implements Template {
                         "<prefix>scoreboard players operation @s <tempID> += @s <aID>\n" +
                         "<prefix>scoreboard players operation @s <tempID> += @s <bID>\n" +
                         "<prefix>execute if score @s <tempID> matches 2..2 run scoreboard players set @s <exprID> 1\n" +
-                        "<prefix>scoreboard objectives remove <tempID>"
+                        "<prefix>scoreboard objectives remove <tempID>\n"
         );
         template.add("prefix", prefix);
         template.add("exprID", exprID);
@@ -40,7 +38,7 @@ public class LogicalExprST implements Template {
                         "<prefix>scoreboard players operation @s <tempID> += @s <aID>\n" +
                         "<prefix>scoreboard players operation @s <tempID> += @s <bID>\n" +
                         "<prefix>execute if score @s <tempID> matches 1.. run scoreboard players set @s <exprID> 1\n" +
-                        "<prefix>scoreboard objectives remove <tempID>"
+                        "<prefix>scoreboard objectives remove <tempID>\n"
         );
         template.add("prefix", prefix);
         template.add("exprID", exprID);
