@@ -6,8 +6,7 @@ public class InstanST implements Template {
 
     public InstanST(String varName, String exprName, String prefix) {
         ST st = new ST( "#<Comment>\n<prefix>scoreboard objectives add <varName> dummy \n" +
-                "<prefix>scoreboard players set @s <varName> 0\n" +
-                "<prefix>execute at @s store result score @s <varName> run scoreboard players get @s <exprName> \n");
+                                "<prefix>execute at @s store result score @s <varName> run scoreboard players get @s <exprName> \n");
 
         st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
 
@@ -17,9 +16,14 @@ public class InstanST implements Template {
 
         output = st.render();
     }
-    public InstanST(String varName, int exprVal){
-        ST st = new ST( "#<Comment>\nscoreboard objectives add <varName> dummy \n" +
-                                "scoreboard players set @s <varName><exprVal> \n");
+
+    public InstanST(String varName, String exprName){
+        this(varName, exprName, "");
+    }
+
+    public InstanST(String varName, int exprVal, String prefix) {
+        ST st = new ST( "#<Comment>\n<prefix>scoreboard objectives add <varName> dummy \n" +
+                                "<prefix>scoreboard players set @s <varName> <exprVal> \n");
 
         st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
 
