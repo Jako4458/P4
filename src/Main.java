@@ -7,12 +7,12 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import java.io.*;
+import java.io.File;
+import java.io.IOException;
 
 public class Main {
 
     private static Configuration config;
-
-
 
     public static void main(String[] args) {
         // Configure the compiler through the compiler arguments.
@@ -28,11 +28,11 @@ public class Main {
 
         // Semantic analysis
         System.out.println("Semantics...");
-        semantics_analysis(parseTree);
+        semanticAnalysis(parseTree);
 
         // Code gen
         System.out.println("Code gene...");
-        generate_code(parseTree);
+        codeGeneration(parseTree);
 
         // Dump all the logs
         Logger.shared.print();
@@ -72,7 +72,8 @@ public class Main {
         return tree;
     }
 
-    private static void semantics_analysis(ParseTree tree) {
+
+    private static void semanticAnalysis(ParseTree tree) {
         if (tree == null)
             return;
 
@@ -85,7 +86,7 @@ public class Main {
         ParseTreeWalker.DEFAULT.walk(unassignedVariableListener, tree);
     }
 
-    public static void generate_code(ParseTree tree) {
+    public static void codeGeneration(ParseTree tree) {
         //TODO: Codegen
     }
     

@@ -38,7 +38,6 @@ public class ScopeEnterExitListener extends MinespeakBaseListener {
     @Override
     public void enterFuncBody(MinespeakParser.FuncBodyContext ctx) {
         enterScope(ctx.scope);
-
     }
 
     @Override
