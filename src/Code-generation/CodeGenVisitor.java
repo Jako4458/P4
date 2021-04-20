@@ -69,26 +69,26 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
             currentFunc.addTemplate(new AssignST(exprName, factorBool ? 1 : 0));
             if (ctx.NOT() != null)
                 currentFunc.addTemplate(templateFactory.CreateNegationExprST(exprName, "not", Type._bool));
-            return msValueFactory.createValue(ctx.NOT() != null ? !factorBool : factorBool, ctx.type);
+            return msValueFactory.createValue((ctx.NOT() == null) == factorBool, ctx.type);
         }
         else if (ctx.type == Type._num) {
             factorNum = Value.value(factor.getCasted(NumValue.class));
             currentFunc.addTemplate(new AssignST(exprName, factorNum));
-            if (ctx.NOT() != null)
+            if (ctx.SUB() != null)
                 currentFunc.addTemplate(templateFactory.CreateNegationExprST(exprName, "-", Type._num));
             return msValueFactory.createValue(ctx.SUB() != null ? -factorNum : factorNum, ctx.type);
         }
         else if (ctx.type == Type._vector2) {
             factorVec2 = Value.value(factor.getCasted(Vector2Value.class));
             currentFunc.addTemplate(new AssignST(exprName, factorVec2));
-            if (ctx.NOT() != null)
+            if (ctx.SUB() != null)
                 currentFunc.addTemplate(templateFactory.CreateNegationExprST(exprName, "-", Type._vector2));
             return msValueFactory.createValue(ctx.SUB() != null ? Vector2.neg(factorVec2) : factorVec2, Type._vector2);
         }
         else if (ctx.type == Type._vector3) {
             factorVec3 = Value.value(factor.getCasted(Vector3Value.class));
             currentFunc.addTemplate(new AssignST(exprName, factorVec3));
-            if (ctx.NOT() != null)
+            if (ctx.SUB() != null)
                 currentFunc.addTemplate(templateFactory.CreateNegationExprST(exprName, "-", Type._vector3));
             return msValueFactory.createValue(ctx.SUB() != null ? Vector3.neg(factorVec3) : factorVec3, Type._vector3);
         }
