@@ -1,5 +1,6 @@
 import logging.logs.ErrorLog;
 import logging.Logger;
+import logging.logs.Log;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -22,31 +23,39 @@ public class Main {
         System.out.println("Lexing...");
         CommonTokenStream tokenStream = lex(config.source_file.toString());
 
+        // Builtin function insertion
+        System.out.println("Builtin function insertion...");
+        BuiltInFunctionInserterListener builtInFunctionInserterListener = new BuiltInFunctionInserterListener(tokenStream);
+        ParseTree parseTree = parse(tokenStream);
+        ParseTreeWalker.DEFAULT.walk(builtInFunctionInserterListener, parseTree);
+
         // Parsing
         System.out.println("Parsing...");
-        ParseTree parseTree = parse(tokenStream);
+        CommonTokenStream modifiedTokenStream = lexFromString(builtInFunctionInserterListener.rewriter.getText());
+        Logger.shared.setSourceProg(builtInFunctionInserterListener.rewriter.getText().split(System.getProperty("line.separator")));
+        ParseTree modifiedParseTree = parse(modifiedTokenStream);
 
         // Semantic analysis
         System.out.println("Semantics...");
-        semanticAnalysis(parseTree);
+        semanticAnalysis(modifiedParseTree);
 
         // Code gen
         System.out.println("Code gene...");
-        codeGeneration(parseTree);
+        codeGeneration(modifiedParseTree);
 
         // Dump all the logs
         Logger.shared.print();
     }
 
     private static CommonTokenStream lex(String file) {
-        if (file == null)
+        if (file == null) {
             return null;
+        }
 
         CommonTokenStream stream = null;
 
         try {
             CharStream cstream = CharStreams.fromFileName(file);
-            Logger.shared.setSourceProg(cstream.toString().split(System.getProperty("line.separator")));
             MinespeakLexer minespeakLexer = new MinespeakLexer(cstream);
             stream = new CommonTokenStream(minespeakLexer);
         } catch (IOException e) {
@@ -54,6 +63,12 @@ public class Main {
         }
 
         return stream;
+    }
+
+    private static CommonTokenStream lexFromString(String string) {
+        CharStream charStream = CharStreams.fromString(string);
+        MinespeakLexer minespeakLexer = new MinespeakLexer(charStream);
+        return new CommonTokenStream(minespeakLexer);
     }
 
     private static ParseTree parse(CommonTokenStream tstream) {
@@ -89,9 +104,7 @@ public class Main {
     public static void codeGeneration(ParseTree tree) {
         //TODO: Codegen
     }
-    
 }
-
 
 class Configuration {
     public File source_file;

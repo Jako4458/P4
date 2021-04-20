@@ -215,9 +215,9 @@ StringLiteral : QUOTE (~["\\\r\n\u0085\u2028\u2029])* QUOTE
               ;
 
 
-
-Whitespace : [ \t] + -> skip
+Whitespace : [ \t] + -> channel(HIDDEN)
            ;
+
 
 Newline : ('\n' | '\r\n' | '\r') //-> skip
         ;
@@ -300,6 +300,7 @@ ELIF: 'elif';
 ELSE: 'else';
 ENDIF: 'endif';
 VOID: 'void';
+
 
 ID         : [a-zA-Z_][a-zA-Z_0-9]*
            ;
