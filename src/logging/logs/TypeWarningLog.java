@@ -1,6 +1,6 @@
-package Logging;
+package logging.logs;
 
-public class TypeWarningLog extends WarningLog{
+public class TypeWarningLog extends WarningLog {
     private String actualType;
     private String expectedType;
 

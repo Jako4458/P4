@@ -1,6 +1,7 @@
 import java.util.HashMap;
 
-public class Scope {
+public class
+Scope {
     private Scope parent;
     private HashMap<String, SymEntry> variables;
     private boolean isFunction;
@@ -35,7 +36,7 @@ public class Scope {
 
     public SymEntry lookup(String key) {
         SymEntry entry = this.variables.getOrDefault(key, null);
-        if (entry == null && this.parent != null && !this.parent.isFunction) {
+        if (entry == null && this.parent != null) {
             entry = this.parent.lookup(key);
         }
 

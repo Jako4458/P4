@@ -1,4 +1,6 @@
-package Logging;
+package logging.logs;
+
+import logging.logs.ErrorLog;
 
 public class CannotBeVoid extends ErrorLog {
     private String type;

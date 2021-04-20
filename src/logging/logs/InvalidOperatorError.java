@@ -1,4 +1,6 @@
-package Logging;
+package logging.logs;
+
+import logging.logs.ErrorLog;
 
 public class InvalidOperatorError extends ErrorLog {
     private String type;

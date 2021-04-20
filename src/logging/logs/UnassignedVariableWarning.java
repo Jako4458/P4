@@ -1,4 +1,6 @@
-package Logging;
+package logging.logs;
+
+import logging.logs.WarningLog;
 
 public class UnassignedVariableWarning extends WarningLog {
     public UnassignedVariableWarning(String text, int lineNum, int characterIndex) {

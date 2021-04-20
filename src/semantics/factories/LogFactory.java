@@ -1,5 +1,4 @@
-import Logging.*;
-import org.antlr.v4.runtime.Parser;
+import logging.logs.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 
@@ -8,7 +7,29 @@ public class LogFactory {
         return new VariableAlreadyDeclaredError(name, ctx.start.getLine(), ctx.start.getCharPositionInLine());
     }
 
+    public Log createTypeError(String text, ParserRuleContext ctx, Type actual, Type[] expected) {
+        StringBuilder types = new StringBuilder(((TerminalNodeImpl) expected[0].tree).symbol.getText());
+        for (int i = 1; i < expected.length; i++) {
+            types.append(" or ").append(((TerminalNodeImpl) expected[i].tree).symbol.getText());
+        }
+
+        return new IllegalExpressionError(text, ctx.start.getLine(), ctx.start.getCharPositionInLine(), types.toString());
+    }
+
     public Log createTypeError(String text, ParserRuleContext ctx, Type actual, Type expected) {
+        if (actual == Type._error) {
+            return new IllegalExpressionError(text, ctx.start.getLine(), ctx.start.getCharPositionInLine(),
+                    ((TerminalNodeImpl)expected.tree).symbol.getText()
+            );
+        }
+
+        if (actual instanceof ArrayType) {
+            return new TypeError(text, ctx.start.getLine(), ctx.start.getCharPositionInLine(),
+                    ((TerminalNodeImpl)actual.tree).symbol.getText() + " array",
+                    ((TerminalNodeImpl)expected.tree).symbol.getText()
+            );
+        }
+
         return new TypeError(text, ctx.start.getLine(), ctx.start.getCharPositionInLine(),
                 ((TerminalNodeImpl)actual.tree).symbol.getText(),
                 ((TerminalNodeImpl)expected.tree).symbol.getText()
@@ -27,6 +48,10 @@ public class LogFactory {
 
     public Log createVariableNotDeclaredLog(String text, ParserRuleContext ctx) {
         return new VariableNotDeclaredError(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
+    }
+
+    public Log createVariableCannotBeModifiedLog(String text, ParserRuleContext ctx) {
+        return new VariableCannotBeModifiedError(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
     }
 
     public Log createVarNotArrayLog(String name, ParserRuleContext ctx) {

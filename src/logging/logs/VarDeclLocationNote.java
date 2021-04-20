@@ -1,4 +1,6 @@
-package Logging;
+package logging.logs;
+
+import logging.logs.InfoLog;
 
 public class VarDeclLocationNote extends InfoLog {
     public VarDeclLocationNote(String message, int lineNum, int characterIndex) {

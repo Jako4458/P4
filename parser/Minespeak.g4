@@ -110,7 +110,9 @@ initialValue : rArray
              | expr
              ;
 
-rArray   : LSQUARE (expr (COMMA expr)*)? RSQUARE
+rArray
+returns [Type type]
+        : LSQUARE (expr (COMMA expr)*)? RSQUARE
         ;
 
 arrayAccess
@@ -132,7 +134,7 @@ returns [Type type]
 
 factor
 returns [Type type]
-        : (LPAREN expr RPAREN | rvalue | literal | funcCall | arrayAccess)
+        : (LPAREN expr RPAREN | rvalue | literal | funcCall | arrayAccess | rArray)
         ;
 
 rvalue
@@ -148,7 +150,6 @@ returns [Type type]
 assign
         : ID (ASSIGN | compAssign) expr
         | arrayAccess (ASSIGN | compAssign) expr
-        | ID ASSIGN rArray
         ;
 
 compAssign : op=(MODASSIGN | MULTASSIGN | DIVASSIGN | ADDASSIGN | SUBASSIGN)
@@ -185,7 +186,6 @@ returns [Type type]
         |  StringLiteral
         |  vector2Literal
         |  vector3Literal
-        |  rArray
         ;
 
 numberLiteral : DecimalDigit

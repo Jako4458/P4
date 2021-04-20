@@ -1,4 +1,7 @@
-package Logging;
+package logging.logs;
+
+import logging.ANSI_COLORS;
+import logging.LogType;
 
 /**
  * A generic error log class.

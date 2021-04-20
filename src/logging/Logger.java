@@ -1,4 +1,6 @@
-package Logging;
+package logging;
+
+import logging.logs.Log;
 
 import java.util.ArrayList;
 import java.util.List;

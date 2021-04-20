@@ -1,6 +1,5 @@
-import Logging.LogType;
-import Logging.Logger;
-import org.antlr.v4.runtime.tree.ParseTree;
+import logging.LogType;
+import logging.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
