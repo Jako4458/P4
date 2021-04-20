@@ -78,7 +78,7 @@ public class Type {
             add(MinespeakParser.GREATEQ);
         }};
         Set<Integer> logicalOps = new HashSet<Integer>() {{
-            add(MinespeakParser.NOT);
+            //add(MinespeakParser.NOT);
             add(MinespeakParser.AND);
             add(MinespeakParser.OR);
         }};
@@ -127,7 +127,7 @@ public class Type {
         }
 
         /* Expressions:
-            bool ! bool, bool && bool, bool || bool
+            bool && bool, bool || bool
          */
         for (int op : logicalOps) {
             resultTypes.put(opKey(BOOL, op, BOOL), BOOL);

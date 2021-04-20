@@ -8,7 +8,7 @@ import java.io.IOException;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ParseLiteralTests {
-    private TestHelper helper = new TestHelper();
+    private final TestHelper helper = new TestHelper();
 
     /* correct literal */
     @RepeatedTest(12)

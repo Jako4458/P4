@@ -196,7 +196,7 @@ public class TypeClassTests {
 
     private static Stream<Arguments> correctLogical() {
         return Stream.of(
-                Arguments.arguments(MinespeakParser.BOOL, MinespeakParser.NOT, MinespeakParser.BOOL),
+                //Arguments.arguments(MinespeakParser.BOOL, MinespeakParser.NOT, MinespeakParser.BOOL),
                 Arguments.arguments(MinespeakParser.BOOL, MinespeakParser.AND, MinespeakParser.BOOL),
                 Arguments.arguments(MinespeakParser.BOOL, MinespeakParser.OR, MinespeakParser.BOOL)
         );
