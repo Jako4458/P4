@@ -29,45 +29,45 @@ public class STemplateFactory {
     }
 
     // EqualityExprST
-    public EqualityExprST CreateEqualityExprST (String a, String b, String operator, Type type) {
-        return CreateEqualityExprST(a, b, operator, type, "");
+    public EqualityExprST createEqualityExprST(String a, String b, String operator, Type type) {
+        return createEqualityExprST(a, b, operator, type, "");
     }
-    public EqualityExprST CreateEqualityExprST (String a, String b, String operator, Type type, String prefix) {
+    public EqualityExprST createEqualityExprST(String a, String b, String operator, Type type, String prefix) {
         return new EqualityExprST(a, b, operator, "expr_" + getExprCounter(), type, prefix);
     }
 
     // LogicalExprST
-    public LogicalExprST CreateLogicalExprST(String a, String b, String operator) {
-        return CreateLogicalExprST(a, b, operator, "");
+    public LogicalExprST createLogicalExprST(String a, String b, String operator) {
+        return createLogicalExprST(a, b, operator, "");
     }
-    public LogicalExprST CreateLogicalExprST(String a, String b, String operator, String prefix) {
+    public LogicalExprST createLogicalExprST(String a, String b, String operator, String prefix) {
         return new LogicalExprST(a, b, operator, prefix, "expr_" + getExprCounter(), generateValidUUID());
     }
 
     // NegationExprST
-    public NegationExprST CreateNegationExprST(String a, String operator, Type type) {
-        return CreateNegationExprST(a, operator, "", type);
+    public NegationExprST createNegationExprST(String a, String operator, Type type) {
+        return createNegationExprST(a, operator, "", type);
     }
-    public NegationExprST CreateNegationExprST(String a, String operator, String prefix, Type type) {
+    public NegationExprST createNegationExprST(String a, String operator, String prefix, Type type) {
         return new NegationExprST(a, operator, prefix, "expr_" + getExprCounter(), type);
     }
 
     // RelationExprST
-    public RelationExprST CreateRelationExprST(String a, String b, String operator) {
-        return CreateRelationExprST(a, b, operator, "");
+    public RelationExprST createRelationExprST(String a, String b, String operator) {
+        return createRelationExprST(a, b, operator, "");
     }
-    public RelationExprST CreateRelationExprST(String a, String b, String operator, String prefix) {
+    public RelationExprST createRelationExprST(String a, String b, String operator, String prefix) {
         return new RelationExprST(a, b, operator, prefix, "expr_" + getExprCounter());
     }
 
 
     // MCFuncCallST
-    public MCFuncCallST CreateMCFuncCallST(FuncEntry entry) {
+    public MCFuncCallST createMCFuncCallST(FuncEntry entry) {
         return new MCFuncCallST(entry.getName());
     }
 
     // FuncCallST
-    public FuncCallST CreateFuncCallST(FuncEntry entry) {
+    public FuncCallST createFuncCallST(FuncEntry entry) {
 
         var combinedST = entry.getOutput().stream().reduce(
                                                 (str1, str2) -> new BlankST(str1.getOutput() + str2.getOutput())
@@ -84,7 +84,7 @@ public class STemplateFactory {
     }
 
     // MCStatementsST
-    public MCStatementST CreateMCStatementST(String command) {
+    public MCStatementST createMCStatementST(String command) {
         return new MCStatementST(command);
     }
 
@@ -98,6 +98,21 @@ public class STemplateFactory {
         return new DclST(varName, type);
     }
 
+
+    // InstantST
+    public InstanST createInstanST(String varName) {
+        return new InstanST("expr_" + getExprCounter(), varName);
+    }
+
+    // InstantST
+    public InstanST createInstanST(String varName, String exprName) {
+        return new InstanST(varName, exprName);
+    }
+
+    public InstanST createInstanST(String varName, int varVal) {
+        return new InstanST(varName, varVal);
+    }
+
     // InstantST
     public InstanST createInstanST(SymEntry entry) {
         if (entry.getType() == Type._vector2)
@@ -106,6 +121,22 @@ public class STemplateFactory {
             return new InstanST(entry.getVarName(), entry.getValue().getCasted(Vector3Value.class));
 
         return new InstanST(entry.getVarName(), "expr_" + exprCounter.toString());
+    }
+
+    public AssignST createAssignST(String varName, String exprName){
+        return new AssignST(varName, exprName);
+    }
+
+    public AssignST createAssignST(String varName, int val){
+        return new AssignST(varName, val);
+    }
+
+    public AssignST createAssignST(String varName, Vector2 val){
+        return new AssignST(varName, val);
+    }
+
+    public AssignST createAssignST(String varName, Vector3 val){
+        return new AssignST(varName, val);
     }
 
     public String generateValidUUID() {return UUID.randomUUID().toString().replace("-", "_").substring(0,11);}

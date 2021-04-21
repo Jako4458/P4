@@ -23,7 +23,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     public Value visitProg(MinespeakParser.ProgContext ctx) {
         currentScope = ctx.scope;
 
-        output.add(templateFactory.CreateMCStatementST("scoreboard players reset @s")); // for debug
+        output.add(templateFactory.createMCStatementST("scoreboard players reset @s")); // for debug
 
         output.add(templateFactory.createDclST(templateFactory.factor1UUID, Type._num));
         output.add(templateFactory.createDclST(templateFactory.factor2UUID, Type._num));
@@ -38,7 +38,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         for (FuncEntry func:funcSignature.values()) {
             if (func.isMCFunction()) {
                 recompileFunction(func);
-                output.add(templateFactory.CreateFuncCallST(func));
+                output.add(templateFactory.createFuncCallST(func));
             }
         }
 
@@ -53,43 +53,57 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         String exprName = null;
         if (ctx.factor().rvalue() != null){
             exprName = ctx.factor().rvalue().ID().getText();
+            exprName = currentScope.lookup(exprName) == null ? exprName : currentScope.lookup(exprName).getVarName();
             factorNameTable.put(ctx, exprName);
         }
 
-        boolean factorBool= false;
-        int factorNum= 0;
-        Vector2 factorVec2 = null;
-        Vector3 factorVec3 = null;
+        boolean factorBool;
+        int factorNum;
+        Vector2 factorVec2;
+        Vector3 factorVec3;
         var factor = visit(ctx.factor());
 
         exprName = exprName != null ? exprName : templateFactory.factor1UUID;
 
+
         if (ctx.type == Type._bool){
             factorBool = Value.value(factor.getCasted(BoolValue.class));
-            currentFunc.addTemplate(new AssignST(exprName, factorBool ? 1 : 0));
+            currentFunc.addTemplate(templateFactory.createAssignST(exprName, factorBool ? 1 : 0));
             if (ctx.NOT() != null)
-                currentFunc.addTemplate(templateFactory.CreateNegationExprST(exprName, "not", Type._bool));
+                currentFunc.addTemplate(templateFactory.createNegationExprST(exprName, "not", Type._bool));
+            else{
+                currentFunc.addTemplate(templateFactory.createInstanST(exprName));
+            }
             return msValueFactory.createValue((ctx.NOT() == null) == factorBool, ctx.type);
         }
         else if (ctx.type == Type._num) {
             factorNum = Value.value(factor.getCasted(NumValue.class));
-            currentFunc.addTemplate(new AssignST(exprName, factorNum));
+            currentFunc.addTemplate(templateFactory.createAssignST(exprName, factorNum));
             if (ctx.SUB() != null)
-                currentFunc.addTemplate(templateFactory.CreateNegationExprST(exprName, "-", Type._num));
+                currentFunc.addTemplate(templateFactory.createNegationExprST(exprName, "-", Type._num));
+            else{
+                currentFunc.addTemplate(templateFactory.createInstanST(exprName));
+            }
             return msValueFactory.createValue(ctx.SUB() != null ? -factorNum : factorNum, ctx.type);
         }
         else if (ctx.type == Type._vector2) {
             factorVec2 = Value.value(factor.getCasted(Vector2Value.class));
-            currentFunc.addTemplate(new AssignST(exprName, factorVec2));
+            currentFunc.addTemplate(templateFactory.createAssignST(exprName, factorVec2));
             if (ctx.SUB() != null)
-                currentFunc.addTemplate(templateFactory.CreateNegationExprST(exprName, "-", Type._vector2));
+                currentFunc.addTemplate(templateFactory.createNegationExprST(exprName, "-", Type._vector2));
+            else{
+                currentFunc.addTemplate(templateFactory.createInstanST(exprName));
+            }
             return msValueFactory.createValue(ctx.SUB() != null ? Vector2.neg(factorVec2) : factorVec2, Type._vector2);
         }
         else if (ctx.type == Type._vector3) {
             factorVec3 = Value.value(factor.getCasted(Vector3Value.class));
-            currentFunc.addTemplate(new AssignST(exprName, factorVec3));
+            currentFunc.addTemplate(templateFactory.createAssignST(exprName, factorVec3));
             if (ctx.SUB() != null)
-                currentFunc.addTemplate(templateFactory.CreateNegationExprST(exprName, "-", Type._vector3));
+                currentFunc.addTemplate(templateFactory.createNegationExprST(exprName, "-", Type._vector3));
+            else{
+                currentFunc.addTemplate(templateFactory.createInstanST(exprName));
+            }
             return msValueFactory.createValue(ctx.SUB() != null ? Vector3.neg(factorVec3) : factorVec3, Type._vector3);
         }
 
@@ -105,8 +119,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         var expr1Name = factorNameTable.getOrDefault(ctx.expr(0), templateFactory.factor1UUID);
         var expr2Name = factorNameTable.getOrDefault(ctx.expr(1), templateFactory.factor2UUID);
 
-        currentFunc.addTemplate(new AssignST(expr1Name, num1.toString()));
-        currentFunc.addTemplate(new AssignST(expr2Name, num2.toString()));
+        currentFunc.addTemplate(templateFactory.createAssignST(expr1Name, num1)); // maybe num.toString()
+        currentFunc.addTemplate(templateFactory.createAssignST(expr2Name, num2)); // maybe num.toString()
 
         expr1Name = expr1Name.equals(templateFactory.factor1UUID) ? templateFactory.factor1UUID : currentScope.lookup(expr1Name).getVarName();
         num2 = expr2Name.equals(templateFactory.factor2UUID) ? num2 :  Value.value(currentScope.lookup(expr2Name).getValue().getCasted(NumValue.class));
@@ -372,12 +386,12 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         if (!func.isMCFunction()){
             loadParamsToScope(ctx, func);
             recompileFunction(func);
-            currentFunc.addTemplate(templateFactory.CreateFuncCallST(func));
+            currentFunc.addTemplate(templateFactory.createFuncCallST(func));
             return func.getValue();
         }
         else {
             recompileFunction(func);
-            currentFunc.addTemplate(templateFactory.CreateMCFuncCallST(func));
+            currentFunc.addTemplate(templateFactory.createMCFuncCallST(func));
         }
         return null;
     }
@@ -388,7 +402,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
     private Value visitMCStmnt(MinespeakParser.StmntContext ctx) {
         String stmnt = ctx.MCStmnt().getText();
-        currentFunc.addTemplate(templateFactory.CreateMCStatementST(formatString(stmnt)));
+        currentFunc.addTemplate(templateFactory.createMCStatementST(formatString(stmnt)));
         return null;
     }
 
@@ -429,12 +443,18 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     }
 
     private void loadParamsToScope(MinespeakParser.FuncCallContext ctx, FuncEntry func) {
-        for (int i = 0; i < func.getParams().size(); i++) {
-            var val = visit(ctx.expr(i));
-            SymEntry a;
+        ArrayList<Template> paramList = new ArrayList<>();
 
-            if (val.type == Type._num)
+        for (int i = 0; i < func.getParams().size(); i++) {
+            String paramName = func.scope.lookup(func.getParams().get(i).getName()).getVarName();
+            var val = visit(ctx.expr(i));
+
+            if (val.type == Type._num){
+                var value = Value.value(val.getCasted(NumValue.class));
+                paramList.add(templateFactory.createInstanST(paramName, value));
                 func.scope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(NumValue.class)));
+
+            }
             else if (val.type == Type._block)
                 func.scope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(BlockValue.class)));
             else if (val.type == Type._bool)
@@ -462,13 +482,17 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         }
         currentFunc = func;
 
-        for (int i = 0; i < func.getOutput().size(); i++) {
+        var outputSize = func.getOutput().size();
+        for (int i = 0; i < outputSize; i++) {
             Template t = func.getOutput().get(i);
             if (t instanceof ParameterDependantStmntST) {
                 ParameterDependantStmntST wt = ((ParameterDependantStmntST) t);
                 visit(wt.context);  // do stmnt again
-                wt.setOutput(func.getOutput().get(func.getOutput().size() - 1).getOutput()); // move new output to failed stmnt
-                func.getOutput().remove(func.getOutput().size() - 1);     // remove new stmnt from end
+                wt.setOutput("");
+                while (outputSize < func.getOutput().size()){
+                    wt.setOutput(wt.getOutput() + func.getOutput().get(outputSize).getOutput()); // move new output to failed stmnt
+                    func.getOutput().remove(outputSize);     // remove new stmnt from end
+                }
             }
         }
 
@@ -487,11 +511,11 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         var expr2Name = factorNameTable.getOrDefault(e2, templateFactory.factor2UUID);
 
         if (expr1Name.equals(templateFactory.factor1UUID))
-            output.add(new AssignST(expr1Name, b1 ? 1 : 0));
+            output.add(templateFactory.createAssignST(expr1Name, b1 ? 1 : 0));
         if (expr2Name.equals(templateFactory.factor2UUID))
-            output.add(new AssignST(expr2Name, b2 ? 1 : 0));
+            output.add(templateFactory.createAssignST(expr2Name, b2 ? 1 : 0));
 
-        currentFunc.addTemplate(templateFactory.CreateLogicalExprST(expr1Name, expr2Name, operator));
+        currentFunc.addTemplate(templateFactory.createLogicalExprST(expr1Name, expr2Name, operator));
 
         if (operator == "and")
             return msValueFactory.createValue((b1 && b2), Type._bool);
