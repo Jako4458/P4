@@ -4,21 +4,45 @@ import org.stringtemplate.v4.ST;
 public class InstanST implements Template {
     private String output;
 
-    public InstanST(String varName, String exprName, String prefix) {
-        ST st = new ST( "#<Comment>\n<prefix>scoreboard objectives add <varName> dummy \n" +
-                                "<prefix>execute at @s store result score @s <varName> run scoreboard players get @s <exprName> \n");
+    public InstanST(String varName, String exprName, Type type, String prefix) {
+        if (type == Type._vector2 || type == Type._vector3)
+            this.output =  createVectorInstant(varName, exprName, type, prefix).render();
+        else {
+            ST st = new ST( "#<Comment>\n<prefix>scoreboard objectives add <varName> dummy \n" +
+                    "<prefix>execute at @s store result score @s <varName> run scoreboard players get @s <exprName> \n");
 
-        st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
+            st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
 
-        st.add("varName", varName);
-        st.add("exprName", exprName);
-        st.add("prefix", prefix);
+            st.add("varName", varName);
+            st.add("exprName", exprName);
+            st.add("prefix", prefix);
 
-        output = st.render();
+            output = st.render();
+        }
+    }
+
+    private ST createVectorInstant(String varName, String exprName, Type type, String prefix) {
+        ST template;
+        if (type == Type._vector2)
+            template = new ST("<X><Y>");
+        else
+            template = new ST("<X><Y><Z>");
+
+        InstanST X = new InstanST(varName + "_x", exprName + "_x", Type._num, prefix);
+        InstanST Y = new InstanST(varName + "_y", exprName + "_y", Type._num, prefix);
+
+        template.add("X", X.getOutput());
+        template.add("Y", Y.getOutput());
+
+        if (type == Type._vector3){
+            InstanST Z = new InstanST(varName + "_z", exprName + "_z", Type._num, prefix);
+            template.add("Z", Z.getOutput());
+        }
+        return template;
     }
 
     public InstanST(String varName, String exprName){
-        this(varName, exprName, "");
+        this(varName, exprName, Type._string, "");
     }
 
     public InstanST(String varName, int exprVal, String prefix) {

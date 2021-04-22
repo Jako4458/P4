@@ -36,6 +36,10 @@ public class Vector3 implements Vector {
         return this.z;
     }
 
+    static public Vector3 scale(Vector3 vec1, int scalar) {
+        return new Vector3(vec1.getX() * scalar, vec1.getY() * scalar, vec1.getZ() * scalar);
+    }
+
     static public Vector3 add(Vector3 vec1, Vector3 vec2) {
         return new Vector3(vec1.getX() + vec2.getX(), vec1.getY() + vec2.getY(), vec1.getZ() + vec2.getZ());
     }

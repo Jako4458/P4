@@ -20,7 +20,7 @@ public class NegationExprST implements Template {
         ST template = new ST(
                 "<prefix>scoreboard objectives add <exprID> dummy\n" +
                         "<prefix>scoreboard players set @s <exprID> 0\n" +
-                        "<prefix>scoreboard players operation @s <exprID> -= <aID>\n"
+                        "<prefix>scoreboard players operation @s <exprID> -= @s <aID>\n"
         );
         template.add("prefix", prefix);
         template.add("exprID", exprID);
