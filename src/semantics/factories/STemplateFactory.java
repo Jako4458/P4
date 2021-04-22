@@ -17,14 +17,8 @@ public class STemplateFactory {
 
 
     // ArithmeticExprST
-    public ArithmeticExprST createArithmeticExprST (String expr1Name, String expr2Name, String operator, Type type1, Type type2) {
-        return createArithmeticExprST(expr1Name, expr2Name, operator, type1, type2, "");
-    }
     public ArithmeticExprST createArithmeticExprST (String expr1Name, String expr2Name, String operator, Type type1, Type type2, String prefix) {
         return new ArithmeticExprST(expr1Name, expr2Name, operator, getNewExprCounterString(), type1, type2, prefix);
-    }
-    public ArithmeticExprST createArithmeticExprST (String expr1Name, int expr2, String operator) {
-        return createArithmeticExprST(expr1Name, expr2, operator, "");
     }
 
     public ArithmeticExprST createArithmeticExprST (String expr1Name, int expr2, String operator, String prefix) {
@@ -32,33 +26,21 @@ public class STemplateFactory {
     }
 
     // EqualityExprST
-    public EqualityExprST createEqualityExprST(String a, String b, String operator, Type type) {
-        return createEqualityExprST(a, b, operator, type, "");
-    }
     public EqualityExprST createEqualityExprST(String a, String b, String operator, Type type, String prefix) {
         return new EqualityExprST(a, b, operator, getNewExprCounterString(), type, prefix);
     }
 
     // LogicalExprST
-    public LogicalExprST createLogicalExprST(String a, String b, String operator) {
-        return createLogicalExprST(a, b, operator, "");
-    }
     public LogicalExprST createLogicalExprST(String a, String b, String operator, String prefix) {
         return new LogicalExprST(a, b, operator, prefix, getNewExprCounterString(), generateValidUUID());
     }
 
     // NegationExprST
-    public NegationExprST createNegationExprST(String a, String operator, Type type) {
-        return createNegationExprST(a, operator, "", type);
-    }
     public NegationExprST createNegationExprST(String a, String operator, String prefix, Type type) {
         return new NegationExprST(a, operator, prefix, getNewExprCounterString(), type);
     }
 
     // RelationExprST
-    public RelationExprST createRelationExprST(String a, String b, String operator) {
-        return createRelationExprST(a, b, operator, "");
-    }
     public RelationExprST createRelationExprST(String a, String b, String operator, String prefix) {
         return new RelationExprST(a, b, operator, prefix, getNewExprCounterString());
     }
@@ -73,8 +55,8 @@ public class STemplateFactory {
     public FuncCallST createFuncCallST(FuncEntry entry) {
 
         var combinedST = entry.getOutput().stream().reduce(
-                                                (str1, str2) -> new BlankST(str1.getOutput() + str2.getOutput())
-                                            ).get();
+                (str1, str2) -> new BlankST(str1.getOutput() + str2.getOutput())
+        ).get();
 
         String paramList = " ";
 
@@ -87,8 +69,8 @@ public class STemplateFactory {
     }
 
     // MCStatementsST
-    public MCStatementST createMCStatementST(String command) {
-        return new MCStatementST(command);
+    public MCStatementST createMCStatementST(String command, String prefix) {
+        return new MCStatementST(command, prefix);
     }
 
     // ParameterDependantStmntST
@@ -97,15 +79,10 @@ public class STemplateFactory {
     }
 
     // DclST
-    public DclST createDclST(String varName, Type type) {
-        return new DclST(varName, type);
+    public DclST createDclST(String varName, Type type, String prefix) {
+        return new DclST(varName, type, prefix);
     }
 
-
-    // InstantST
-    public InstanST createInstanST(String varName, Type type) {
-        return createInstanST(varName, type, "");
-    }
 
     // InstantST
     public InstanST createInstanST(String varName, Type type, String prefix) {
@@ -113,33 +90,33 @@ public class STemplateFactory {
     }
 
     // InstantST
-    public InstanST createInstanST(String varName, String exprName) {
-        return new InstanST(varName, exprName);
+    public InstanST createInstanST(String varName, String exprName, String prefix) {
+        return new InstanST(varName, exprName, prefix);
     }
 
-    public InstanST createInstanST(String varName, int varVal) {
-        return new InstanST(varName, varVal);
+    public InstanST createInstanST(String varName, int varVal, String prefix) {
+        return new InstanST(varName, varVal, prefix);
     }
 
     // InstantST
-    public InstanST createInstanST(SymEntry entry, Type type) {
-        return new InstanST(entry.getVarName(), getExprCounterString(), type, "");
+    public InstanST createInstanST(SymEntry entry, Type type, String prefix) {
+        return new InstanST(entry.getVarName(), getExprCounterString(), type, prefix);
     }
 
-    public AssignST createAssignST(String varName, String exprName){
-        return new AssignST(varName, exprName);
+    public AssignST createAssignST(String varName, String exprName, String prefix){
+        return new AssignST(varName, exprName, prefix);
     }
 
-    public AssignST createAssignST(String varName, int val){
-        return new AssignST(varName, val);
+    public AssignST createAssignST(String varName, int val, String prefix){
+        return new AssignST(varName, val, prefix);
     }
 
-    public AssignST createAssignST(String varName, Vector2 val){
-        return new AssignST(varName, val);
+    public AssignST createAssignST(String varName, Vector2 val, String prefix){
+        return new AssignST(varName, val, prefix);
     }
 
-    public AssignST createAssignST(String varName, Vector3 val){
-        return new AssignST(varName, val);
+    public AssignST createAssignST(String varName, Vector3 val, String prefix){
+        return new AssignST(varName, val, prefix);
     }
 
     public String generateValidUUID() {return UUID.randomUUID().toString().replace("-", "_").substring(0,11);}

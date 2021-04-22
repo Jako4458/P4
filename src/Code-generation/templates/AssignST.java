@@ -4,35 +4,37 @@ import org.stringtemplate.v4.ST;
 public class AssignST implements Template {
     private String output;
 
-    public AssignST(String varName, String exprName){
+    public AssignST(String varName, String exprName, String prefix){
         ST st = new ST( "#<Comment>\n" +
-                                "execute at @s store result score @s <varName> run scoreboard players get @s <exprName> \n");
+                                "<prefix>execute at @s store result score @s <varName> run scoreboard players get @s <exprName> \n");
 
         st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
 
+        st.add("prefix", prefix);
         st.add("varName", varName);
         st.add("exprName", exprName);
 
         output = st.render();
     }
-    public AssignST(String varName, int exprVal){
+    public AssignST(String varName, int exprVal, String prefix){
         ST st = new ST( "#<Comment>\n" +
-                                "scoreboard players set @s <varName> <exprVal> \n");
+                                "<prefix>scoreboard players set @s <varName> <exprVal> \n");
 
         st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
 
+        st.add("prefix", prefix);
         st.add("varName", varName);
         st.add("exprVal", exprVal);
 
         output = st.render();
     }
 
-    public AssignST(String varName, Vector2 vec2){
+    public AssignST(String varName, Vector2 vec2, String prefix){
         ST st = new ST("<AssignX><AssignY>");
         st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
 
-        AssignST AssignX = new AssignST(varName + "_x", vec2.getX());
-        AssignST AssignY = new AssignST(varName + "_y", vec2.getY());
+        AssignST AssignX = new AssignST(varName + "_x", vec2.getX(), prefix);
+        AssignST AssignY = new AssignST(varName + "_y", vec2.getY(), prefix);
 
         st.add("AssignX", AssignX.getOutput());
         st.add("AssignY", AssignY.getOutput());
@@ -40,20 +42,19 @@ public class AssignST implements Template {
         output = st.render();
     }
 
-    public AssignST(String varName, Vector3 vec3){
+    public AssignST(String varName, Vector3 vec3, String prefix){
         ST st = new ST("<AssignX><AssignY><AssignZ>");
         st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
 
-        AssignST AssignX = new AssignST(varName + "_x", vec3.getX());
-        AssignST AssignY = new AssignST(varName + "_y", vec3.getY());
-        AssignST AssignZ = new AssignST(varName + "_z", vec3.getZ());
+        AssignST AssignX = new AssignST(varName + "_x", vec3.getX(), prefix);
+        AssignST AssignY = new AssignST(varName + "_y", vec3.getY(), prefix);
+        AssignST AssignZ = new AssignST(varName + "_z", vec3.getZ(), prefix);
 
         st.add("AssignX", AssignX.getOutput());
         st.add("AssignY", AssignY.getOutput());
         st.add("AssignZ", AssignZ.getOutput());
         output = st.render();
     }
-
 
     @Override
     public String getOutput() {

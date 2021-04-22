@@ -3,6 +3,10 @@ import org.stringtemplate.v4.ST;
 
 public class InstanST implements Template {
     private String output;
+    
+    public InstanST(String varName, String exprName, String prefix){
+        this(varName, exprName, Type._string, prefix);
+    }
 
     public InstanST(String varName, String exprName, Type type, String prefix) {
         if (type == Type._vector2 || type == Type._vector3)
@@ -39,10 +43,6 @@ public class InstanST implements Template {
             template.add("Z", Z.getOutput());
         }
         return template;
-    }
-
-    public InstanST(String varName, String exprName){
-        this(varName, exprName, Type._string, "");
     }
 
     public InstanST(String varName, int exprVal, String prefix) {
