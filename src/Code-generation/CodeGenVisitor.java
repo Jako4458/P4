@@ -57,7 +57,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         for (int i = 0; i < ctx.expr().size(); i++) {
             String tempPrefix = prefix;
             prefix = "";
-            visit(ctx.expr(i)); // RELATIONS IS NOT DONE YET!
+            visit(ctx.expr(i));
 
             prefix = tempPrefix.replace("matches 1", "matches 0");
             prefix += "execute if score @s " + templateFactory.getExprCounterString() + " matches 1 run ";
@@ -148,7 +148,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
     @Override
     public Value visitPow(MinespeakParser.PowContext ctx) {
-        int num1 = Value.value(visit(ctx.expr(0)).getCasted(NumValue.class)); // a
+        int num1 = Value.value(visit(ctx.expr(0)).getCasted(NumValue.class));
         int num2 = Value.value(visit(ctx.expr(1)).getCasted(NumValue.class));
 
         String expr1Name = factorNameTable.get(ctx.expr(0));
@@ -169,11 +169,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         Value expr1Visit = visit(ctx.expr(0));
         Value expr2Visit = visit(ctx.expr(1));
 
-        String expr1Lookup = factorNameTable.getOrDefault(ctx.expr(0), null);
-        String expr2Lookup = factorNameTable.getOrDefault(ctx.expr(1), null);
-
-        String expr1Name = expr1Lookup != null ? expr1Lookup : templateFactory.factor1UUID;
-        String expr2Name = expr2Lookup != null ? expr2Lookup : templateFactory.factor2UUID;
+        String expr1Name = factorNameTable.get(ctx.expr(0));
+        String expr2Name = factorNameTable.get(ctx.expr(1));
 
         String operator = "";
         if (ctx.TIMES() != null)
@@ -221,18 +218,15 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
     @Override
     public Value visitAddSub(MinespeakParser.AddSubContext ctx) {
-        int num1 = 0, num2 = 0;
+        int num1, num2;
         Vector2 vec21 = null, vec22 = null;
         Vector3 vec31 = null, vec32 = null;
 
         Value expr1Visit = visit(ctx.expr(0));
         Value expr2Visit = visit(ctx.expr(1));
 
-        String expr1Lookup = factorNameTable.getOrDefault(ctx.expr(0), null);
-        String expr2Lookup = factorNameTable.getOrDefault(ctx.expr(1), null);
-
-        String expr1Name = expr1Lookup != null ? expr1Lookup : templateFactory.factor1UUID;
-        String expr2Name = expr2Lookup != null ? expr2Lookup : templateFactory.factor2UUID;
+        String expr1Name = factorNameTable.get(ctx.expr(0));
+        String expr2Name = factorNameTable.get(ctx.expr(1));
 
         String operator = "";
         if (ctx.SUB() != null)
@@ -246,7 +240,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
                                                                         expr1Visit.type, expr2Visit.type, prefix));
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
 
-//  DELETE WHEN NO CALC IS DONE
         if (ctx.type == Type._num){
             num1 = Value.value(expr1Visit.getCasted(NumValue.class));
             num2 = Value.value(expr2Visit.getCasted(NumValue.class));
@@ -272,8 +265,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
             return msValueFactory.createValue(Vector2.sub(vec21, vec22), ctx.type);
         else if (ctx.type == Type._vector3)
             return msValueFactory.createValue(Vector3.sub(vec31, vec32), ctx.type);
+
         Error("visitAddSub:InvalidType");
-//  DELETE UNTIL HERE
         return null;
     }
 
@@ -328,17 +321,17 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     }
 
     @Override
-    public Value visitRelations(MinespeakParser.RelationsContext ctx) { //SHITCODE THAT DOES NOT WORK
+    public Value visitCompAssign(MinespeakParser.CompAssignContext ctx) {
+        return super.visitCompAssign(ctx);
+    }
+
+    @Override
+    public Value visitRelations(MinespeakParser.RelationsContext ctx) {
         int expr1 = Value.value(visit(ctx.expr(0)).getCasted(NumValue.class));
         int expr2 = Value.value(visit(ctx.expr(1)).getCasted(NumValue.class));
 
-        String expr1Lookup = factorNameTable.getOrDefault(ctx.expr(0), null);
-        String expr2Lookup = factorNameTable.getOrDefault(ctx.expr(1), null);
-
-        String expr1Name = expr1Lookup != null ? expr1Lookup : templateFactory.factor1UUID;
-        String expr2Name = expr2Lookup != null ? expr2Lookup : templateFactory.factor2UUID;
-
-
+        String expr1Name = factorNameTable.get(ctx.expr(0));
+        String expr2Name = factorNameTable.get(ctx.expr(1));
 
         if (ctx.LESSER() != null){
             currentFunc.addTemplate(templateFactory.createRelationExprST(expr1Name, expr2Name, "<" , prefix));
@@ -370,11 +363,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         Value expr1 = visit(ctx.expr(0));
         Value expr2 = visit(ctx.expr(1));
 
-        String expr1Lookup = factorNameTable.getOrDefault(ctx.expr(0), null);
-        String expr2Lookup = factorNameTable.getOrDefault(ctx.expr(1), null);
-
-        String expr1Name = expr1Lookup != null ? expr1Lookup : templateFactory.factor1UUID;
-        String expr2Name = expr2Lookup != null ? expr2Lookup : templateFactory.factor2UUID;
+        String expr1Name = factorNameTable.get(ctx.expr(0));
+        String expr2Name = factorNameTable.get(ctx.expr(1));
 
         String operator = ctx.EQUAL() != null ? "==" : ctx.NOTEQUAL() != null ? "!=" : "";
 
@@ -397,7 +387,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
     @Override
     public Value visitAnd(MinespeakParser.AndContext ctx) {
-        Value result = calcLogicalExpr(ctx.expr(0), ctx.expr(1), "and"); // does not work!
+        Value result = calcLogicalExpr(ctx.expr(0), ctx.expr(1), "and");
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
         return result;
     }
@@ -619,8 +609,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
             String exprName = factorNameTable.get(ctx.expr(i));
             paramList.add(templateFactory.createInstanST(paramName, exprName, prefix));
 
-//
-//
             if (val.type == Type._num)
                 func.scope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(NumValue.class)));
             else if (val.type == Type._block)
@@ -668,8 +656,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
             else if (t instanceof FunctionDependantStmntST){
                 FunctionDependantStmntST wt = ((FunctionDependantStmntST) t);
                 visit(wt.context);  // do stmnt again
-                int newTemplateIndex = outputSize;
-                func.getOutput().set(i, func.getOutput().get(newTemplateIndex));
+                func.getOutput().set(i, func.getOutput().get(outputSize));
                 while (outputSize < func.getOutput().size()){
                     func.getOutput().remove(outputSize);     // remove new stmnt from end
                 }
@@ -687,11 +674,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         var b1 = Value.value(v1.getCasted(BoolValue.class));
         var b2 = Value.value(v2.getCasted(BoolValue.class));
 
-        var expr1Lookup = factorNameTable.getOrDefault(e1, null);
-        var expr2Lookup = factorNameTable.getOrDefault(e2, null);
-
-        String expr1Name = expr1Lookup != null ? expr1Lookup : templateFactory.factor1UUID;
-        String expr2Name = expr2Lookup != null ? expr2Lookup : templateFactory.factor2UUID;
+        var expr1Name = factorNameTable.get(e1);
+        var expr2Name = factorNameTable.get(e2);
 
         if (expr1Name.equals(templateFactory.factor1UUID))
             output.add(templateFactory.createAssignST(expr1Name, b1 ? 1 : 0, prefix));
