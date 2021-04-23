@@ -78,6 +78,11 @@ public class STemplateFactory {
         return new ParameterDependantStmntST(ctx);
     }
 
+    // FunctionDependantStmntST
+    public FunctionDependantStmntST createFunctionDependantStmntST(ParseTree ctx){
+        return new FunctionDependantStmntST(ctx);
+    }
+
     // DclST
     public DclST createDclST(String varName, Type type, String prefix) {
         return new DclST(varName, type, prefix);
