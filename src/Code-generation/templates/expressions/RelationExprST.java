@@ -8,7 +8,7 @@ public class RelationExprST implements Template {
         ST template = new ST(
                 "<prefix>scoreboard objectives add <exprID> dummy\n" +
                         "<prefix>scoreboard players set @s <exprID> 0\n" +
-                        "<prefix>execute if score @s <aID> <operator> @s <bID> run scoreboard players set @s <exprID> 1"
+                        "<prefix>execute if score @s <aID> <operator> @s <bID> run scoreboard players set @s <exprID> 1\n"
         );
         template.add("prefix", prefix);
         template.add("aID", a);
