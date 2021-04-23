@@ -15,9 +15,14 @@ minespeak
         Test(2)
     endfunc
 
+    func tp() do
+        var a:num = 231
+    endfunc
+
     @mc
     func Main() do
         Test2()
+        tp()
     endfunc
 
 closespeak

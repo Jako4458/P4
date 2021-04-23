@@ -5,7 +5,7 @@ public class MCFuncCallST implements Template{
     private String output;
 
     public MCFuncCallST(String funcName){
-        ST st = new ST("#<Comment>\nexecute run <funcName> - ");
+        ST st = new ST("#<Comment>\nexecute run <funcName>");
 
         st.add("Comment", this.getClass().toString().substring(6)); //substring to remove "class "
         st.add("funcName", funcName);

@@ -478,7 +478,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
             } catch (ParameterDependantException e) {   // if stmnt depends on a parameter
                 currentFunc.addTemplate(templateFactory.createParamDependantStmntST(child));
             } catch (FuncCompileDependantException e) { // if a function is called before it is compiled
-                currentFunc.addTemplate(templateFactory.createFunctionDependantStmntST(ctx));
+                currentFunc.addTemplate(templateFactory.createFunctionDependantStmntST(child));
             }
         }
         return null;
@@ -567,7 +567,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
     private Value visitMCStmnt(MinespeakParser.StmntContext ctx) {
         String stmnt = ctx.MCStmnt().getText();
-        currentFunc.addTemplate(templateFactory.createMCStatementST(formatString(stmnt), prefix));
+//        currentFunc.addTemplate(templateFactory.createMCStatementST(formatString(stmnt), prefix));
+        currentFunc.addTemplate(templateFactory.createMCStatementST(stmnt, prefix));
         return null;
     }
 
@@ -662,9 +663,11 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
             else if (t instanceof FunctionDependantStmntST){
                 FunctionDependantStmntST wt = ((FunctionDependantStmntST) t);
                 visit(wt.context);  // do stmnt again
-                int newTemplateIndex = func.getOutput().size() - 1;
+                int newTemplateIndex = outputSize;
                 func.getOutput().set(i, func.getOutput().get(newTemplateIndex));
-                func.getOutput().remove(newTemplateIndex);
+                while (outputSize < func.getOutput().size()){
+                    func.getOutput().remove(outputSize);     // remove new stmnt from end
+                }
             }
         }
 
