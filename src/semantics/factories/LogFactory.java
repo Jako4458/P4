@@ -99,4 +99,17 @@ public class LogFactory {
                 ((TerminalNodeImpl) right.tree).symbol.getText()
         );
     }
+
+    public Log createInfiniteLoopWarning(String text, ParserRuleContext ctx) {
+        return new InfiniteLoopWarning(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
+    }
+
+    public Log createUnreachableCodeWarning(String text, ParserRuleContext ctx) {
+        return new InfiniteLoopWarning(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
+    }
+
+    public Log createConstantLoopExpressionWarning(String text, ParserRuleContext ctx) {
+        return new ConstantLoopExpressionWarning(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
+    }
+
 }
