@@ -84,6 +84,9 @@ public class Main {
 
         UnassignedVariableListener unassignedVariableListener = new UnassignedVariableListener();
         ParseTreeWalker.DEFAULT.walk(unassignedVariableListener, tree);
+
+        InfiniteLoopDetectionListener infiniteLoopDetectionListener = new InfiniteLoopDetectionListener();
+        ParseTreeWalker.DEFAULT.walk(infiniteLoopDetectionListener, tree);
     }
 
     public static void codeGeneration(ParseTree tree) {
