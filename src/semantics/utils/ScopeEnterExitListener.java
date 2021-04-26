@@ -1,5 +1,5 @@
 public class ScopeEnterExitListener extends MinespeakBaseListener {
-    private Scope currentScope;
+    protected Scope currentScope;
 
     public ScopeEnterExitListener() {
         enterScope(null);
