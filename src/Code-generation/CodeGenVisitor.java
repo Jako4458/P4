@@ -1,4 +1,6 @@
 
+import Logging.Logger;
+import exceptions.CompileTimeException;
 import exceptions.FuncCompileDependantException;
 import exceptions.ParameterDependantException;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -13,64 +15,95 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     private final Map<String, FuncEntry> funcSignature;
     private final MSValueFactory msValueFactory = new MSValueFactory();
     private final STemplateFactory templateFactory = new STemplateFactory();
+    private final LogFactory logFactory = new LogFactory();
     private final Map<ParseTree, String> factorNameTable = new HashMap<>();
 
     private String prefix = "";
+    private final ArrayList<String> prefixs = new ArrayList<>();
 
-    private ArrayList<Template> output = new ArrayList<>();
+    private final ArrayList<Template> output = new ArrayList<>();
 
     public CodeGenVisitor(Map<String, FuncEntry> funcSignature) {
         this.funcSignature = funcSignature;
     }
 
+    private String getPrefix() {
+        StringBuilder builder = new StringBuilder();
+        for (String string : prefixs) {
+            builder.append(string);
+        }
+        return builder.toString();
+    }
+
     @Override
     public Value visitProg(MinespeakParser.ProgContext ctx) {
         currentScope = ctx.scope;
+        makeProgramHeaders(true);   // set to false when not debugging
 
-        output.add(templateFactory.createMCStatementST("scoreboard players reset @s", "")); // for debug
+        for (FuncEntry func:this.funcSignature.values()) {
+            try {
+                visit(func.getCtx().parent);
+            } catch (CompileTimeException e) {
+                return null;
+            }
+        }
+
+        for (FuncEntry func:funcSignature.values()) {
+            if (func.isMCFunction()) {
+                try {
+                    recompileFunction(func);
+                } catch (CompileTimeException e) {
+                    return null;
+                }
+                output.add(templateFactory.createFuncCallST(func));
+            }
+        }
+
+        printOutput();
+        return null;
+    }
+
+    private void printOutput() {
+        for (Template t:output) {
+            System.out.println(t.getOutput());
+        }
+    }
+
+    private void makeProgramHeaders(boolean debug) {
+        if (debug)
+            output.add(templateFactory.createMCStatementST("scoreboard players reset @s", "")); // for debug
 
         output.add(templateFactory.createDclST(templateFactory.factor1UUID, Type._num, ""));
         output.add(templateFactory.createDclST(templateFactory.factor2UUID, Type._num, ""));
         output.add(templateFactory.createDclST(templateFactory.factor1UUID, Type._vector3, ""));
         output.add(templateFactory.createDclST(templateFactory.factor2UUID, Type._vector3, ""));
-
-        for (FuncEntry func:this.funcSignature.values()) {
-            visit(func.getCtx().parent);
-        }
-//        super.visitProg(ctx);
-
-        for (FuncEntry func:funcSignature.values()) {
-            if (func.isMCFunction()) {
-                recompileFunction(func);
-                output.add(templateFactory.createFuncCallST(func));
-            }
-        }
-
-        for (Template t:output) {
-            System.out.println(t.getOutput());
-        }
-        return null;
     }
 
     @Override
     public Value visitIfStmnt(MinespeakParser.IfStmntContext ctx) {
-        for (int i = 0; i < ctx.expr().size(); i++) {
-            String tempPrefix = prefix;
-            prefix = "";
+        prefixs.add("");
+        visit(ctx.expr(0));
+        String curPrefix = prefixs.get(prefixs.size() - 1);
+        curPrefix = curPrefix.replace("matches 1", "matches 0");
+        curPrefix = curPrefix.concat("execute if score @s " + templateFactory.getExprCounterString() + " matches 1 run ");
+        prefixs.set(prefixs.size() - 1, curPrefix);
+        visit(ctx.body(0));
+        for (int i = 1; i < ctx.expr().size(); i++) {
+            curPrefix = prefixs.get(prefixs.size() - 1);
+            curPrefix = curPrefix.replace("matches 1", "matches 0");
+            prefixs.set(prefixs.size() - 1, curPrefix);
             visit(ctx.expr(i));
-
-            prefix = tempPrefix.replace("matches 1", "matches 0");
-            prefix += "execute if score @s " + templateFactory.getExprCounterString() + " matches 1 run ";
-
+            curPrefix = curPrefix.concat("execute if score @s " + templateFactory.getExprCounterString() + " matches 1 run ");
+            prefixs.set(prefixs.size() - 1, curPrefix);
             visit(ctx.body(i));
         }
 
         if (ctx.ELSE() != null)
-            prefix = prefix.replace("matches 1", "matches 0");
+            prefixs.set(prefixs.size() - 1, prefixs.get(prefixs.size() - 1).replace("matches 1", "matches 0"));
 
-        visit(ctx.body(ctx.body().size()-1));
+        visit(ctx.body(ctx.body().size() - 1));
 
-        prefix = "";
+        prefixs.remove(prefixs.size() - 1);
         return null;
     }
 
@@ -89,61 +122,69 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         Value factor = visit(ctx.factor());
 
         String lookup = factorNameTable.getOrDefault(ctx.factor(), null);
-
         exprName = exprName != null ? exprName : lookup != null ? lookup :templateFactory.factor1UUID;
 
+        switch (ctx.type.getTypeAsInt()) {
+            case Type.BOOL:
+                factorBool = Value.value(factor.getCasted(BoolValue.class));
+                generateTemplateSub(ctx, exprName, lookup, factorBool, Type._bool);
+                return msValueFactory.createValue((ctx.NOT() == null) == factorBool, ctx.type);
+            case Type.NUM:
+                factorNum = Value.value(factor.getCasted(NumValue.class));
+                generateTemplateSub(ctx, exprName, lookup, factorNum, Type._num);
+                return msValueFactory.createValue(ctx.SUB() != null ? -factorNum : factorNum, ctx.type);
+            case Type.VECTOR2:
+                factorVec2 = Value.value(factor.getCasted(Vector2Value.class));
+                generateTemplateSub(ctx, exprName, lookup, factorVec2, Type._vector2);
+                return msValueFactory.createValue(ctx.SUB() != null ? Vector2.neg(factorVec2) : factorVec2, Type._vector2);
+            case Type.VECTOR3:
+                factorVec3 = Value.value(factor.getCasted(Vector3Value.class));
+                generateTemplateSub(ctx, exprName, lookup, factorVec3, Type._vector3);
+                return msValueFactory.createValue(ctx.SUB() != null ? Vector3.neg(factorVec3) : factorVec3, Type._vector3);
+            default:
+                Error("visitNotNegFac");
+                return null;
+        }
+    }
 
-        if (ctx.type == Type._bool){
-            factorBool = Value.value(factor.getCasted(BoolValue.class));
-            if (lookup == null)
-                currentFunc.addTemplate(templateFactory.createAssignST(exprName, factorBool ? 1 : 0, ""));
-            if (ctx.NOT() != null)
-                currentFunc.addTemplate(templateFactory.createNegationExprST(exprName, "not", prefix, Type._bool));
-            else{
-                currentFunc.addTemplate(templateFactory.createInstanST(exprName, ctx.type, prefix));
-            }
-            factorNameTable.put(ctx, templateFactory.getExprCounterString());
-            return msValueFactory.createValue((ctx.NOT() == null) == factorBool, ctx.type);
-        }
-        else if (ctx.type == Type._num) {
-            factorNum = Value.value(factor.getCasted(NumValue.class));
-            if (lookup == null)
-                currentFunc.addTemplate(templateFactory.createAssignST(exprName, factorNum, prefix));
-            if (ctx.SUB() != null)
-                currentFunc.addTemplate(templateFactory.createNegationExprST(exprName, "-", prefix, Type._num));
-            else
-                currentFunc.addTemplate(templateFactory.createInstanST(exprName, ctx.type, prefix));
-
-            factorNameTable.put(ctx, templateFactory.getExprCounterString());
-            return msValueFactory.createValue(ctx.SUB() != null ? -factorNum : factorNum, ctx.type);
-        }
-        else if (ctx.type == Type._vector2) {
-            factorVec2 = Value.value(factor.getCasted(Vector2Value.class));
-            if (lookup == null)
-                currentFunc.addTemplate(templateFactory.createAssignST(exprName, factorVec2, prefix));
-            if (ctx.SUB() != null)
-                currentFunc.addTemplate(templateFactory.createNegationExprST(exprName, "-", prefix, Type._vector2));
-            else{
-                currentFunc.addTemplate(templateFactory.createInstanST(exprName, ctx.type, prefix));
-            }
-            factorNameTable.put(ctx, templateFactory.getExprCounterString());
-            return msValueFactory.createValue(ctx.SUB() != null ? Vector2.neg(factorVec2) : factorVec2, Type._vector2);
-        }
-        else if (ctx.type == Type._vector3) {
-            factorVec3 = Value.value(factor.getCasted(Vector3Value.class));
-            if (lookup == null)
-                currentFunc.addTemplate(templateFactory.createAssignST(exprName, factorVec3, prefix));
-            if (ctx.SUB() != null)
-                currentFunc.addTemplate(templateFactory.createNegationExprST(exprName, "-", prefix, Type._vector3));
-            else{
-                currentFunc.addTemplate(templateFactory.createInstanST(exprName, ctx.type, prefix));
-            }
-            factorNameTable.put(ctx, templateFactory.getExprCounterString());
-            return msValueFactory.createValue(ctx.SUB() != null ? Vector3.neg(factorVec3) : factorVec3, Type._vector3);
+    private void generateTemplateSub(MinespeakParser.NotNegFacContext ctx, String exprName, String lookup, Vector value, Type type) {
+        if (lookup == null) {
+            if (value instanceof Vector2)
+                currentFunc.addTemplate(templateFactory.createAssignST(exprName, (Vector2) value, getPrefix()));
+            else if (value instanceof Vector3)
+                currentFunc.addTemplate(templateFactory.createAssignST(exprName, (Vector3) value, getPrefix()));
         }
 
-        Error("visitNotNegFac");
-        return null;
+        if (ctx.SUB() != null)
+            currentFunc.addTemplate(templateFactory.createNegationExprST(exprName, "-", getPrefix(), type));
+        else
+            currentFunc.addTemplate(templateFactory.createInstanST(exprName, ctx.type, getPrefix()));
+
+        factorNameTable.put(ctx, templateFactory.getExprCounterString());
+    }
+
+    private void generateTemplateSub(MinespeakParser.NotNegFacContext ctx, String exprName, String lookup, Integer value, Type type) {
+        if (lookup == null)
+            currentFunc.addTemplate(templateFactory.createAssignST(exprName, value, getPrefix()));
+
+        if (ctx.SUB() != null)
+            currentFunc.addTemplate(templateFactory.createNegationExprST(exprName, "-", getPrefix(), type));
+        else
+            currentFunc.addTemplate(templateFactory.createInstanST(exprName, ctx.type, getPrefix()));
+
+        factorNameTable.put(ctx, templateFactory.getExprCounterString());
+    }
+
+    private void generateTemplateSub(MinespeakParser.NotNegFacContext ctx, String exprName, String lookup, Boolean value, Type type) {
+        if (lookup == null)
+            currentFunc.addTemplate(templateFactory.createAssignST(exprName, value ? 1 : 0, ""));
+
+        if (ctx.NOT() != null)
+            currentFunc.addTemplate(templateFactory.createNegationExprST(exprName, "not", getPrefix(), type));
+        else
+            currentFunc.addTemplate(templateFactory.createInstanST(exprName, ctx.type, getPrefix()));
+
+        factorNameTable.put(ctx, templateFactory.getExprCounterString());
     }
 
     @Override
@@ -153,7 +194,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
         String expr1Name = factorNameTable.get(ctx.expr(0));
 
-        currentFunc.addTemplate(templateFactory.createArithmeticExprST(expr1Name, num2, "Pow", prefix));
+        currentFunc.addTemplate(templateFactory.createArithmeticExprST(expr1Name, num2, "Pow", getPrefix()));
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
 
         return msValueFactory.createValue((int) Math.pow(num1, num2), ctx.type);
@@ -161,56 +202,51 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
     @Override
     public Value visitMulDivMod(MinespeakParser.MulDivModContext ctx) {
-
-        int num1 = 0, num2 = 0;
-        Vector2 vec21 = null, vec22 = null;
-        Vector3 vec31 = null, vec32 = null;
-
         Value expr1Visit = visit(ctx.expr(0));
         Value expr2Visit = visit(ctx.expr(1));
 
         String expr1Name = factorNameTable.get(ctx.expr(0));
         String expr2Name = factorNameTable.get(ctx.expr(1));
 
-        String operator = "";
-        if (ctx.TIMES() != null)
-            operator = "*";
-        else if (ctx.DIV() != null)
-            operator = "/";
-        else if (ctx.MOD() != null)
-            operator = "%";
-        else
-            Error("visitMulDivMod");
+        String operator = SymbolConverter.getSymbol(ctx.op.getType());
 
-        currentFunc.addTemplate(templateFactory.createArithmeticExprST( expr1Name, expr2Name, operator,
-                expr1Visit.type, expr2Visit.type, prefix));
+        if (operator == null) {
+            Error("visitMulDivMod");
+            return null;
+        }
+
+        currentFunc.addTemplate(templateFactory.createArithmeticExprST(expr1Name, expr2Name, operator,
+                expr1Visit.type, expr2Visit.type, getPrefix()));
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
 
+        int num1 = expr1Visit.type == Type._num ? Value.value(expr1Visit.getCasted(NumValue.class)) : 0;
+        int num2 = expr2Visit.type == Type._num ? Value.value(expr2Visit.getCasted(NumValue.class)) : 0;
+        Vector2 vec21 = expr1Visit.type == Type._vector2 ? Value.value(expr1Visit.getCasted(Vector2Value.class)) : null;
+        Vector2 vec22 = expr2Visit.type == Type._vector2 ? Value.value(expr2Visit.getCasted(Vector2Value.class)) : null;
+        Vector3 vec31 = expr1Visit.type == Type._vector3 ? Value.value(expr1Visit.getCasted(Vector3Value.class)) : null;
+        Vector3 vec32 = expr2Visit.type == Type._vector3 ? Value.value(expr2Visit.getCasted(Vector3Value.class)) : null;
 
-        if (expr1Visit.type == Type._num)
-            num1 = Value.value(expr1Visit.getCasted(NumValue.class));
-        else if (expr1Visit.type == Type._vector2)
-            vec21 = Value.value(expr1Visit.getCasted(Vector2Value.class));
-        else if (expr1Visit.type == Type._vector3)
-            vec31 = Value.value(expr1Visit.getCasted(Vector3Value.class));
-
-        if (expr2Visit.type == Type._num)
-            num2 = Value.value(expr2Visit.getCasted(NumValue.class));
-        else if (expr2Visit.type == Type._vector2)
-            vec22 = Value.value(expr2Visit.getCasted(Vector2Value.class));
-        else if (expr2Visit.type == Type._vector3)
-            vec32 = Value.value(expr2Visit.getCasted(Vector3Value.class));
-
-        if (expr1Visit.type == Type._vector2)
+        if (vec21 != null)
             return msValueFactory.createValue(Vector2.scale(vec21, num2) ,Type._vector2);
-        else if (expr2Visit.type == Type._vector2)
+        else if (vec22 != null)
             return msValueFactory.createValue(Vector2.scale(vec22, num1) ,Type._vector2);
-        else if (expr1Visit.type == Type._vector3)
+        else if (vec31 != null)
             return msValueFactory.createValue(Vector3.scale(vec31, num2) , Type._vector3);
-        else if (expr2Visit.type == Type._vector3)
+        else if (vec32 != null)
             return msValueFactory.createValue(Vector3.scale(vec32, num1) , Type._vector3);
-        else if (expr1Visit.type == Type._num && expr2Visit.type == Type._num)
-            return msValueFactory.createValue(num1 * num2, Type._num);
+        else if (expr1Visit.type == Type._num && expr2Visit.type == Type._num) {
+            int val = num1 * num2;
+            if (ctx.op.getType() == MinespeakParser.DIV || ctx.op.getType() == MinespeakParser.MOD) {
+                if (num2 == 0) {
+                    Logger.shared.add(logFactory.createDivideByZeroError(ctx.getText(), ctx.expr(1)));
+                    throw new CompileTimeException("Division by zero");
+                }
+                val = num1 % num2;
+                if (ctx.op.getType() == MinespeakParser.DIV)
+                    val = num1 / num2;
+            }
+            return msValueFactory.createValue(val, Type._num);
+        }
 
         Error("InvalidTypes");
         return null;
@@ -218,53 +254,41 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
     @Override
     public Value visitAddSub(MinespeakParser.AddSubContext ctx) {
-        int num1, num2;
-        Vector2 vec21 = null, vec22 = null;
-        Vector3 vec31 = null, vec32 = null;
-
         Value expr1Visit = visit(ctx.expr(0));
         Value expr2Visit = visit(ctx.expr(1));
 
         String expr1Name = factorNameTable.get(ctx.expr(0));
         String expr2Name = factorNameTable.get(ctx.expr(1));
 
-        String operator = "";
-        if (ctx.SUB() != null)
-            operator = "-";
-        else if (ctx.ADD() != null)
-            operator = "+";
-        else
-            Error("visitAddSub:wronInvalidOperator");
+        String operator = SymbolConverter.getSymbol(ctx.op.getType());
 
-        currentFunc.addTemplate(templateFactory.createArithmeticExprST( expr1Name, expr2Name, operator,
-                                                                        expr1Visit.type, expr2Visit.type, prefix));
+        if (operator == null) {
+            Error("visitAddSub:wrongInvalidOperator");
+            return null;
+        }
+
+        currentFunc.addTemplate(templateFactory.createArithmeticExprST(expr1Name, expr2Name, operator,
+                                                                        expr1Visit.type, expr2Visit.type, getPrefix()));
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
 
-        if (ctx.type == Type._num){
-            num1 = Value.value(expr1Visit.getCasted(NumValue.class));
-            num2 = Value.value(expr2Visit.getCasted(NumValue.class));
-            if (ctx.ADD() != null)
-                return msValueFactory.createValue(num1 + num2, ctx.type);
-            else if (ctx.SUB() != null)
-                return msValueFactory.createValue(num1 - num2, ctx.type);
-        }
-        else if (ctx.type == Type._vector2){
-            vec21 = Value.value(expr1Visit.getCasted(Vector2Value.class));
-            vec22 = Value.value(expr2Visit.getCasted(Vector2Value.class));
-        }
-        else if (ctx.type == Type._vector3){
-            vec31 = Value.value(expr1Visit.getCasted(Vector3Value.class));
-            vec32 = Value.value(expr2Visit.getCasted(Vector3Value.class));
-        }
-        if (ctx.type == Type._vector2)
-            return msValueFactory.createValue(Vector2.add(vec21, vec22), ctx.type);
-        else if (ctx.type == Type._vector3)
-            return msValueFactory.createValue(Vector3.add(vec31, vec32), ctx.type);
+        // Calculating values
+        int num1 = ctx.type == Type._num ? Value.value(expr1Visit.getCasted(NumValue.class)) : 0;
+        int num2 = ctx.type == Type._num ? Value.value(expr2Visit.getCasted(NumValue.class)) : 0;
+        Vector2 vec21 = ctx.type == Type._vector2 ? Value.value(expr1Visit.getCasted(Vector2Value.class)) : null;
+        Vector2 vec22 = ctx.type == Type._vector2 ? Value.value(expr2Visit.getCasted(Vector2Value.class)) : null;
+        Vector3 vec31 = ctx.type == Type._vector3 ? Value.value(expr1Visit.getCasted(Vector3Value.class)) : null;
+        Vector3 vec32 = ctx.type == Type._vector3 ? Value.value(expr2Visit.getCasted(Vector3Value.class)) : null;
 
-        else if (ctx.type == Type._vector2)
-            return msValueFactory.createValue(Vector2.sub(vec21, vec22), ctx.type);
-        else if (ctx.type == Type._vector3)
-            return msValueFactory.createValue(Vector3.sub(vec31, vec32), ctx.type);
+        if (ctx.type == Type._num){
+            int val = ctx.op.getType() == MinespeakParser.ADD ? num1 + num2 : num1 - num2;
+            return msValueFactory.createValue(val, ctx.type);
+        } else if (ctx.type == Type._vector2 && vec21 != null && vec22 != null) {
+            Vector2 val = ctx.op.getType() == MinespeakParser.ADD ? Vector2.add(vec21, vec22) : Vector2.sub(vec21, vec22);
+            return msValueFactory.createValue(val, ctx.type);
+        } else if (ctx.type == Type._vector3 && vec31 != null && vec32 != null) {
+            Vector3 val = ctx.op.getType() == MinespeakParser.ADD ? Vector3.add(vec31, vec32) : Vector3.sub(vec31, vec32);
+            return msValueFactory.createValue(val, ctx.type);
+        }
 
         Error("visitAddSub:InvalidType");
         return null;
@@ -279,21 +303,25 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
     @Override
     public Value visitLiteral(MinespeakParser.LiteralContext ctx) {
-        if (ctx.type == Type._string || ctx.type == Type._block)
-            return msValueFactory.createValue(ctx.getText(), ctx.type);
-        else if (ctx.type == Type._num)
-            return visit(ctx.numberLiteral());
-        else if (ctx.type == Type._bool)
-            return visit(ctx.booleanLiteral());
-        else if (ctx.type == Type._vector2)
-            return visit(ctx.vector2Literal());
-        else if (ctx.type == Type._vector3)
-            return visit(ctx.vector3Literal());
-        else if (ctx.rArray() != null)
-            return visit(ctx.rArray());
+        switch (ctx.type.getTypeAsInt()) {
+            case Type.STRING:
+            case Type.BLOCK:
+                return msValueFactory.createValue(ctx.getText(), ctx.type);
+            case Type.NUM:
+                return visit(ctx.numberLiteral());
+            case Type.BOOL:
+                return visit(ctx.booleanLiteral());
+            case Type.VECTOR2:
+                return visit(ctx.vector2Literal());
+            case Type.VECTOR3:
+                return visit(ctx.vector3Literal());
+            default:
+                if (ctx.rArray() != null)
+                    return visit(ctx.rArray());
 
-        Error("visitLiteral");
-        return null;
+                Error("visitLiteral");
+                return null;
+        }
     }
 
     @Override
@@ -329,33 +357,29 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     public Value visitRelations(MinespeakParser.RelationsContext ctx) {
         int expr1 = Value.value(visit(ctx.expr(0)).getCasted(NumValue.class));
         int expr2 = Value.value(visit(ctx.expr(1)).getCasted(NumValue.class));
-
         String expr1Name = factorNameTable.get(ctx.expr(0));
         String expr2Name = factorNameTable.get(ctx.expr(1));
+        boolean exprValue;
 
-        if (ctx.LESSER() != null){
-            currentFunc.addTemplate(templateFactory.createRelationExprST(expr1Name, expr2Name, "<" , prefix));
-            factorNameTable.put(ctx, templateFactory.getExprCounterString());
-            return msValueFactory.createValue(expr1 < expr2, Type._bool);
-        }
-        else if (ctx.GREATER() != null){
-            currentFunc.addTemplate(templateFactory.createRelationExprST(expr1Name, expr2Name, ">" , prefix));
-            factorNameTable.put(ctx, templateFactory.getExprCounterString());
-            return msValueFactory.createValue(expr1 > expr2, Type._bool);
-        }
-        else if (ctx.LESSEQ() != null) {
-            currentFunc.addTemplate(templateFactory.createRelationExprST(expr1Name, expr2Name, "<=" , prefix));
-            factorNameTable.put(ctx, templateFactory.getExprCounterString());
-            return msValueFactory.createValue(expr1 <= expr2, Type._bool);
-        }
-        else if (ctx.GREATEQ() != null) {
-            currentFunc.addTemplate(templateFactory.createRelationExprST(expr1Name, expr2Name, ">=" , prefix));
-            factorNameTable.put(ctx, templateFactory.getExprCounterString());
-            return msValueFactory.createValue(expr1 >= expr2, Type._bool);
+        switch (ctx.op.getType()) {
+            case MinespeakParser.LESSER:
+                exprValue = expr1 < expr2; break;
+            case MinespeakParser.GREATER:
+                exprValue = expr1 > expr2; break;
+            case MinespeakParser.LESSEQ:
+                exprValue = expr1 <= expr2; break;
+            case MinespeakParser.GREATEQ:
+                exprValue = expr1 >= expr2; break;
+            default:
+                Error("visitRelations");
+                return null;
         }
 
-        Error("visitRelations");
-        return null;
+        currentFunc.addTemplate(templateFactory.createRelationExprST(
+                expr1Name, expr2Name, SymbolConverter.getSymbol(ctx.op.getType()) , getPrefix()
+        ));
+        factorNameTable.put(ctx, templateFactory.getExprCounterString());
+        return msValueFactory.createValue(exprValue, Type._bool);
     }
 
     @Override
@@ -366,22 +390,12 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         String expr1Name = factorNameTable.get(ctx.expr(0));
         String expr2Name = factorNameTable.get(ctx.expr(1));
 
-        String operator = ctx.EQUAL() != null ? "==" : ctx.NOTEQUAL() != null ? "!=" : "";
+        boolean exprValue = (ctx.op.getType() == MinespeakParser.EQUAL) == (expr1.equals(expr2));
 
-        if (operator == "")
-            Error("visitEquality:InvalidOperator");
-
-        currentFunc.addTemplate(templateFactory.createEqualityExprST(expr1Name, expr2Name, operator, expr1.type, prefix));
+        currentFunc.addTemplate(templateFactory.createEqualityExprST(expr1Name, expr2Name, ctx.op.getText(), expr1.type, getPrefix()));
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
 
-        if (operator.equals("=="))
-            return msValueFactory.createValue(expr1 == expr2, Type._bool);
-        else if (operator.equals("!="))
-            return msValueFactory.createValue(expr1 != expr2, Type._bool);
-        else
-            Error("visitEquality");
-
-        return null;
+        return msValueFactory.createValue(exprValue, Type._bool);
     }
 
 
@@ -394,9 +408,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
     @Override
     public Value visitOr(MinespeakParser.OrContext ctx) {
-        Value result = calcLogicalExpr(ctx.expr(0), ctx.expr(1), "or");
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
-        return result;
+        return calcLogicalExpr(ctx.expr(0), ctx.expr(1), "or");
     }
 
     @Override
@@ -405,21 +418,20 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
             Value expr = visit(ctx.expr());
 
             String exprName = factorNameTable.get(ctx.expr());
-            currentFunc.addTemplate(templateFactory.createInstanST(exprName, ctx.type, prefix));
+            currentFunc.addTemplate(templateFactory.createInstanST(exprName, ctx.type, getPrefix()));
 
             factorNameTable.put(ctx, templateFactory.getExprCounterString());
             return expr;
-        }
-        else if (ctx.rvalue() != null){
+        } else if (ctx.rvalue() != null){
             factorNameTable.put(ctx, templateFactory.getExprCounterString());
             return visit(ctx.rvalue());
-        }
-        else if (ctx.literal() != null)
+        } else if (ctx.literal() != null) {
             return visit(ctx.literal());
-        else if (ctx.funcCall() != null)
+        } else if (ctx.funcCall() != null) {
             return visit(ctx.funcCall());
-        else
+        } else {
             return visit(ctx.arrayAccess());
+        }
     }
 
     @Override
@@ -495,31 +507,33 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
             var expr = ctx.initialValue(i).expr();
             Value exprEval = visit(expr);
+            SymEntry lookup = currentScope.lookup(ID);
+            Type templateType;
 
-            if (expr.type == Type._num) {
-                SymEntry lookup = currentScope.lookup(ID);
-                lookup.setValue(Value.value(exprEval.getCasted(NumValue.class)));
-                currentFunc.addTemplate(templateFactory.createInstanST(lookup, Type._num, prefix));
+            switch (expr.type.getTypeAsInt()) {
+                case Type.NUM:
+                    lookup.setValue(Value.value(exprEval.getCasted(NumValue.class)));
+                    templateType = Type._num; break;
+                case Type.BLOCK:
+                    lookup.setValue(Value.value(exprEval.getCasted(BlockValue.class)));
+                    templateType = Type._num; break;
+                case Type.BOOL:
+                    lookup.setValue(Value.value(exprEval.getCasted(BoolValue.class)));
+                    templateType = Type._num; break;
+                case Type.STRING:
+                    lookup.setValue(Value.value(exprEval.getCasted(StringValue.class)));
+                    templateType = Type._num; break;
+                case Type.VECTOR2:
+                    lookup.setValue(Value.value(exprEval.getCasted(Vector2Value.class)));
+                    templateType = Type._num; break;
+                case Type.VECTOR3:
+                    lookup.setValue(Value.value(exprEval.getCasted(Vector3Value.class)));
+                    templateType = Type._num; break;
+                default:
+                    templateType = Type._error;
             }
-            else if (expr.type == Type._block)
-                currentScope.lookup(ID).setValue(Value.value(exprEval.getCasted(BlockValue.class)));
-            else if (expr.type == Type._bool) {
-                SymEntry lookup = currentScope.lookup(ID);
-                lookup.setValue(Value.value(exprEval.getCasted(BoolValue.class)));
-                currentFunc.addTemplate(templateFactory.createInstanST(lookup, Type._bool, prefix));
-            }
-            else if (expr.type == Type._string)
-                currentScope.lookup(ID).setValue(Value.value(exprEval.getCasted(StringValue.class)));
-            else if (expr.type == Type._vector2) {
-                SymEntry lookup = currentScope.lookup(ID);
-                lookup.setValue(Value.value(exprEval.getCasted(Vector2Value.class)));
-                currentFunc.addTemplate(templateFactory.createInstanST(lookup, Type._vector2, prefix));
-            }
-            else if (expr.type == Type._vector3) {
-                SymEntry lookup = currentScope.lookup(ID);
-                lookup.setValue(Value.value(exprEval.getCasted(Vector3Value.class)));
-                currentFunc.addTemplate(templateFactory.createInstanST(lookup, Type._vector3, prefix));
-            }
+
+            currentFunc.addTemplate(templateFactory.createInstanST(lookup, templateType, getPrefix()));
         }
 
         return null;
@@ -551,20 +565,17 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         return null;
     }
 
-    /*
-     Helper
-     */
-
+    //region Helper functions
     private Value visitMCStmnt(MinespeakParser.StmntContext ctx) {
         String stmnt = ctx.MCStmnt().getText();
-//        currentFunc.addTemplate(templateFactory.createMCStatementST(formatString(stmnt), prefix));
-        currentFunc.addTemplate(templateFactory.createMCStatementST(stmnt, prefix));
+//        currentFunc.addTemplate(templateFactory.createMCStatementST(formatString(stmnt), getPrefix()));
+        currentFunc.addTemplate(templateFactory.createMCStatementST(stmnt, getPrefix()));
         return null;
     }
 
     private String formatString(String stmnt) {
         String command;
-        Pattern varReplacePattern = Pattern.compile("(?<prefix>\\~|\\^)?v\\{(?<varName>\\w)*\\}");
+        Pattern varReplacePattern = Pattern.compile("(?<prefix>[~^])?v\\{(?<varName>\\w)*}");
         Matcher matcher = varReplacePattern.matcher(stmnt);
 
         while (matcher.find()) {
@@ -576,20 +587,22 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
             String formatString ="";
 
-            if (type == Type._num)
-                formatString = prefix + Value.value(varVal.getCasted(NumValue.class)).toString();
-            else if (type == Type._block)
-                formatString = prefix + Value.value(varVal.getCasted(BlockValue.class));
-            else if (type == Type._bool)
-                formatString = prefix + Value.value(varVal.getCasted(BoolValue.class)).toString();
-            else if (type == Type._string)
-                formatString = prefix + Value.value(varVal.getCasted(StringValue.class));
-            else if (type == Type._vector2)
-                formatString = Value.value(varVal.getCasted(Vector2Value.class)).toString(!prefix.equals("") ? prefix : "~");
-            else if (type == Type._vector3)
-                formatString = Value.value(varVal.getCasted(Vector3Value.class)).toString(!prefix.equals("") ? prefix : "~");
-            else
-                Error("formatString");
+            switch (type.getTypeAsInt()) {
+                case Type.NUM:
+                    formatString = prefix + Value.value(varVal.getCasted(NumValue.class)).toString(); break;
+                case Type.BLOCK:
+                    formatString = prefix + Value.value(varVal.getCasted(BlockValue.class)); break;
+                case Type.BOOL:
+                    formatString = prefix + Value.value(varVal.getCasted(BoolValue.class)).toString(); break;
+                case Type.STRING:
+                    formatString = prefix + Value.value(varVal.getCasted(StringValue.class)); break;
+                case Type.VECTOR2:
+                    formatString = Value.value(varVal.getCasted(Vector2Value.class)).toString(!prefix.equals("") ? prefix : "~"); break;
+                case Type.VECTOR3:
+                    formatString = Value.value(varVal.getCasted(Vector3Value.class)).toString(!prefix.equals("") ? prefix : "~"); break;
+                default:
+                    Error("formatString");
+            }
 
             stmnt = stmnt.replace(prefix + "v{" + varName + "}", formatString);
         }
@@ -605,25 +618,26 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
             String paramName = func.scope.lookup(func.getParams().get(i).getName()).getVarName();
             Value val = visit(ctx.expr(i));
 
-
             String exprName = factorNameTable.get(ctx.expr(i));
-            paramList.add(templateFactory.createInstanST(paramName, exprName, prefix));
+            paramList.add(templateFactory.createInstanST(paramName, exprName, getPrefix()));
+            SymEntry entry = func.scope.lookup(func.getParams().get(i).getName());
 
-            if (val.type == Type._num)
-                func.scope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(NumValue.class)));
-            else if (val.type == Type._block)
-                func.scope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(BlockValue.class)));
-            else if (val.type == Type._bool)
-                func.scope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(BoolValue.class)));
-            else if (val.type == Type._string)
-                func.scope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(StringValue.class)));
-            else if (val.type == Type._vector2)
-                func.scope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(Vector2Value.class)));
-            else if (val.type == Type._vector3)
-                func.scope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(Vector3Value.class)));
-            else
-                Error("loadParamsToScope:InvalidType");
-
+            switch (val.type.getTypeAsInt()) {
+                case Type.NUM:
+                    entry.setValue(Value.value(val.getCasted(NumValue.class))); break;
+                case Type.BLOCK:
+                    entry.setValue(Value.value(val.getCasted(BlockValue.class))); break;
+                case Type.BOOL:
+                    entry.setValue(Value.value(val.getCasted(BoolValue.class))); break;
+                case Type.STRING:
+                    entry.setValue(Value.value(val.getCasted(StringValue.class))); break;
+                case Type.VECTOR2:
+                    entry.setValue(Value.value(val.getCasted(Vector2Value.class))); break;
+                case Type.VECTOR3:
+                    entry.setValue(Value.value(val.getCasted(Vector3Value.class))); break;
+                default:
+                    Error("loadParamsToScope:InvalidType");
+            }
         }
         paramList.addAll(func.getOutput());
         func.setOutput(paramList);
@@ -678,15 +692,15 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         var expr2Name = factorNameTable.get(e2);
 
         if (expr1Name.equals(templateFactory.factor1UUID))
-            output.add(templateFactory.createAssignST(expr1Name, b1 ? 1 : 0, prefix));
+            output.add(templateFactory.createAssignST(expr1Name, b1 ? 1 : 0, getPrefix()));
         if (expr2Name.equals(templateFactory.factor2UUID))
-            output.add(templateFactory.createAssignST(expr2Name, b2 ? 1 : 0, prefix));
+            output.add(templateFactory.createAssignST(expr2Name, b2 ? 1 : 0, getPrefix()));
 
-        currentFunc.addTemplate(templateFactory.createLogicalExprST(expr1Name, expr2Name, operator, prefix));
+        currentFunc.addTemplate(templateFactory.createLogicalExprST(expr1Name, expr2Name, operator, getPrefix()));
 
-        if (operator == "and")
+        if (operator.equals("and"))
             return msValueFactory.createValue((b1 && b2), Type._bool);
-        else if (operator == "or")
+        else if (operator.equals("or"))
             return msValueFactory.createValue((b1 || b2), Type._bool);
 
         Error("calcLogicalExpr");
@@ -696,4 +710,5 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     private void Error(String errMsg){
         System.out.println(errMsg + ":SHOULD NOT HAPPEN!");
     }
+    //endregion
 }

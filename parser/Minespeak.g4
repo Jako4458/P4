@@ -120,12 +120,12 @@ returns [Type type]
 
 expr
 returns [Type type]
-        : (NOT | SUB)? factor                                # NotNegFac
+        : op=(NOT | SUB)? factor                                # NotNegFac
         | <assoc=right> expr POW expr                        # Pow
-        | expr (TIMES | DIV | MOD) expr                      # MulDivMod
-        | expr (ADD | SUB) expr                              # AddSub
-        | expr (LESSER | GREATER | LESSEQ | GREATEQ) expr    # relations
-        | expr (EQUAL | NOTEQUAL) expr                       # equality
+        | expr op=(TIMES | DIV | MOD) expr                      # MulDivMod
+        | expr op=(ADD | SUB) expr                              # AddSub
+        | expr op=(LESSER | GREATER | LESSEQ | GREATEQ) expr    # relations
+        | expr op=(EQUAL | NOTEQUAL) expr                       # equality
         | expr AND expr                                      # and
         | expr OR expr                                       # or
         ;
