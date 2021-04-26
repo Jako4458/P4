@@ -33,6 +33,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         output.add(templateFactory.createDclST(templateFactory.factor2UUID, Type._num, ""));
         output.add(templateFactory.createDclST(templateFactory.factor1UUID, Type._vector3, ""));
         output.add(templateFactory.createDclST(templateFactory.factor2UUID, Type._vector3, ""));
+        output.add(templateFactory.createDclST("BlockFactor1", Type._block, ""));
+        output.add(templateFactory.createDclST("BlockFactor2", Type._block, ""));
 
         for (FuncEntry func:this.funcSignature.values()) {
             visit(func.getCtx().parent);
@@ -45,6 +47,9 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
                 output.add(templateFactory.createFuncCallST(func));
             }
         }
+
+        output.add(new BlankST("execute as @e[tag=variable] at @e[tag=variable] run setblock ~ ~-1 ~ air"));
+        output.add(new BlankST("kill @e[tag=variable]"));
 
         for (Template t:output) {
             System.out.println(t.getOutput());
@@ -93,7 +98,10 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         exprName = exprName != null ? exprName : lookup != null ? lookup :templateFactory.factor1UUID;
 
 
-        if (ctx.type == Type._bool){
+        if (ctx.type == Type._string || ctx.type == Type._block){
+            return factor;
+        }
+        else if (ctx.type == Type._bool){
             factorBool = Value.value(factor.getCasted(BoolValue.class));
             if (lookup == null)
                 currentFunc.addTemplate(templateFactory.createAssignST(exprName, factorBool ? 1 : 0, ""));
@@ -359,7 +367,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     }
 
     @Override
-    public Value visitEquality(MinespeakParser.EqualityContext ctx) {
+    public Value visitEquality(MinespeakParser.EqualityContext ctx) {   // CHECK BLOCK IN SCOPE
         Value expr1 = visit(ctx.expr(0));
         Value expr2 = visit(ctx.expr(1));
 
@@ -368,8 +376,18 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
         String operator = ctx.EQUAL() != null ? "==" : ctx.NOTEQUAL() != null ? "!=" : "";
 
-        if (operator == "")
+        if (operator == ""){
             Error("visitEquality:InvalidOperator");
+            return null;
+        }
+
+        if (expr1.type == Type._block && expr1Name == null){
+            expr1Name = templateFactory.BlockFactor1;
+            currentFunc.addTemplate(templateFactory.createAssignST(expr1Name, expr1.getValue().toString(), Type._block, prefix));
+        }
+        if (expr2.type == Type._block && expr2Name == null)
+            expr2Name = templateFactory.BlockFactor2;
+        currentFunc.addTemplate(templateFactory.createAssignST(expr2Name, expr2.getValue().toString(), Type._block, prefix));
 
         currentFunc.addTemplate(templateFactory.createEqualityExprST(expr1Name, expr2Name, operator, expr1.type, prefix));
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
@@ -437,11 +455,12 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
     @Override
     public Value visitFunc(MinespeakParser.FuncContext ctx) {
-        currentFunc = funcSignature.getOrDefault(ctx.funcSignature().ID().getText(), null);
+        currentFunc = funcSignature.get(ctx.funcSignature().ID().getText());
         currentFunc.scope = ctx.funcBody().scope;
         currentScope = currentFunc.scope;
 
         visit(ctx.funcBody());
+        currentFunc.isCompiled = true;
         return null;
     }
 
@@ -501,8 +520,11 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
                 lookup.setValue(Value.value(exprEval.getCasted(NumValue.class)));
                 currentFunc.addTemplate(templateFactory.createInstanST(lookup, Type._num, prefix));
             }
-            else if (expr.type == Type._block)
-                currentScope.lookup(ID).setValue(Value.value(exprEval.getCasted(BlockValue.class)));
+            else if (expr.type == Type._block){
+                SymEntry lookup = currentScope.lookup(ID);
+                lookup.setValue(Value.value(exprEval.getCasted(BlockValue.class)));
+                currentFunc.addTemplate(templateFactory.createInstanST(lookup, expr.type, prefix));
+            }
             else if (expr.type == Type._bool) {
                 SymEntry lookup = currentScope.lookup(ID);
                 lookup.setValue(Value.value(exprEval.getCasted(BoolValue.class)));
@@ -535,7 +557,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     public Value visitFuncCall(MinespeakParser.FuncCallContext ctx) {
         var func = funcSignature.get(ctx.ID().getText());
 
-        if (func.getOutput().size() == 0)
+        if (!func.isCompiled)
             throw new FuncCompileDependantException();
 
         if (!func.isMCFunction()){
@@ -607,7 +629,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
 
             String exprName = factorNameTable.get(ctx.expr(i));
-            paramList.add(templateFactory.createInstanST(paramName, exprName, prefix));
 
             if (val.type == Type._num)
                 func.scope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(NumValue.class)));
@@ -623,6 +644,13 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
                 func.scope.lookup(func.getParams().get(i).getName()).setValue(Value.value(val.getCasted(Vector3Value.class)));
             else
                 Error("loadParamsToScope:InvalidType");
+
+            if (val.type == Type._block)
+                paramList.add(templateFactory.createInstanST(func.scope.lookup(exprName), Type._block, prefix));
+            else if (val.type == Type._string)
+                return;
+            else
+                paramList.add(templateFactory.createInstanST(paramName, exprName, prefix));
 
         }
         paramList.addAll(func.getOutput());

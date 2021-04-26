@@ -9,6 +9,7 @@ public class FuncEntry implements SymEntry {
     private final MinespeakParser.FuncSignatureContext ctx;
     public Scope scope;
     private Value value;
+    public boolean isCompiled;
 
     private ArrayList<Template> output = new ArrayList<>();
 

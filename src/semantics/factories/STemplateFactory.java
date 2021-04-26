@@ -4,16 +4,23 @@ import java.util.UUID;
 
 public class STemplateFactory {
     private Integer exprCounter = 0;
-    private Integer vecExprCounter = 0;
     public String factor1UUID = generateValidUUID();
     public String factor2UUID = generateValidUUID();
-//    public String vecFactor1UUID = generateValidUUID();
-//    public String vecFactor2UUID = generateValidUUID();
+    private Vector3 blockFactor1Pos = new Vector3(0, 255, 0); // is dependant on dcl before block var uses
+    private Vector3 blockFactor2Pos = new Vector3(1, 255, 0); // is dependant on dcl before block var uses
+    public String BlockFactor1 = "BlockFactor1";
+    public String BlockFactor2 = "BlockFactor2";
+    private Vector3 blockPos = new Vector3(0, 255, 0);
 
     private Integer newExprCounter() {return ++exprCounter; }
 
     private String getNewExprCounterString() {return "expr_" + newExprCounter(); }
     public String getExprCounterString() {return "expr_" + exprCounter; }
+
+    private Vector3 getNewBlockPos() {
+        blockPos = new Vector3(blockPos.getX()+1, blockPos.getY(), blockPos.getZ());
+        return blockPos;
+    }
 
 
     // ArithmeticExprST
@@ -27,8 +34,12 @@ public class STemplateFactory {
 
     // EqualityExprST
     public EqualityExprST createEqualityExprST(String a, String b, String operator, Type type, String prefix) {
-        return new EqualityExprST(a, b, operator, getNewExprCounterString(), type, prefix);
+        if (type == Type._block)
+            return new EqualityExprST(a, b, operator, getNewExprCounterString(), blockFactor1Pos, blockFactor2Pos, type, prefix);
+        else
+            return new EqualityExprST(a, b, operator, getNewExprCounterString(), type, prefix);
     }
+
 
     // LogicalExprST
     public LogicalExprST createLogicalExprST(String a, String b, String operator, String prefix) {
@@ -85,7 +96,10 @@ public class STemplateFactory {
 
     // DclST
     public DclST createDclST(String varName, Type type, String prefix) {
-        return new DclST(varName, type, prefix);
+        if (type == Type._block)
+            return new DclST(varName, getNewBlockPos(), type, prefix);
+        else
+            return new DclST(varName, type, prefix);
     }
 
 
@@ -105,11 +119,14 @@ public class STemplateFactory {
 
     // InstantST
     public InstanST createInstanST(SymEntry entry, Type type, String prefix) {
-        return new InstanST(entry.getVarName(), getExprCounterString(), type, prefix);
+        if (type == Type._block)
+            return new InstanST(entry.getVarName(), (BlockValue) entry.getValue(), getNewBlockPos(), type, prefix);
+        else
+            return new InstanST(entry.getVarName(), getExprCounterString(), type, prefix);
     }
 
-    public AssignST createAssignST(String varName, String exprName, String prefix){
-        return new AssignST(varName, exprName, prefix);
+    public AssignST createAssignST(String varName, String exprName, Type type, String prefix){
+        return new AssignST(varName, exprName, type, prefix);
     }
 
     public AssignST createAssignST(String varName, int val, String prefix){

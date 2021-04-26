@@ -7,7 +7,10 @@ public class DclST implements Template {
     public DclST(String varName, Type type, String prefix){
         ST st;
 
-        if (type == Type._vector2 || type == Type._vector3) {
+        if (type == Type._block){
+            return;
+        }
+        else if (type == Type._vector2 || type == Type._vector3) {
             if (type == Type._vector2)
                 st = new ST("<DclX><DclY>");
             else
@@ -33,6 +36,25 @@ public class DclST implements Template {
             st.add("prefix", prefix);
             st.add("varName", varName);
         }
+
+        output = st.render();
+    }
+
+    public DclST (String varName, Vector3 pos, Type type, String prefix) {
+        if (type != Type._block)
+            return;
+
+        ST st = new ST( "#<Comment>\n " +
+                "<prefix>summon armor_stand <posX> <posStandY> <posZ> {Tags:[\"<varName>\", \"variable\"],NoGravity:1}"
+        );
+
+        st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
+        st.add("prefix", prefix);
+
+        st.add("varName", varName);
+        st.add("posX", pos.getX());
+        st.add("posStandY", pos.getY()+1);
+        st.add("posZ", pos.getZ());
 
         output = st.render();
     }

@@ -12,9 +12,41 @@ public class EqualityExprST implements Template {
             this.output = createVector3EqualityST(a, b, operator, exprID, prefix).render();
     }
 
-    public EqualityExprST(String a, String b, String operator, String exprID, Type t1, Type t2, int size, String prefix) {
-        this.output = createArrayEqualityST(a, b, operator, exprID, size, prefix).render();
+    public EqualityExprST(String a, String b, String operator, String exprID, Vector3 pos1, Vector3 pos2, Type type, String prefix) {
+        ST template = new ST("#<Comment>\n" +
+                        "<prefix>execute as @e[tag=<a>] at @e[tag=<a>] run clone ~ ~-1 ~ ~ ~-1 ~ <pos1X> <pos1Y> <pos1Z>\n" +
+                        "<prefix>execute as @e[tag=<b>] at @e[tag=<b>] run clone ~ ~-1 ~ ~ ~-1 ~ <pos2X> <pos2Y> <pos2Z>\n" +
+
+                        "<prefix>scoreboard objectives add <exprID> dummy\n" +
+                        "<prefix>scoreboard players set @s <exprID> 0\n" +
+                        "<prefix>execute <operator> blocks <pos1X> <pos1Y> <pos1Z> <pos1X> <pos1Y> <pos1Z> <pos2X> <pos2Y> <pos2Z> " +
+                        "run scoreboard players set @s <exprID> 1\n"
+                        );
+
+        template.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
+
+        template.add("prefix", prefix);
+
+        template.add("a", a);
+        template.add("b", b);
+        template.add("exprID", exprID);
+
+        template.add("pos1X", pos1.getX());
+        template.add("pos1Y", pos1.getY());
+        template.add("pos1Z", pos1.getZ());
+
+        template.add("pos2X", pos2.getX());
+        template.add("pos2Y", pos2.getY());
+        template.add("pos2Z", pos2.getZ());
+
+        template.add("operator", operator == "==" ? "if" :"unless");
+
+        output = template.render();
     }
+
+//    public EqualityExprST(String a, String b, String operator, String exprID, Type t1, Type t2, int size, String prefix) {
+//        this.output = createArrayEqualityST(a, b, operator, exprID, size, prefix).render();
+//    }
 
     private ST createNumEqualityST(String a, String b, String operator, String exprID, String prefix) {
         ST template = new ST(
