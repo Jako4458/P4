@@ -105,7 +105,7 @@ public class LogFactory {
     }
 
     public Log createUnreachableCodeWarning(String text, ParserRuleContext ctx) {
-        return new InfiniteLoopWarning(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
+        return new UnreachableCodeWarning(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
     }
 
     public Log createConstantLoopExpressionWarning(String text, ParserRuleContext ctx) {

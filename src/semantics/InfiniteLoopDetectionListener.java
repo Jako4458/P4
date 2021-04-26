@@ -11,7 +11,7 @@ public class InfiniteLoopDetectionListener extends ScopeEnterExitListener {
     @Override
     public void enterDoWhile(MinespeakParser.DoWhileContext ctx) {
         depth++;
-        valueNotAssigned.set(depth, new ArrayList<>());
+        createNewDepthList();
         super.enterDoWhile(ctx);
     }
 
@@ -36,7 +36,7 @@ public class InfiniteLoopDetectionListener extends ScopeEnterExitListener {
     @Override
     public void enterForStmnt(MinespeakParser.ForStmntContext ctx) {
         depth++;
-        valueNotAssigned.set(depth, new ArrayList<>());
+        createNewDepthList();
         super.enterForStmnt(ctx);
     }
 
@@ -62,8 +62,16 @@ public class InfiniteLoopDetectionListener extends ScopeEnterExitListener {
     @Override
     public void enterWhileStmnt(MinespeakParser.WhileStmntContext ctx) {
         depth++;
-        valueNotAssigned.set(depth, new ArrayList<>());
+        createNewDepthList();
         super.enterWhileStmnt(ctx);
+    }
+
+    private void createNewDepthList() {
+        if (valueNotAssigned.size() == depth) {
+            valueNotAssigned.add(new ArrayList<>());
+        } else {
+            valueNotAssigned.set(depth, new ArrayList<>());
+        }
     }
 
     @Override
