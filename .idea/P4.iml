@@ -12,6 +12,10 @@
       <sourceFolder url="file://$MODULE_DIR$/src/semantics/factories" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/semantics/utils" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/tests/ParserTest" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/Code-generation" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/Code-generation/values" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/Code-generation/templates" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/Code-generation/templates/expressions" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/tests/TypeTests" isTestSource="true" />
     </content>
     <orderEntry type="jdk" jdkName="15" jdkType="JavaSDK" />

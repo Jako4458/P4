@@ -122,12 +122,12 @@ returns [Type type]
 
 expr
 returns [Type type]
-        : (NOT | SUB)? factor                                # NotNegFac
+        : op=(NOT | SUB)? factor                                # NotNegFac
         | <assoc=right> expr POW expr                        # Pow
-        | expr (TIMES | DIV | MOD) expr                      # MulDivMod
-        | expr (ADD | SUB) expr                              # AddSub
-        | expr (LESSER | GREATER | LESSEQ | GREATEQ) expr    # relations
-        | expr (EQUAL | NOTEQUAL) expr                       # equality
+        | expr op=(TIMES | DIV | MOD) expr                      # MulDivMod
+        | expr op=(ADD | SUB) expr                              # AddSub
+        | expr op=(LESSER | GREATER | LESSEQ | GREATEQ) expr    # relations
+        | expr op=(EQUAL | NOTEQUAL) expr                       # equality
         | expr AND expr                                      # and
         | expr OR expr                                       # or
         ;
@@ -172,8 +172,6 @@ returns [Type type]
         | BLOCK
         | BOOL
         | STRING
-        | BYTE
-        | FILE
         | VECTOR2
         | VECTOR3
         ;
@@ -195,11 +193,12 @@ numberLiteral : DecimalDigit
 booleanLiteral : TRUE | FALSE
                ;
 
-vector2Literal : LESSER (expr | ID) COMMA (expr | ID) GREATER
+vector2Literal : LESSER expr COMMA expr GREATER
                ;
 
-vector3Literal : LESSER (expr | ID) COMMA (expr | ID) COMMA (expr | ID) GREATER
+vector3Literal : LESSER expr COMMA expr COMMA expr GREATER
                ;
+
 
 newlines : Newline+ //-> skip
          ;
@@ -261,8 +260,6 @@ NUM: 'num';
 BLOCK: 'block';
 BOOL: 'bool';
 STRING: 'string';
-BYTE: 'byte';
-FILE: 'file';
 VECTOR2: 'vector2';
 VECTOR3: 'vector3';
 TRUE: 'true';

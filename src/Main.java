@@ -10,8 +10,8 @@ import java.io.*;
 import java.io.File;
 import java.io.IOException;
 
-public class Main {
 
+public class Main {
     private static Configuration config;
 
     public static void main(String[] args) {
@@ -90,7 +90,8 @@ public class Main {
     }
 
     public static void codeGeneration(ParseTree tree) {
-        //TODO: Codegen
+        CodeGenVisitor codeGenVisitor = new CodeGenVisitor(walker.functionSignatures);
+        codeGenVisitor.visit(tree);
     }
     
 }

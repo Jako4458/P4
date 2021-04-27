@@ -100,6 +100,10 @@ public class LogFactory {
         );
     }
 
+
+    public Log createDivideByZeroError(String text, ParserRuleContext ctx) {
+        return new DivisionByZeroError(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
+    }
     public Log createInfiniteLoopWarning(String text, ParserRuleContext ctx) {
         return new InfiniteLoopWarning(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
     }
