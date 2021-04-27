@@ -103,10 +103,12 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         }
         else if (ctx.type == Type._bool){
             factorBool = Value.value(factor.getCasted(BoolValue.class));
-            if (lookup == null)
+            if (lookup == null) {
                 currentFunc.addTemplate(templateFactory.createAssignST(exprName, factorBool ? 1 : 0, ""));
-            if (ctx.NOT() != null)
+            }
+            if (ctx.NOT() != null) {
                 currentFunc.addTemplate(templateFactory.createNegationExprST(exprName, "not", prefix, Type._bool));
+            }
             else{
                 currentFunc.addTemplate(templateFactory.createInstanST(exprName, ctx.type, prefix));
             }
@@ -371,8 +373,13 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         Value expr1 = visit(ctx.expr(0));
         Value expr2 = visit(ctx.expr(1));
 
-        String expr1Name = factorNameTable.get(ctx.expr(0));
-        String expr2Name = factorNameTable.get(ctx.expr(1));
+
+        SymEntry expr1Lookup = currentScope.lookup(ctx.expr(0).getText());
+        SymEntry expr2Lookup = currentScope.lookup(ctx.expr(1).getText());
+        String expr1Name = ctx.expr(0).type.equals(Type._block) && expr1Lookup != null
+                ? expr1Lookup.getVarName() : factorNameTable.get(ctx.expr(0));
+        String expr2Name = ctx.expr(1).type.equals(Type._block) && expr2Lookup != null
+                ? expr2Lookup.getVarName() : factorNameTable.get(ctx.expr(1));
 
         String operator = ctx.EQUAL() != null ? "==" : ctx.NOTEQUAL() != null ? "!=" : "";
 
@@ -385,9 +392,10 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
             expr1Name = templateFactory.BlockFactor1;
             currentFunc.addTemplate(templateFactory.createAssignST(expr1Name, expr1.getValue().toString(), Type._block, prefix));
         }
-        if (expr2.type == Type._block && expr2Name == null)
+        if (expr2.type == Type._block && expr2Name == null){
             expr2Name = templateFactory.BlockFactor2;
-        currentFunc.addTemplate(templateFactory.createAssignST(expr2Name, expr2.getValue().toString(), Type._block, prefix));
+            currentFunc.addTemplate(templateFactory.createAssignST(expr2Name, expr2.getValue().toString(), Type._block, prefix));
+        }
 
         currentFunc.addTemplate(templateFactory.createEqualityExprST(expr1Name, expr2Name, operator, expr1.type, prefix));
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
@@ -425,7 +433,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
             String exprName = factorNameTable.get(ctx.expr());
             currentFunc.addTemplate(templateFactory.createInstanST(exprName, ctx.type, prefix));
 
-            factorNameTable.put(ctx, templateFactory.getExprCounterString());
+            if (ctx.type != Type._block)
+                factorNameTable.put(ctx, templateFactory.getExprCounterString());
             return expr;
         }
         else if (ctx.rvalue() != null){
@@ -524,6 +533,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
                 SymEntry lookup = currentScope.lookup(ID);
                 lookup.setValue(Value.value(exprEval.getCasted(BlockValue.class)));
                 currentFunc.addTemplate(templateFactory.createInstanST(lookup, expr.type, prefix));
+                factorNameTable.put(ctx.initialValue(i).expr(), lookup.getVarName());
             }
             else if (expr.type == Type._bool) {
                 SymEntry lookup = currentScope.lookup(ID);

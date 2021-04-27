@@ -32,7 +32,7 @@ public class InstanST implements Template {
             return;
 
         ST st = new ST( "#<Comment>\n<prefix>setblock <posX> <posY> <posZ> <block>\n" +
-                "<prefix>summon armor_stand <posX> <posStandY> <posZ> {Tags:[\"<varName>\", \"variable\"],NoGravity:1}"
+                "<prefix>summon armor_stand <posX> <posStandY> <posZ> {Tags:[\"<varName>\", \"variable\"],NoGravity:1}\n"
                 );
         st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
 
