@@ -4,18 +4,30 @@ import org.stringtemplate.v4.ST;
 public class AssignST implements Template {
     private String output;
 
-    public AssignST(String varName, String exprName, String prefix){
-        ST st = new ST( "#<Comment>\n" +
-                                "<prefix>execute at @s store result score @s <varName> run scoreboard players get @s <exprName> \n");
+    public AssignST(String varName, String exprName, Type type, String prefix) {
+        ST st;
+        if (type == Type._block) {
+            st = new ST("#<Comment>\n" +
+                    "<prefix>execute as @e[tag=<varName>] at @e[tag=<varName>] run setblock ~ ~-1 ~ <block>\n"
+            );
+
+            st.add("block", exprName.substring(1));
+            st.add("varName", varName);
+        }
+        else {
+            st = new ST("#<Comment>\n" +
+                    "<prefix>execute at @s store result score @s <varName> run scoreboard players get @s <exprName> \n");
+
+            st.add("varName", varName);
+            st.add("exprName", exprName);
+        }
 
         st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
-
         st.add("prefix", prefix);
-        st.add("varName", varName);
-        st.add("exprName", exprName);
 
         output = st.render();
     }
+
     public AssignST(String varName, int exprVal, String prefix){
         ST st = new ST( "#<Comment>\n" +
                                 "<prefix>scoreboard players set @s <varName> <exprVal> \n");

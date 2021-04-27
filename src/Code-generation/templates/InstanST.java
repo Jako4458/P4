@@ -11,6 +11,8 @@ public class InstanST implements Template {
     public InstanST(String varName, String exprName, Type type, String prefix) {
         if (type == Type._vector2 || type == Type._vector3)
             this.output =  createVectorInstant(varName, exprName, type, prefix).render();
+        else if (type == Type._block)
+            return;
         else {
             ST st = new ST( "#<Comment>\n<prefix>scoreboard objectives add <varName> dummy \n" +
                     "<prefix>execute at @s store result score @s <varName> run scoreboard players get @s <exprName> \n");
@@ -25,7 +27,30 @@ public class InstanST implements Template {
         }
     }
 
-    private ST createVectorInstant(String varName, String exprName, Type type, String prefix) {
+    public InstanST(String varName, BlockValue blockValue, Vector3 pos,Type type, String prefix) {
+        if (type != Type._block)
+            return;
+
+        ST st = new ST( "#<Comment>\n<prefix>setblock <posX> <posY> <posZ> <block>\n" +
+                "<prefix>summon armor_stand <posX> <posStandY> <posZ> {Tags:[\"<varName>\", \"variable\"],NoGravity:1}\n"
+                );
+        st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
+
+        st.add("prefix", prefix);
+        st.add("varName", varName);
+        st.add("block", blockValue.getValue().substring(1).toLowerCase());
+
+        st.add("posX", pos.getX());
+        st.add("posY", pos.getY());
+        st.add("posZ", pos.getZ());
+
+        st.add("posStandY", pos.getY()+1);
+
+        output = st.render();
+    }
+
+
+        private ST createVectorInstant(String varName, String exprName, Type type, String prefix) {
         ST template;
         if (type == Type._vector2)
             template = new ST("<X><Y>");
