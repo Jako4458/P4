@@ -9,10 +9,13 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import java.io.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class Main {
     private static Configuration config;
+    private static Map<String, FuncEntry> functionSignatures;
 
     public static void main(String[] args) {
         // Configure the compiler through the compiler arguments.
@@ -79,6 +82,7 @@ public class Main {
 
         SignatureWalker walker = new SignatureWalker();
         walker.visit(tree);
+        Main.functionSignatures = walker.functionSignatures;
         ScopeListener scopeListener = new ScopeListener(walker.functionSignatures);
         ParseTreeWalker.DEFAULT.walk(scopeListener, tree);
 
@@ -90,7 +94,7 @@ public class Main {
     }
 
     public static void codeGeneration(ParseTree tree) {
-        CodeGenVisitor codeGenVisitor = new CodeGenVisitor(walker.functionSignatures);
+        CodeGenVisitor codeGenVisitor = new CodeGenVisitor(Main.functionSignatures);
         codeGenVisitor.visit(tree);
     }
     
