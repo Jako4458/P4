@@ -8,10 +8,10 @@ import java.io.IOException;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ParseLiteralTests {
-    private TestHelper helper = new TestHelper();
+    private final TestHelper helper = new TestHelper();
 
     /* correct literal */
-    @RepeatedTest(14)
+    @RepeatedTest(12)
     void CorrectLiteral(RepetitionInfo rI) throws IOException {
         helper.setupFromFile("/parser/test/parser/literal/literal_correct" + rI.getCurrentRepetition() + ".ms");
         assertDoesNotThrow(() -> helper.minespeakParser.literal());

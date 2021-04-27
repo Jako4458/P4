@@ -1,5 +1,5 @@
 public class ScopeEnterExitListener extends MinespeakBaseListener {
-    private Scope currentScope;
+    protected Scope currentScope;
 
     public ScopeEnterExitListener() {
         enterScope(null);
@@ -38,7 +38,6 @@ public class ScopeEnterExitListener extends MinespeakBaseListener {
     @Override
     public void enterFuncBody(MinespeakParser.FuncBodyContext ctx) {
         enterScope(ctx.scope);
-
     }
 
     @Override

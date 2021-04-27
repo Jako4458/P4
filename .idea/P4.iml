@@ -16,6 +16,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/Code-generation/values" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/Code-generation/templates" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/Code-generation/templates/expressions" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/tests/TypeTests" isTestSource="true" />
     </content>
     <orderEntry type="jdk" jdkName="15" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />

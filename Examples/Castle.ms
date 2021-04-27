@@ -34,11 +34,11 @@ minespeak
 
         // build wall towers
         foreach vector3 towerPos in wallTowerPos do
-            BuildTower(towerPos, towerWallSize, mat)
+            BuildTower(towerPos, mainTowerWallSize, mat)
         endfor
         
         // build main tower
-        BuildTower(startPos, mainTowerWallSize, mat)
+        BuildTower(wallTowerPos, mainTowerWallSize, mat)
 
     endfunc
 

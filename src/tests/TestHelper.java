@@ -60,6 +60,10 @@ public class TestHelper {
         visitor.visit(tree);
     }
 
+    public void walkTreeWithListener(ParseTree tree, MinespeakBaseListener listener) {
+        ParseTreeWalker.DEFAULT.walk(listener, tree);
+    }
+
     public String getEntryName(Scope scope, String id) {
         return scope.lookup(id).getName();
     }
