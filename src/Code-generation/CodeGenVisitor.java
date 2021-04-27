@@ -654,9 +654,9 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
             String exprName = factorNameTable.get(ctx.expr(i));
           
-            if (val.Type.equals(Type._block))
+            if (val.type.equals(Type._block))
                 paramList.add(templateFactory.createInstanST(func.scope.lookup(exprName), Type._block, getPrefix()));
-            else if (!val.Type.equals(Type._string))
+            else if (!val.type.equals(Type._string))
                 paramList.add(templateFactory.createInstanST(paramName, exprName, getPrefix()));
           
             SymEntry entry = func.scope.lookup(func.getParams().get(i).getName());
