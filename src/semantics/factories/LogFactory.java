@@ -74,4 +74,9 @@ public class LogFactory {
                 ((TerminalNodeImpl) right.tree).symbol.getText()
         );
     }
+
+    public Log createDivideByZeroError(String text, ParserRuleContext ctx) {
+        return new DivisionByZeroError(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
+    }
+
 }
