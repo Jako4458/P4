@@ -1,5 +1,5 @@
 
-import Logging.Logger;
+import logging.Logger;
 import exceptions.CompileTimeException;
 import exceptions.FuncCompileDependantException;
 import exceptions.ParameterDependantException;
@@ -326,9 +326,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
             case Type.VECTOR3:
                 return visit(ctx.vector3Literal());
             default:
-                if (ctx.rArray() != null)
-                    return visit(ctx.rArray());
-
                 Error("visitLiteral");
                 return null;
         }
@@ -446,7 +443,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
     @Override
     public Value visitFactor(MinespeakParser.FactorContext ctx) {
-        if (ctx.LPAREN() != null){
+        if (ctx.LPAREN() != null) {
             Value expr = visit(ctx.expr());
 
             String exprName = factorNameTable.get(ctx.expr());
@@ -455,13 +452,15 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
             if (ctx.type != Type._block)
                 factorNameTable.put(ctx, templateFactory.getExprCounterString());
             return expr;
-        } else if (ctx.rvalue() != null){
+        } else if (ctx.rvalue() != null) {
             factorNameTable.put(ctx, templateFactory.getExprCounterString());
             return visit(ctx.rvalue());
         } else if (ctx.literal() != null) {
             return visit(ctx.literal());
         } else if (ctx.funcCall() != null) {
             return visit(ctx.funcCall());
+        } else if (ctx.rArray() != null) {
+            return visit(ctx.rArray());
         } else {
             return visit(ctx.arrayAccess());
         }

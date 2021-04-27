@@ -1,4 +1,4 @@
-package Logging;
+package logging.logs;
 
 public class DivisionByZeroError extends ErrorLog {
     public DivisionByZeroError(String text, int lineNum, int characterIndex) {
