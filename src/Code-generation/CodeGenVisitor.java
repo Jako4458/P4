@@ -1,4 +1,3 @@
-
 import logging.Logger;
 import exceptions.CompileTimeException;
 import exceptions.FuncCompileDependantException;
@@ -10,6 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
+    //region variable instantiations
     private Scope currentScope;
     private FuncEntry currentFunc;
     private final Map<String, FuncEntry> funcSignature;
@@ -19,20 +19,31 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     private final Map<ParseTree, String> factorNameTable = new HashMap<>();
 
     private final ArrayList<String> prefixs = new ArrayList<>();
-
     private final ArrayList<Template> output = new ArrayList<>();
+    //endregion
 
     public CodeGenVisitor(Map<String, FuncEntry> funcSignature) {
         this.funcSignature = funcSignature;
     }
 
-    private String getPrefix() {
-        StringBuilder builder = new StringBuilder();
-        for (String string : prefixs) {
-            builder.append(string);
-        }
-        return builder.toString();
+    //region program header + footer
+    private void makeProgramHeaders(boolean debug) {
+        if (debug)
+            output.add(templateFactory.createMCStatementST("scoreboard players reset @s", "")); // for debug
+
+        output.add(templateFactory.createDclST(templateFactory.factor1UUID, Type._num, ""));
+        output.add(templateFactory.createDclST(templateFactory.factor2UUID, Type._num, ""));
+        output.add(templateFactory.createDclST(templateFactory.factor1UUID, Type._vector3, ""));
+        output.add(templateFactory.createDclST(templateFactory.factor2UUID, Type._vector3, ""));
+        output.add(templateFactory.createDclST("BlockFactor1", Type._block, ""));
+        output.add(templateFactory.createDclST("BlockFactor2", Type._block, ""));
     }
+
+    private void makeProgramFooters() {
+        output.add(new BlankST("execute as @e[tag=variable] at @e[tag=variable] run setblock ~ ~-1 ~ air"));
+        output.add(new BlankST("kill @e[tag=MineSpeak]"));
+    }
+    //endregion
 
     @Override
     public Value visitProg(MinespeakParser.ProgContext ctx) {
@@ -63,29 +74,75 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         return null;
     }
 
-    private void printOutput() {
-        for (Template t:output) {
-            System.out.println(t.getOutput());
+    @Override
+    public Value visitBlock(MinespeakParser.BlockContext ctx) {
+        currentScope = ctx.scope;
+        return super.visitBlock(ctx);
+    }
+
+    @Override
+    public Value visitFunc(MinespeakParser.FuncContext ctx) {
+        currentFunc = funcSignature.get(ctx.funcSignature().ID().getText());
+        currentFunc.scope = ctx.funcBody().scope;
+        currentScope = currentFunc.scope;
+
+        visit(ctx.funcBody());
+        currentFunc.isCompiled = true;
+        return null;
+    }
+
+    @Override
+    public Value visitFuncBody(MinespeakParser.FuncBodyContext ctx) {
+        if (ctx.stmnts() != null)
+            visit(ctx.stmnts());
+        if (ctx.retVal() != null)
+            currentFunc.setValue(visit(ctx.retVal()));
+        return null;
+    }
+
+    @Override
+    public Value visitRetVal(MinespeakParser.RetValContext ctx) {
+        return visit(ctx.expr());
+    }
+
+    @Override
+    public Value visitStmnts(MinespeakParser.StmntsContext ctx) {
+
+        for (var child:ctx.children) {
+            try {
+                visit(child);
+            } catch (ParameterDependantException e) {   // if stmnt depends on a parameter
+                currentFunc.addTemplate(templateFactory.createParamDependantStmntST(child));
+            } catch (FuncCompileDependantException e) { // if a function is called before it is compiled
+                currentFunc.addTemplate(templateFactory.createFunctionDependantStmntST(child));
+            }
         }
+        return null;
     }
 
-    private void makeProgramHeaders(boolean debug) {
-        if (debug)
-            output.add(templateFactory.createMCStatementST("scoreboard players reset @s", "")); // for debug
+    @Override
+    public Value visitStmnt(MinespeakParser.StmntContext ctx) {
+        if (ctx.MCStmnt() != null)
+            return visitMCStmnt(ctx);
 
-        output.add(templateFactory.createDclST(templateFactory.factor1UUID, Type._num, ""));
-        output.add(templateFactory.createDclST(templateFactory.factor2UUID, Type._num, ""));
-        output.add(templateFactory.createDclST(templateFactory.factor1UUID, Type._vector3, ""));
-        output.add(templateFactory.createDclST(templateFactory.factor2UUID, Type._vector3, ""));
-        output.add(templateFactory.createDclST("BlockFactor1", Type._block, ""));
-        output.add(templateFactory.createDclST("BlockFactor2", Type._block, ""));
+        return super.visitStmnt(ctx);
     }
 
-    private void makeProgramFooters() {
-        output.add(new BlankST("execute as @e[tag=variable] at @e[tag=variable] run setblock ~ ~-1 ~ air"));
-        output.add(new BlankST("kill @e[tag=variable]")); 
+    @Override
+    public Value visitDoWhile(MinespeakParser.DoWhileContext ctx) {
+        return super.visitDoWhile(ctx);
     }
-  
+
+    @Override
+    public Value visitWhileStmnt(MinespeakParser.WhileStmntContext ctx) {
+        return super.visitWhileStmnt(ctx);
+    }
+
+    @Override
+    public Value visitForStmnt(MinespeakParser.ForStmntContext ctx) {
+        return super.visitForStmnt(ctx);
+    }
+
     @Override
     public Value visitIfStmnt(MinespeakParser.IfStmntContext ctx) {
         prefixs.add("");
@@ -114,6 +171,61 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         return null;
     }
 
+    @Override
+    public Value visitBody(MinespeakParser.BodyContext ctx) {
+        currentScope = ctx.scope;
+        return super.visitBody(ctx);
+    }
+
+    @Override
+    public Value visitDcls(MinespeakParser.DclsContext ctx) { //FIX
+        for (int i = 0; i < ctx.ID().size(); i++){
+            String ID = ctx.ID(i).getText();
+            currentFunc.addTemplate(templateFactory.createDclST(ID, ctx.primaryType(i).type, getPrefix()));
+        }
+        return null;
+    }
+
+    @Override
+    public Value visitInstan(MinespeakParser.InstanContext ctx) {
+        for (int i = 0; i < ctx.ID().size(); i++) {
+            String ID = ctx.ID(i).getText();
+
+            var expr = ctx.initialValue(i).expr();
+            Value exprEval = visit(expr);
+            SymEntry lookup = currentScope.lookup(ID);
+            Type templateType;
+
+            switch (expr.type.getTypeAsInt()) {
+                case Type.NUM:
+                    lookup.setValue(Value.value(exprEval.getCasted(NumValue.class)));
+                    templateType = Type._num; break;
+                case Type.BLOCK:
+                    lookup.setValue(Value.value(exprEval.getCasted(BlockValue.class)));
+                    factorNameTable.put(ctx.initialValue(i).expr(), lookup.getVarName());
+                    templateType = Type._block; break;
+                case Type.BOOL:
+                    lookup.setValue(Value.value(exprEval.getCasted(BoolValue.class)));
+                    templateType = Type._bool; break;
+                case Type.STRING:
+                    lookup.setValue(Value.value(exprEval.getCasted(StringValue.class)));
+                    templateType = Type._string; break;
+                case Type.VECTOR2:
+                    lookup.setValue(Value.value(exprEval.getCasted(Vector2Value.class)));
+                    templateType = Type._vector2; break;
+                case Type.VECTOR3:
+                    lookup.setValue(Value.value(exprEval.getCasted(Vector3Value.class)));
+                    templateType = Type._vector3; break;
+                default:
+                    Error("visitInstan");
+                    templateType = Type._error;
+            }
+            currentFunc.addTemplate(templateFactory.createInstanST(lookup, templateType, getPrefix()));
+        }
+        return null;
+    }
+
+    //region expr
     @Override
     public Value visitNotNegFac(MinespeakParser.NotNegFacContext ctx) {
         String exprName = null;
@@ -155,46 +267,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
                 Error("visitNotNegFac");
                 return null;
         }
-    }
-
-    private void generateTemplateSub(MinespeakParser.NotNegFacContext ctx, String exprName, String lookup, Vector value, Type type) {
-        if (lookup == null) {
-            if (value instanceof Vector2)
-                currentFunc.addTemplate(templateFactory.createAssignST(exprName, (Vector2) value, getPrefix()));
-            else if (value instanceof Vector3)
-                currentFunc.addTemplate(templateFactory.createAssignST(exprName, (Vector3) value, getPrefix()));
-        }
-
-        if (ctx.SUB() != null)
-            currentFunc.addTemplate(templateFactory.createNegationExprST(exprName, "-", getPrefix(), type));
-        else
-            currentFunc.addTemplate(templateFactory.createInstanST(exprName, ctx.type, getPrefix()));
-
-        factorNameTable.put(ctx, templateFactory.getExprCounterString());
-    }
-
-    private void generateTemplateSub(MinespeakParser.NotNegFacContext ctx, String exprName, String lookup, Integer value, Type type) {
-        if (lookup == null)
-            currentFunc.addTemplate(templateFactory.createAssignST(exprName, value, getPrefix()));
-
-        if (ctx.SUB() != null)
-            currentFunc.addTemplate(templateFactory.createNegationExprST(exprName, "-", getPrefix(), type));
-        else
-            currentFunc.addTemplate(templateFactory.createInstanST(exprName, ctx.type, getPrefix()));
-
-        factorNameTable.put(ctx, templateFactory.getExprCounterString());
-    }
-
-    private void generateTemplateSub(MinespeakParser.NotNegFacContext ctx, String exprName, String lookup, Boolean value, Type type) {
-        if (lookup == null)
-            currentFunc.addTemplate(templateFactory.createAssignST(exprName, value ? 1 : 0, ""));
-
-        if (ctx.NOT() != null)
-            currentFunc.addTemplate(templateFactory.createNegationExprST(exprName, "not", getPrefix(), type));
-        else
-            currentFunc.addTemplate(templateFactory.createInstanST(exprName, ctx.type, getPrefix()));
-
-        factorNameTable.put(ctx, templateFactory.getExprCounterString());
     }
 
     @Override
@@ -305,62 +377,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     }
 
     @Override
-    public Value visitNumberLiteral(MinespeakParser.NumberLiteralContext ctx) {
-        int radix = ctx.DecimalDigit() != null ? 10 : 16;
-        String numText = radix == 10 ? ctx.getText(): ctx.getText().substring(2); // cut '0x' from hex
-        return msValueFactory.createValue(Integer.parseInt(numText, radix), Type._num);
-    }
-
-    @Override
-    public Value visitLiteral(MinespeakParser.LiteralContext ctx) {
-        switch (ctx.type.getTypeAsInt()) {
-            case Type.STRING:
-            case Type.BLOCK:
-                return msValueFactory.createValue(ctx.getText(), ctx.type);
-            case Type.NUM:
-                return visit(ctx.numberLiteral());
-            case Type.BOOL:
-                return visit(ctx.booleanLiteral());
-            case Type.VECTOR2:
-                return visit(ctx.vector2Literal());
-            case Type.VECTOR3:
-                return visit(ctx.vector3Literal());
-            default:
-                Error("visitLiteral");
-                return null;
-        }
-    }
-
-    @Override
-    public Value visitBooleanLiteral(MinespeakParser.BooleanLiteralContext ctx) {
-        return msValueFactory.createValue(ctx.TRUE() != null, Type._bool);
-    }
-
-    @Override
-    public Value visitVector2Literal(MinespeakParser.Vector2LiteralContext ctx) {
-        return msValueFactory.createValue(
-                new Vector2(
-                    Value.value(visit(ctx.expr(0)).getCasted(NumValue.class)),
-                    Value.value(visit(ctx.expr(1)).getCasted(NumValue.class))
-                ), Type._vector2);
-    }
-
-    @Override
-    public Value visitVector3Literal(MinespeakParser.Vector3LiteralContext ctx) {
-        return msValueFactory.createValue(
-                new Vector3(
-                    Value.value(visit(ctx.expr(0)).getCasted(NumValue.class)),
-                    Value.value(visit(ctx.expr(1)).getCasted(NumValue.class)),
-                    Value.value(visit(ctx.expr(2)).getCasted(NumValue.class))
-                ), Type._vector3);
-    }
-
-    @Override
-    public Value visitCompAssign(MinespeakParser.CompAssignContext ctx) {
-        return super.visitCompAssign(ctx);
-    }
-
-    @Override
     public Value visitRelations(MinespeakParser.RelationsContext ctx) {
         int expr1 = Value.value(visit(ctx.expr(0)).getCasted(NumValue.class));
         int expr2 = Value.value(visit(ctx.expr(1)).getCasted(NumValue.class));
@@ -405,7 +421,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         boolean exprValue = (ctx.op.getType() == MinespeakParser.EQUAL) == (expr1.equals(expr2));
 
         String operator = SymbolConverter.getSymbol(ctx.op.getType());
-      
+
         if (operator == null){
             Error("visitEquality:InvalidOperator");
             return null;
@@ -415,7 +431,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
             expr1Name = templateFactory.BlockFactor1;
             currentFunc.addTemplate(templateFactory.createAssignST(expr1Name, expr1.getValue().toString(), Type._block, getPrefix()));
         }
-      
+
         if (expr2.type == Type._block && expr2Name == null){
             expr2Name = templateFactory.BlockFactor2;
             currentFunc.addTemplate(templateFactory.createAssignST(expr2Name, expr2.getValue().toString(), Type._block, getPrefix()));
@@ -426,7 +442,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
         return msValueFactory.createValue(exprValue, Type._bool);
     }
-
 
     @Override
     public Value visitAnd(MinespeakParser.AndContext ctx) {
@@ -440,6 +455,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
         return calcLogicalExpr(ctx.expr(0), ctx.expr(1), "or");
     }
+    //endregion
 
     @Override
     public Value visitFactor(MinespeakParser.FactorContext ctx) {
@@ -480,105 +496,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     }
 
     @Override
-    public Value visitFunc(MinespeakParser.FuncContext ctx) {
-        currentFunc = funcSignature.get(ctx.funcSignature().ID().getText());
-        currentFunc.scope = ctx.funcBody().scope;
-        currentScope = currentFunc.scope;
-
-        visit(ctx.funcBody());
-        currentFunc.isCompiled = true;
-        return null;
-    }
-
-    @Override
-    public Value visitFuncBody(MinespeakParser.FuncBodyContext ctx) {
-        if (ctx.stmnts() != null)
-            visit(ctx.stmnts());
-        if (ctx.retVal() != null)
-            currentFunc.setValue(visit(ctx.retVal()));
-        return null;
-    }
-
-    @Override
-    public Value visitRetVal(MinespeakParser.RetValContext ctx) {
-        return visit(ctx.expr());
-    }
-
-    @Override
-    public Value visitStmnts(MinespeakParser.StmntsContext ctx) {
-
-        for (var child:ctx.children) {
-            try {
-                visit(child);
-            } catch (ParameterDependantException e) {   // if stmnt depends on a parameter
-                currentFunc.addTemplate(templateFactory.createParamDependantStmntST(child));
-            } catch (FuncCompileDependantException e) { // if a function is called before it is compiled
-                currentFunc.addTemplate(templateFactory.createFunctionDependantStmntST(child));
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public Value visitStmnt(MinespeakParser.StmntContext ctx) {
-        if (ctx.MCStmnt() != null)
-            return visitMCStmnt(ctx);
-
-        return super.visitStmnt(ctx);
-    }
-
-    @Override
-    public Value visitBody(MinespeakParser.BodyContext ctx) {
-        currentScope = ctx.scope;
-        return super.visitBody(ctx);
-    }
-
-    @Override
-    public Value visitInstan(MinespeakParser.InstanContext ctx) {
-        for (int i = 0; i < ctx.ID().size(); i++) {
-            String ID = ctx.ID(i).getText();
-
-            var expr = ctx.initialValue(i).expr();
-            Value exprEval = visit(expr);
-            SymEntry lookup = currentScope.lookup(ID);
-            Type templateType;
-
-            switch (expr.type.getTypeAsInt()) {
-                case Type.NUM:
-                    lookup.setValue(Value.value(exprEval.getCasted(NumValue.class)));
-                    templateType = Type._num; break;
-                case Type.BLOCK:
-                    lookup.setValue(Value.value(exprEval.getCasted(BlockValue.class)));
-                    factorNameTable.put(ctx.initialValue(i).expr(), lookup.getVarName());
-                    templateType = Type._block; break;
-                case Type.BOOL:
-                    lookup.setValue(Value.value(exprEval.getCasted(BoolValue.class)));
-                    templateType = Type._bool; break;
-                case Type.STRING:
-                    lookup.setValue(Value.value(exprEval.getCasted(StringValue.class)));
-                    templateType = Type._string; break;
-                case Type.VECTOR2:
-                    lookup.setValue(Value.value(exprEval.getCasted(Vector2Value.class)));
-                    templateType = Type._vector2; break;
-                case Type.VECTOR3:
-                    lookup.setValue(Value.value(exprEval.getCasted(Vector3Value.class)));
-                    templateType = Type._vector3; break;
-                default:
-                    Error("visitInstan");
-                    templateType = Type._error;
-            }
-            currentFunc.addTemplate(templateFactory.createInstanST(lookup, templateType, getPrefix()));
-        }
-        return null;
-    }
-
-    @Override
-    public Value visitBlock(MinespeakParser.BlockContext ctx) {
-        currentScope = ctx.scope;
-        return super.visitBlock(ctx);
-    }
-
-    @Override
     public Value visitFuncCall(MinespeakParser.FuncCallContext ctx) {
         var func = funcSignature.get(ctx.ID().getText());
 
@@ -598,6 +515,82 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         return null;
     }
 
+    @Override
+    public Value visitAssign(MinespeakParser.AssignContext ctx) {
+        String ID = ctx.ID().getText();
+        SymEntry var = currentScope.lookup(ID);
+
+        if (var == null){
+//            Logger.shared.add(logFactory.createUnassignedVariableWarningLog());
+            throw new CompileTimeException("Variable" + ID + "not assigned");
+        }
+
+        Value exprVal = visit(ctx.expr());
+
+        String operator = SymbolConverter.getSymbol( ctx.ASSIGN() != null ? MinespeakParser.ASSIGN : ctx.compAssign().op.getType());
+
+
+        return null;
+    } // FIX
+
+    @Override
+    public Value visitCompAssign(MinespeakParser.CompAssignContext ctx) {
+        return super.visitCompAssign(ctx);
+    } // FIX
+
+    //region literal
+    @Override
+    public Value visitLiteral(MinespeakParser.LiteralContext ctx) {
+        switch (ctx.type.getTypeAsInt()) {
+            case Type.STRING:
+            case Type.BLOCK:
+                return msValueFactory.createValue(ctx.getText(), ctx.type);
+            case Type.NUM:
+                return visit(ctx.numberLiteral());
+            case Type.BOOL:
+                return visit(ctx.booleanLiteral());
+            case Type.VECTOR2:
+                return visit(ctx.vector2Literal());
+            case Type.VECTOR3:
+                return visit(ctx.vector3Literal());
+            default:
+                Error("visitLiteral");
+                return null;
+        }
+    }
+
+    @Override
+    public Value visitNumberLiteral(MinespeakParser.NumberLiteralContext ctx) {
+        int radix = ctx.DecimalDigit() != null ? 10 : 16;
+        String numText = radix == 10 ? ctx.getText(): ctx.getText().substring(2); // cut '0x' from hex
+        return msValueFactory.createValue(Integer.parseInt(numText, radix), Type._num);
+    }
+
+    @Override
+    public Value visitBooleanLiteral(MinespeakParser.BooleanLiteralContext ctx) {
+        return msValueFactory.createValue(ctx.TRUE() != null, Type._bool);
+    }
+
+    @Override
+    public Value visitVector2Literal(MinespeakParser.Vector2LiteralContext ctx) {
+        return msValueFactory.createValue(
+                new Vector2(
+                    Value.value(visit(ctx.expr(0)).getCasted(NumValue.class)),
+                    Value.value(visit(ctx.expr(1)).getCasted(NumValue.class))
+                ), Type._vector2);
+    }
+
+    @Override
+    public Value visitVector3Literal(MinespeakParser.Vector3LiteralContext ctx) {
+        return msValueFactory.createValue(
+                new Vector3(
+                    Value.value(visit(ctx.expr(0)).getCasted(NumValue.class)),
+                    Value.value(visit(ctx.expr(1)).getCasted(NumValue.class)),
+                    Value.value(visit(ctx.expr(2)).getCasted(NumValue.class))
+                ), Type._vector3);
+    }
+    //endregion
+
     //region Helper functions
     private Value visitMCStmnt(MinespeakParser.StmntContext ctx) {
         String stmnt = ctx.MCStmnt().getText();
@@ -605,6 +598,61 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         currentFunc.addTemplate(templateFactory.createMCStatementST(stmnt, getPrefix()));
         return null;
     }
+
+    private String getPrefix() {
+        StringBuilder builder = new StringBuilder();
+        for (String string : prefixs) {
+            builder.append(string);
+        }
+        return builder.toString();
+    }
+
+    private void printOutput() {
+        for (Template t:output) {
+            System.out.println(t.getOutput());
+        }
+    }
+
+    private void generateTemplateSub(MinespeakParser.NotNegFacContext ctx, String exprName, String lookup, Vector value, Type type) {
+        if (lookup == null) {
+            if (value instanceof Vector2)
+                currentFunc.addTemplate(templateFactory.createAssignST(exprName, (Vector2) value, getPrefix()));
+            else if (value instanceof Vector3)
+                currentFunc.addTemplate(templateFactory.createAssignST(exprName, (Vector3) value, getPrefix()));
+        }
+
+        if (ctx.SUB() != null)
+            currentFunc.addTemplate(templateFactory.createNegationExprST(exprName, "-", getPrefix(), type));
+        else
+            currentFunc.addTemplate(templateFactory.createInstanST(exprName, ctx.type, getPrefix()));
+
+        factorNameTable.put(ctx, templateFactory.getExprCounterString());
+    }
+
+    private void generateTemplateSub(MinespeakParser.NotNegFacContext ctx, String exprName, String lookup, Integer value, Type type) {
+        if (lookup == null)
+            currentFunc.addTemplate(templateFactory.createAssignST(exprName, value, getPrefix()));
+
+        if (ctx.SUB() != null)
+            currentFunc.addTemplate(templateFactory.createNegationExprST(exprName, "-", getPrefix(), type));
+        else
+            currentFunc.addTemplate(templateFactory.createInstanST(exprName, ctx.type, getPrefix()));
+
+        factorNameTable.put(ctx, templateFactory.getExprCounterString());
+    }
+
+    private void generateTemplateSub(MinespeakParser.NotNegFacContext ctx, String exprName, String lookup, Boolean value, Type type) {
+        if (lookup == null)
+            currentFunc.addTemplate(templateFactory.createAssignST(exprName, value ? 1 : 0, ""));
+
+        if (ctx.NOT() != null)
+            currentFunc.addTemplate(templateFactory.createNegationExprST(exprName, "not", getPrefix(), type));
+        else
+            currentFunc.addTemplate(templateFactory.createInstanST(exprName, ctx.type, getPrefix()));
+
+        factorNameTable.put(ctx, templateFactory.getExprCounterString());
+    }
+
 
     private String formatString(String stmnt) {
         String command;
