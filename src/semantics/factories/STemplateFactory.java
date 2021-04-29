@@ -1,13 +1,14 @@
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import java.util.Locale;
 import java.util.UUID;
 
 public class STemplateFactory {
     private Integer exprCounter = 0;
     public String factor1UUID = generateValidUUID();
     public String factor2UUID = generateValidUUID();
-    private Vector3 blockFactor1Pos = new Vector3(0, 255, 0); // is dependant on dcl before block var uses
-    private Vector3 blockFactor2Pos = new Vector3(1, 255, 0); // is dependant on dcl before block var uses
+    public Vector3 blockFactor1Pos = new Vector3(0, 255, 0); // is dependant on dcl before block var uses
+    public Vector3 blockFactor2Pos = new Vector3(1, 255, 0); // is dependant on dcl before block var uses
     public String BlockFactor1 = "BlockFactor1";
     public String BlockFactor2 = "BlockFactor2";
     private Vector3 blockPos = new Vector3(0, 255, 0);
@@ -26,10 +27,14 @@ public class STemplateFactory {
         return blockPos;
     }
 
-
     // ArithmeticExprST
     public ArithmeticExprST createArithmeticExprST (String expr1Name, String expr2Name, String operator, Type type1, Type type2, String prefix) {
         return new ArithmeticExprST(expr1Name, expr2Name, operator, getNewExprCounterString(), type1, type2, prefix);
+    }
+
+    // ArithmeticExprST
+    public ArithmeticExprST createArithmeticExprST (String expr1Name, String operator, Type type1, Type type2, String prefix) {
+        return new ArithmeticExprST(expr1Name, getNewExprCounterString(), operator, getNewExprCounterString(), type1, type2, prefix);
     }
 
     public ArithmeticExprST createArithmeticExprST (String expr1Name, int expr2, String operator, String prefix) {
@@ -106,7 +111,6 @@ public class STemplateFactory {
             return new DclST(varName, type, prefix);
     }
 
-
     // InstantST
     public InstanST createInstanST(String varName, Type type, String prefix) {
         return new InstanST(getNewExprCounterString(), varName, type, prefix);
@@ -121,6 +125,10 @@ public class STemplateFactory {
         return new InstanST(varName, varVal, prefix);
     }
 
+    public InstanST createInstanST(String varName, Vector3Value varVal, String prefix) {
+        return new InstanST(varName, varVal, prefix);
+    }
+
     // InstantST
     public InstanST createInstanST(SymEntry entry, Type type, String prefix) {
         if (type == Type._block)
@@ -129,7 +137,18 @@ public class STemplateFactory {
             return new InstanST(entry.getVarName(), getExprCounterString(), type, prefix);
     }
 
+    // InstantST
+    public InstanST createInstanST(String VarName, BlockValue blockValue, Vector3 pos,Type type, String prefix) {
+        return new InstanST(VarName, blockValue, pos, type, prefix);
+    }
+
+    public AssignST createAssignST(String varName, Type type, String prefix){
+        return new AssignST(varName, getNewExprCounterString(), type, prefix);
+    }
+
     public AssignST createAssignST(String varName, String exprName, Type type, String prefix){
+        if (type == Type._block)
+            exprName = exprName.toLowerCase();
         return new AssignST(varName, exprName, type, prefix);
     }
 

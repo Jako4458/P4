@@ -12,6 +12,18 @@ public class MSValueFactory {
         }
     }
 
+    public Value getDefaultValue(Type type){
+        switch (type.getTypeAsInt()) {
+            case Type.NUM: return new NumValue(0, type);
+            case Type.BOOL: return new BoolValue(false, type);
+            case Type.BLOCK: return new BlockValue("#AIR", type);
+            case Type.STRING: return new StringValue("", type);
+            case Type.VECTOR2: return new Vector2Value(new Vector2(0,0), type);
+            case Type.VECTOR3: return new Vector3Value(new Vector3(0,0,0), type);
+            default: return null;
+        }
+    }
+
     public Value createValue(Integer value, Type type) {
         return new NumValue(value, type);
     }
