@@ -18,6 +18,10 @@ public class STemplateFactory {
     private String getNewExprCounterString() {return "expr_" + newExprCounter(); }
     public String getExprCounterString() {return "expr_" + exprCounter; }
 
+    public static String getPlayerTag() {
+        return "active";
+    }
+
     private Vector3 getNewBlockPos() {
         blockPos = new Vector3(blockPos.getX()+1, blockPos.getY(), blockPos.getZ());
         return blockPos;
