@@ -2,11 +2,10 @@ minespeak
 
     func Test(c:num) do
         var a:num = 3
-        var b:block = #DIRT
-        if (a > 2) do
-            b = #COBBLESTONE
-        endif
-        //var a:bool = #DIRT == b
+
+        for var i:num = 2 until i > a where i += 1 do
+            var b:block = #DIRT
+        endfor
 
     endfunc
 

@@ -150,9 +150,17 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
     @Override
     public Value visitForStmnt(MinespeakParser.ForStmntContext ctx) {
+        currentScope = ctx.scope;
         visit(ctx.instan());
 
-        return super.visitForStmnt(ctx);
+        //new file (forStmntFile)
+
+
+
+        //end of file (forStmntFile)
+
+//        return super.visitForStmnt(ctx);
+        return null;
     }
 
     @Override
