@@ -1,3 +1,4 @@
+import jdk.dynalink.linker.support.Lookup;
 import logging.Logger;
 import exceptions.CompileTimeException;
 import exceptions.FuncCompileDependantException;
@@ -31,15 +32,22 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         if (debug)
             output.add(templateFactory.createMCStatementST("scoreboard players reset @s", "")); // for debug
 
-        output.add(templateFactory.createDclST(templateFactory.factor1UUID, Type._num, ""));
-        output.add(templateFactory.createDclST(templateFactory.factor2UUID, Type._num, ""));
-        output.add(templateFactory.createDclST(templateFactory.factor1UUID, Type._vector3, ""));
-        output.add(templateFactory.createDclST(templateFactory.factor2UUID, Type._vector3, ""));
-        output.add(templateFactory.createDclST("BlockFactor1", Type._block, ""));
-        output.add(templateFactory.createDclST("BlockFactor2", Type._block, ""));
+        int defaultNum = Value.value(msValueFactory.getDefaultValue(Type._num).getCasted(NumValue.class));
+        Vector3Value defaultVector3 = msValueFactory.getDefaultValue(Type._vector3).getCasted(Vector3Value.class);
+        BlockValue defaultBlock = msValueFactory.getDefaultValue(Type._block).getCasted(BlockValue.class);
+
+        output.add(templateFactory.createInstanST(templateFactory.factor1UUID, defaultNum, ""));
+        output.add(templateFactory.createInstanST(templateFactory.factor2UUID, defaultNum, ""));
+        output.add(templateFactory.createInstanST(templateFactory.factor1UUID, defaultVector3, ""));
+        output.add(templateFactory.createInstanST(templateFactory.factor2UUID, defaultVector3, ""));
+        output.add(templateFactory.createInstanST("BlockFactor1", defaultBlock, templateFactory.blockFactor1Pos, Type._block, ""));
+        output.add(templateFactory.createInstanST("BlockFactor2", defaultBlock, templateFactory.blockFactor2Pos, Type._block, ""));
     }
 
-    private void makeProgramFooters() {
+    private void makeProgramFooters(boolean debug) {
+        if (debug)
+            return;
+
         output.add(new BlankST("execute as @e[tag=variable] at @e[tag=variable] run setblock ~ ~-1 ~ air"));
         output.add(new BlankST("kill @e[tag=MineSpeak]"));
     }
@@ -48,7 +56,9 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     @Override
     public Value visitProg(MinespeakParser.ProgContext ctx) {
         currentScope = ctx.scope;
-        makeProgramHeaders(true);   // set to false when not debugging
+        boolean debug = true;
+
+        makeProgramHeaders(debug);   // set to false when not debugging
 
         for (FuncEntry func:this.funcSignature.values()) {
             try {
@@ -69,7 +79,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
             }
         }
 
-        makeProgramFooters();
+        makeProgramFooters(debug);
         printOutput();
         return null;
     }
@@ -140,6 +150,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
 
     @Override
     public Value visitForStmnt(MinespeakParser.ForStmntContext ctx) {
+        visit(ctx.instan());
+
         return super.visitForStmnt(ctx);
     }
 
@@ -162,10 +174,10 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
             visit(ctx.body(i));
         }
 
-        if (ctx.ELSE() != null)
+        if (ctx.ELSE() != null){
             prefixs.set(prefixs.size() - 1, prefixs.get(prefixs.size() - 1).replace("matches 1", "matches 0"));
-
-        visit(ctx.body(ctx.body().size() - 1));
+            visit(ctx.body(ctx.body().size() - 1));
+        }
 
         prefixs.remove(prefixs.size() - 1);
         return null;
@@ -519,24 +531,32 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     public Value visitAssign(MinespeakParser.AssignContext ctx) {
         String ID = ctx.ID().getText();
         SymEntry var = currentScope.lookup(ID);
-
-        if (var == null){
-//            Logger.shared.add(logFactory.createUnassignedVariableWarningLog());
-            throw new CompileTimeException("Variable" + ID + "not assigned");
-        }
+        String varName = var.getVarName();
 
         Value exprVal = visit(ctx.expr());
 
         String operator = SymbolConverter.getSymbol( ctx.ASSIGN() != null ? MinespeakParser.ASSIGN : ctx.compAssign().op.getType());
 
-
-        return null;
-    } // FIX
-
-    @Override
-    public Value visitCompAssign(MinespeakParser.CompAssignContext ctx) {
-        return super.visitCompAssign(ctx);
-    } // FIX
+        switch (exprVal.type.getTypeAsInt()) {
+            case Type.STRING:
+            case Type.BOOL:
+                return null;
+            case Type.BLOCK:
+                if (ctx.ASSIGN() != null)
+                    currentFunc.addTemplate(templateFactory.createAssignST(varName, Value.value(exprVal.getCasted(BlockValue.class)), Type._block, getPrefix()));
+                return null;
+            case Type.NUM:
+            case Type.VECTOR2:
+            case Type.VECTOR3:
+                if (ctx.ASSIGN() == null)
+                    currentFunc.addTemplate(templateFactory.createArithmeticExprST(varName, operator, var.getType(), exprVal.type, getPrefix()));
+                currentFunc.addTemplate(templateFactory.createAssignST(varName, exprVal.type, getPrefix()));
+                return null;
+            default:
+                Error("visitAssign");
+                return null;
+        }
+    }
 
     //region literal
     @Override
