@@ -103,6 +103,7 @@ public class Main {
 
 class Configuration {
     public File source_file;
+    public String filePath = System.getProperty("user.dir");
 
     public Configuration(String[] args) {
         parse_args(args);
