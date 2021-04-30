@@ -27,10 +27,7 @@ public class InstanST implements Template {
         }
     }
 
-    public InstanST(String varName, BlockValue blockValue, Vector3 pos,Type type, String prefix) {
-        if (type != Type._block)
-            return;
-
+    public InstanST(String varName, BlockValue blockValue, Vector3 pos, String prefix) {
         ST st = new ST( "#<Comment>\n<prefix>setblock <posX> <posY> <posZ> <block>\n" +
                 "<prefix>summon armor_stand <posX> <posStandY> <posZ> {Tags:[\"<varName>\", \"variable\",\"MineSpeak\"],NoGravity:1}\n"
                 );

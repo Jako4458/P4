@@ -22,7 +22,7 @@ public class STemplateFactory {
         return "active";
     }
 
-    private Vector3 getNewBlockPos() {
+    public Vector3 getNewBlockPos() {
         blockPos = new Vector3(blockPos.getX()+1, blockPos.getY(), blockPos.getZ());
         return blockPos;
     }
@@ -132,14 +132,14 @@ public class STemplateFactory {
     // InstantST
     public InstanST createInstanST(SymEntry entry, Type type, String prefix) {
         if (type == Type._block)
-            return new InstanST(entry.getVarName(), (BlockValue) entry.getValue(), getNewBlockPos(), type, prefix);
+            return new InstanST(entry.getVarName(), (BlockValue) entry.getValue(), getNewBlockPos(), prefix);
         else
             return new InstanST(entry.getVarName(), getExprCounterString(), type, prefix);
     }
 
     // InstantST
-    public InstanST createInstanST(String VarName, BlockValue blockValue, Vector3 pos,Type type, String prefix) {
-        return new InstanST(VarName, blockValue, pos, type, prefix);
+    public InstanST createInstanST(String VarName, BlockValue blockValue, Vector3 pos, String prefix) {
+        return new InstanST(VarName, blockValue, pos, prefix);
     }
 
     public AssignST createAssignST(String varName, Type type, String prefix){
