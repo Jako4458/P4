@@ -339,110 +339,42 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     }
 
     @Override
-    public Value visitPow(MinespeakParser.PowContext ctx) {
-        int num1 = Value.value(visit(ctx.expr(0)).getCasted(NumValue.class));
-        int num2 = Value.value(visit(ctx.expr(1)).getCasted(NumValue.class));
-
-        String expr1Name = factorNameTable.get(ctx.expr(0));
-
-        currentFunc.addTemplate(templateFactory.createArithmeticExprST(expr1Name, num2, "Pow", getPrefix()));
-        factorNameTable.put(ctx, templateFactory.getExprCounterString());
-
-        return msValueFactory.createValue((int) Math.pow(num1, num2), ctx.type);
+    public ArrayList<Template> visitPow(MinespeakParser.PowContext ctx) {
+        return new ArrayList<>(); //TODO: Pow cannot work with the current setup
     }
 
     @Override
-    public Value visitMulDivMod(MinespeakParser.MulDivModContext ctx) {
-        Value expr1Visit = visit(ctx.expr(0));
-        Value expr2Visit = visit(ctx.expr(1));
+    public ArrayList<Template> visitMulDivMod(MinespeakParser.MulDivModContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
+        ret.addAll(visit(ctx.expr(0)));
+        ret.addAll(visit(ctx.expr(1)));
 
         String expr1Name = factorNameTable.get(ctx.expr(0));
         String expr2Name = factorNameTable.get(ctx.expr(1));
 
         String operator = SymbolConverter.getSymbol(ctx.op.getType());
 
-        if (operator == null) {
-            Error("visitMulDivMod");
-            return null;
-        }
-
-        currentFunc.addTemplate(templateFactory.createArithmeticExprST(expr1Name, expr2Name, operator,
-                expr1Visit.type, expr2Visit.type, getPrefix()));
+        ret.add(templateFactory.createArithmeticExprST(expr1Name, expr2Name, operator,
+                ctx.expr(0).type, ctx.expr(1).type, getPrefix()));
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
-
-        int num1 = expr1Visit.type == Type._num ? Value.value(expr1Visit.getCasted(NumValue.class)) : 0;
-        int num2 = expr2Visit.type == Type._num ? Value.value(expr2Visit.getCasted(NumValue.class)) : 0;
-        Vector2 vec21 = expr1Visit.type == Type._vector2 ? Value.value(expr1Visit.getCasted(Vector2Value.class)) : null;
-        Vector2 vec22 = expr2Visit.type == Type._vector2 ? Value.value(expr2Visit.getCasted(Vector2Value.class)) : null;
-        Vector3 vec31 = expr1Visit.type == Type._vector3 ? Value.value(expr1Visit.getCasted(Vector3Value.class)) : null;
-        Vector3 vec32 = expr2Visit.type == Type._vector3 ? Value.value(expr2Visit.getCasted(Vector3Value.class)) : null;
-
-        if (vec21 != null)
-            return msValueFactory.createValue(Vector2.scale(vec21, num2) ,Type._vector2);
-        else if (vec22 != null)
-            return msValueFactory.createValue(Vector2.scale(vec22, num1) ,Type._vector2);
-        else if (vec31 != null)
-            return msValueFactory.createValue(Vector3.scale(vec31, num2) , Type._vector3);
-        else if (vec32 != null)
-            return msValueFactory.createValue(Vector3.scale(vec32, num1) , Type._vector3);
-        else if (expr1Visit.type == Type._num && expr2Visit.type == Type._num) {
-            int val = num1 * num2;
-            if (ctx.op.getType() == MinespeakParser.DIV || ctx.op.getType() == MinespeakParser.MOD) {
-                if (num2 == 0) {
-                    Logger.shared.add(logFactory.createDivideByZeroError(ctx.getText(), ctx.expr(1)));
-                    throw new CompileTimeException("Division by zero");
-                }
-                val = num1 % num2;
-                if (ctx.op.getType() == MinespeakParser.DIV)
-                    val = num1 / num2;
-            }
-            return msValueFactory.createValue(val, Type._num);
-        }
-
-        Error("InvalidTypes");
-        return null;
+        return ret;
     }
 
     @Override
-    public Value visitAddSub(MinespeakParser.AddSubContext ctx) {
-        Value expr1Visit = visit(ctx.expr(0));
-        Value expr2Visit = visit(ctx.expr(1));
+    public ArrayList<Template> visitAddSub(MinespeakParser.AddSubContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
+        ret.addAll(visit(ctx.expr(0)));
+        ret.addAll(visit(ctx.expr(1)));
 
         String expr1Name = factorNameTable.get(ctx.expr(0));
         String expr2Name = factorNameTable.get(ctx.expr(1));
 
         String operator = SymbolConverter.getSymbol(ctx.op.getType());
 
-        if (operator == null) {
-            Error("visitAddSub:wrongInvalidOperator");
-            return null;
-        }
-
-        currentFunc.addTemplate(templateFactory.createArithmeticExprST(expr1Name, expr2Name, operator,
-                                                                        expr1Visit.type, expr2Visit.type, getPrefix()));
+        ret.add(templateFactory.createArithmeticExprST(expr1Name, expr2Name, operator,
+                ctx.expr(0).type, ctx.expr(1).type, getPrefix()));
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
-
-        // Calculating values
-        int num1 = ctx.type == Type._num ? Value.value(expr1Visit.getCasted(NumValue.class)) : 0;
-        int num2 = ctx.type == Type._num ? Value.value(expr2Visit.getCasted(NumValue.class)) : 0;
-        Vector2 vec21 = ctx.type == Type._vector2 ? Value.value(expr1Visit.getCasted(Vector2Value.class)) : null;
-        Vector2 vec22 = ctx.type == Type._vector2 ? Value.value(expr2Visit.getCasted(Vector2Value.class)) : null;
-        Vector3 vec31 = ctx.type == Type._vector3 ? Value.value(expr1Visit.getCasted(Vector3Value.class)) : null;
-        Vector3 vec32 = ctx.type == Type._vector3 ? Value.value(expr2Visit.getCasted(Vector3Value.class)) : null;
-
-        if (ctx.type == Type._num){
-            int val = ctx.op.getType() == MinespeakParser.ADD ? num1 + num2 : num1 - num2;
-            return msValueFactory.createValue(val, ctx.type);
-        } else if (ctx.type == Type._vector2 && vec21 != null && vec22 != null) {
-            Vector2 val = ctx.op.getType() == MinespeakParser.ADD ? Vector2.add(vec21, vec22) : Vector2.sub(vec21, vec22);
-            return msValueFactory.createValue(val, ctx.type);
-        } else if (ctx.type == Type._vector3 && vec31 != null && vec32 != null) {
-            Vector3 val = ctx.op.getType() == MinespeakParser.ADD ? Vector3.add(vec31, vec32) : Vector3.sub(vec31, vec32);
-            return msValueFactory.createValue(val, ctx.type);
-        }
-
-        Error("visitAddSub:InvalidType");
-        return null;
+        return ret;
     }
 
     @Override
@@ -511,7 +443,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     @Override
     public ArrayList<Template> visitAnd(MinespeakParser.AndContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
-        ret = calcLogicalExpr(ctx.expr(0), ctx.expr(1), "and");
+        ret.addAll(calcLogicalExpr(ctx.expr(0), ctx.expr(1), "and"));
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
         return ret;
     }
@@ -519,7 +451,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     @Override
     public ArrayList<Template> visitOr(MinespeakParser.OrContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
-        ret = calcLogicalExpr(ctx.expr(0), ctx.expr(1), "or");
+        ret.addAll(calcLogicalExpr(ctx.expr(0), ctx.expr(1), "or"));
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
         return ret;
     }
@@ -712,7 +644,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
             System.out.println(t.getOutput());
         }
     }
-    
+
     private ArrayList<Template> calcLogicalExpr(MinespeakParser.ExprContext e1, MinespeakParser.ExprContext e2, String operator) {
         ArrayList<Template> ret = new ArrayList<>();
         ret.addAll(visit(e1));
