@@ -21,7 +21,7 @@ public class EqualityExprST implements Template {
                         "<prefix>scoreboard players set @s <exprID> 0\n" +
                         "<prefix>execute <operator> blocks <pos1X> <pos1Y> <pos1Z> <pos1X> <pos1Y> <pos1Z> <pos2X> <pos2Y> <pos2Z> " +
                         "run scoreboard players set @s <exprID> 1\n"
-                        );
+        );
 
         template.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
 

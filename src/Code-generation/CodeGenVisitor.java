@@ -378,32 +378,20 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     }
 
     @Override
-    public Value visitRelations(MinespeakParser.RelationsContext ctx) {
-        int expr1 = Value.value(visit(ctx.expr(0)).getCasted(NumValue.class));
-        int expr2 = Value.value(visit(ctx.expr(1)).getCasted(NumValue.class));
+    public ArrayList<Template> visitRelations(MinespeakParser.RelationsContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
+
+        ret.addAll(visit(ctx.expr(0)));
+        ret.addAll(visit(ctx.expr(1)));
+
         String expr1Name = factorNameTable.get(ctx.expr(0));
         String expr2Name = factorNameTable.get(ctx.expr(1));
-        boolean exprValue;
 
-        switch (ctx.op.getType()) {
-            case MinespeakParser.LESSER:
-                exprValue = expr1 < expr2; break;
-            case MinespeakParser.GREATER:
-                exprValue = expr1 > expr2; break;
-            case MinespeakParser.LESSEQ:
-                exprValue = expr1 <= expr2; break;
-            case MinespeakParser.GREATEQ:
-                exprValue = expr1 >= expr2; break;
-            default:
-                Error("visitRelations");
-                return null;
-        }
-
-        currentFunc.addTemplate(templateFactory.createRelationExprST(
+        ret.add(templateFactory.createRelationExprST(
                 expr1Name, expr2Name, SymbolConverter.getSymbol(ctx.op.getType()) , getPrefix()
         ));
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
-        return msValueFactory.createValue(exprValue, Type._bool);
+        return ret;
     }
 
     @Override
@@ -419,9 +407,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         String operator = SymbolConverter.getSymbol(ctx.op.getType());
 
-        if (operator == null)
-            Error("visitEquality:InvalidOperator");
-
         if (expr1Type == Type._block && expr1Name == null){
             expr1Name = templateFactory.BlockFactor1;
             //TODO:BLOCKS
@@ -434,10 +419,10 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 //            currentFunc.addTemplate(templateFactory.createAssignST(expr2Name, expr2.getValue().toString(), Type._block, getPrefix()));
         }
 
-        currentFunc.addTemplate(templateFactory.createEqualityExprST(expr1Name, expr2Name, operator, expr1Type, getPrefix()));
+        ret.add(templateFactory.createEqualityExprST(expr1Name, expr2Name, operator, expr1Type, getPrefix()));
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
 
-        return msValueFactory.createValue(exprValue, Type._bool);
+        return ret;
     }
 
     @Override
