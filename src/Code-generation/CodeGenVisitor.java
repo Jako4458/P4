@@ -475,75 +475,77 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     }
 
     @Override
-    public Value visitEquality(MinespeakParser.EqualityContext ctx) {
-        Value expr1 = visit(ctx.expr(0));
-        Value expr2 = visit(ctx.expr(1));
+    public ArrayList<Template> visitEquality(MinespeakParser.EqualityContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
+        ret.addAll(visit(ctx.expr(0)));
+        ret.addAll(visit(ctx.expr(1)));
 
-
-        SymEntry expr1Lookup = currentScope.lookup(ctx.expr(0).getText());
-        SymEntry expr2Lookup = currentScope.lookup(ctx.expr(1).getText());
-        String expr1Name = ctx.expr(0).type.equals(Type._block) && expr1Lookup != null
-                ? expr1Lookup.getVarName() : factorNameTable.get(ctx.expr(0));
-        String expr2Name = ctx.expr(1).type.equals(Type._block) && expr2Lookup != null
-                ? expr2Lookup.getVarName() : factorNameTable.get(ctx.expr(1));
-
-        boolean exprValue = (ctx.op.getType() == MinespeakParser.EQUAL) == (expr1.equals(expr2));
+        String expr1Name = factorNameTable.get(ctx.expr(0));
+        String expr2Name = factorNameTable.get(ctx.expr(1));
+        Type expr1Type = ctx.expr(0).type;
+        Type expr2Type = ctx.expr(1).type;
 
         String operator = SymbolConverter.getSymbol(ctx.op.getType());
 
-        if (operator == null){
+        if (operator == null)
             Error("visitEquality:InvalidOperator");
-            return null;
-        }
 
-        if (expr1.type == Type._block && expr1Name == null){
+        if (expr1Type == Type._block && expr1Name == null){
             expr1Name = templateFactory.BlockFactor1;
-            currentFunc.addTemplate(templateFactory.createAssignST(expr1Name, expr1.getValue().toString(), Type._block, getPrefix()));
+            //TODO:BLOCKS
+//            currentFunc.addTemplate(templateFactory.createAssignST(expr1Name, expr1.getValue().toString(), Type._block, getPrefix()));
         }
 
-        if (expr2.type == Type._block && expr2Name == null){
+        if (expr2Type == Type._block && expr2Name == null){
+            //TODO:BLOCKS
             expr2Name = templateFactory.BlockFactor2;
-            currentFunc.addTemplate(templateFactory.createAssignST(expr2Name, expr2.getValue().toString(), Type._block, getPrefix()));
+//            currentFunc.addTemplate(templateFactory.createAssignST(expr2Name, expr2.getValue().toString(), Type._block, getPrefix()));
         }
 
-        currentFunc.addTemplate(templateFactory.createEqualityExprST(expr1Name, expr2Name, operator, expr1.type, getPrefix()));
+        currentFunc.addTemplate(templateFactory.createEqualityExprST(expr1Name, expr2Name, operator, expr1Type, getPrefix()));
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
 
         return msValueFactory.createValue(exprValue, Type._bool);
     }
 
     @Override
-    public Value visitAnd(MinespeakParser.AndContext ctx) {
-        Value result = calcLogicalExpr(ctx.expr(0), ctx.expr(1), "and");
+    public ArrayList<Template> visitAnd(MinespeakParser.AndContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
+        ret = calcLogicalExpr(ctx.expr(0), ctx.expr(1), "and");
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
-        return result;
+        return ret;
     }
 
     @Override
-    public Value visitOr(MinespeakParser.OrContext ctx) {
+    public ArrayList<Template> visitOr(MinespeakParser.OrContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
+        ret = calcLogicalExpr(ctx.expr(0), ctx.expr(1), "or");
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
-        return calcLogicalExpr(ctx.expr(0), ctx.expr(1), "or");
+        return ret;
     }
     //endregion
 
     @Override
-    public Value visitFactor(MinespeakParser.FactorContext ctx) {
+    public ArrayList<Template> visitFactor(MinespeakParser.FactorContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
+
         if (ctx.LPAREN() != null) {
-            Value expr = visit(ctx.expr());
-
-            String exprName = factorNameTable.get(ctx.expr());
-            currentFunc.addTemplate(templateFactory.createInstanST(exprName, ctx.type, getPrefix()));
-
-            if (ctx.type != Type._block)
-                factorNameTable.put(ctx, templateFactory.getExprCounterString());
-            return expr;
+            ret.addAll(visit(ctx.expr()));
+            factorNameTable.put(ctx, factorNameTable.get(ctx.expr()));
+            return ret;
         } else if (ctx.rvalue() != null) {
-            factorNameTable.put(ctx, templateFactory.getExprCounterString());
-            return visit(ctx.rvalue());
+            ret.addAll(visit(ctx.rvalue()));
+            factorNameTable.put(ctx, factorNameTable.get(ctx.rvalue()));
+            return ret;
         } else if (ctx.literal() != null) {
-            return visit(ctx.literal());
+            ret.addAll(visit(ctx.literal()));
+            factorNameTable.put(ctx, templateFactory.getExprCounterString());
+            return ret;
         } else if (ctx.funcCall() != null) {
-            return visit(ctx.funcCall());
+            ret.addAll(visit(ctx.funcCall()));
+            String funcRetName = funcSignature.get(ctx.funcCall().ID().getText()).scope.lookup("return").getVarName();
+            factorNameTable.put(ctx, funcRetName);
+            return ret;
         } else if (ctx.rArray() != null) {
             return visit(ctx.rArray());
         } else {
@@ -552,16 +554,10 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     }
 
     @Override
-    public Value visitRvalue(MinespeakParser.RvalueContext ctx) {
-
+    public ArrayList<Template> visitRvalue(MinespeakParser.RvalueContext ctx) {
         SymEntry lookup = currentScope.lookup(ctx.ID().getText());
-
-        if (lookup == null || lookup.getValue() == null)
-            throw new ParameterDependantException();
-        else
-            factorNameTable.put(ctx, templateFactory.getExprCounterString());
-
-        return lookup.getValue();
+        factorNameTable.put(ctx, lookup.getVarName());
+        return new ArrayList<Template>();
     }
 
     @Override
@@ -585,43 +581,49 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     }
 
     @Override
-    public Value visitAssign(MinespeakParser.AssignContext ctx) {
+    public ArrayList<Template> visitAssign(MinespeakParser.AssignContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
+
         String ID = ctx.ID().getText();
         SymEntry var = currentScope.lookup(ID);
         String varName = var.getVarName();
 
-        Value exprVal = visit(ctx.expr());
+        ret.addAll(visit(ctx.expr()));
+
+        Type type = ctx.expr().type;
 
         String operator = SymbolConverter.getSymbol( ctx.ASSIGN() != null ? MinespeakParser.ASSIGN : ctx.compAssign().op.getType());
 
-        switch (exprVal.type.getTypeAsInt()) {
-            case Type.STRING:
-            case Type.BOOL:
-                return null;
+        switch (type.getTypeAsInt()) {
             case Type.BLOCK:
                 if (ctx.ASSIGN() != null)
+                    //TODO: FIX BLOCK
                     currentFunc.addTemplate(templateFactory.createAssignST(varName, Value.value(exprVal.getCasted(BlockValue.class)), Type._block, getPrefix()));
-                return null;
+                break;
             case Type.NUM:
             case Type.VECTOR2:
             case Type.VECTOR3:
                 if (ctx.ASSIGN() == null)
-                    currentFunc.addTemplate(templateFactory.createArithmeticExprST(varName, operator, var.getType(), exprVal.type, getPrefix()));
-                currentFunc.addTemplate(templateFactory.createAssignST(varName, exprVal.type, getPrefix()));
-                return null;
+                    ret.add(templateFactory.createArithmeticExprST(varName, operator, var.getType(), type, getPrefix()));
+                ret.add(templateFactory.createAssignST(varName, type, getPrefix()));
+                break;
+            case Type.STRING:
+            case Type.BOOL:
             default:
                 Error("visitAssign");
                 return null;
         }
+        return  ret;
     }
 
     //region literal
     @Override
-    public Value visitLiteral(MinespeakParser.LiteralContext ctx) {
+    public ArrayList<Template> visitLiteral(MinespeakParser.LiteralContext ctx) {
         switch (ctx.type.getTypeAsInt()) {
-            case Type.STRING:
             case Type.BLOCK:
-                return msValueFactory.createValue(ctx.getText(), ctx.type);
+                //TODO FIX
+                BlockValue block = msValueFactory.createValue(ctx.BlockLiteral().getText(), Type._block);
+                templateFactory.createInstanST(templateFactory.getNewExprCounterString(), , );
             case Type.NUM:
                 return visit(ctx.numberLiteral());
             case Type.BOOL:
@@ -630,41 +632,61 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
                 return visit(ctx.vector2Literal());
             case Type.VECTOR3:
                 return visit(ctx.vector3Literal());
+            case Type.STRING:
             default:
-                Error("visitLiteral");
-                return null;
+                Error("VisitLiteral: Invalid type");
         }
     }
 
     @Override
-    public Value visitNumberLiteral(MinespeakParser.NumberLiteralContext ctx) {
+    public ArrayList<Template> visitNumberLiteral(MinespeakParser.NumberLiteralContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
+
         int radix = ctx.DecimalDigit() != null ? 10 : 16;
         String numText = radix == 10 ? ctx.getText(): ctx.getText().substring(2); // cut '0x' from hex
-        return msValueFactory.createValue(Integer.parseInt(numText, radix), Type._num);
+        ret.add(templateFactory.createInstanST(templateFactory.getNewExprCounterString(), Integer.parseInt(numText, radix), getPrefix()));
+
+        return ret;
     }
 
     @Override
-    public Value visitBooleanLiteral(MinespeakParser.BooleanLiteralContext ctx) {
-        return msValueFactory.createValue(ctx.TRUE() != null, Type._bool);
+    public ArrayList<Template> visitBooleanLiteral(MinespeakParser.BooleanLiteralContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
+        ret.add(templateFactory.createInstanST(templateFactory.getNewExprCounterString(), ctx.TRUE() != null ? 1 : 0 , getPrefix()));
+        return ret;
     }
 
     @Override
-    public Value visitVector2Literal(MinespeakParser.Vector2LiteralContext ctx) {
-        return msValueFactory.createValue(
-                new Vector2(
-                    Value.value(visit(ctx.expr(0)).getCasted(NumValue.class)),
-                    Value.value(visit(ctx.expr(1)).getCasted(NumValue.class))
-                ), Type._vector2);
+    public ArrayList<Template> visitVector2Literal(MinespeakParser.Vector2LiteralContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
+
+        for (var expr: ctx.expr()) {
+            ret.addAll(visit(expr));
+        }
+
+        String retExpr = templateFactory.getNewExprCounterString();
+
+        ret.add(templateFactory.createInstanST(retExpr + "_x", factorNameTable.get(ctx.expr(0)), getPrefix()));
+        ret.add(templateFactory.createInstanST(retExpr + "_y", factorNameTable.get(ctx.expr(1)), getPrefix()));
+
+        return ret;
     }
 
     @Override
-    public Value visitVector3Literal(MinespeakParser.Vector3LiteralContext ctx) {
-        return msValueFactory.createValue(
-                new Vector3(
-                    Value.value(visit(ctx.expr(0)).getCasted(NumValue.class)),
-                    Value.value(visit(ctx.expr(1)).getCasted(NumValue.class)),
-                    Value.value(visit(ctx.expr(2)).getCasted(NumValue.class))
-                ), Type._vector3);
+    public ArrayList<Template> visitVector3Literal(MinespeakParser.Vector3LiteralContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
+
+        for (var expr: ctx.expr()) {
+            ret.addAll(visit(expr));
+        }
+
+        String retExpr = templateFactory.getNewExprCounterString();
+
+        ret.add(templateFactory.createInstanST(retExpr + "_x", factorNameTable.get(ctx.expr(0)), getPrefix()));
+        ret.add(templateFactory.createInstanST(retExpr + "_y", factorNameTable.get(ctx.expr(1)), getPrefix()));
+        ret.add(templateFactory.createInstanST(retExpr + "_z", factorNameTable.get(ctx.expr(2)), getPrefix()));
+
+        return ret;
     }
     //endregion
 
@@ -690,148 +712,22 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
             System.out.println(t.getOutput());
         }
     }
+    
+    private ArrayList<Template> calcLogicalExpr(MinespeakParser.ExprContext e1, MinespeakParser.ExprContext e2, String operator) {
+        ArrayList<Template> ret = new ArrayList<>();
+        ret.addAll(visit(e1));
+        ret.addAll(visit(e2));
 
-    private String formatString(String stmnt) {
-        String command;
-        Pattern varReplacePattern = Pattern.compile("(?<prefix>[~^])?v\\{(?<varName>\\w)*}");
-        Matcher matcher = varReplacePattern.matcher(stmnt);
+        String expr1Name = factorNameTable.get(e1);
+        String expr2Name = factorNameTable.get(e2);
 
-        while (matcher.find()) {
-            String prefix = matcher.group("prefix");
-            prefix = prefix != null ? prefix : "";
-            String varName = matcher.group("varName");
-            Type type = currentScope.lookup(varName).getType();
-            Value varVal = currentScope.lookup(varName).getValue();
+        ret.add(templateFactory.createLogicalExprST(expr1Name, expr2Name, operator, getPrefix()));
 
-            String formatString ="";
-
-            switch (type.getTypeAsInt()) {
-                case Type.NUM:
-                    formatString = prefix + Value.value(varVal.getCasted(NumValue.class)).toString(); break;
-                case Type.BLOCK:
-                    formatString = prefix + Value.value(varVal.getCasted(BlockValue.class)); break;
-                case Type.BOOL:
-                    formatString = prefix + Value.value(varVal.getCasted(BoolValue.class)).toString(); break;
-                case Type.STRING:
-                    formatString = prefix + Value.value(varVal.getCasted(StringValue.class)); break;
-                case Type.VECTOR2:
-                    formatString = Value.value(varVal.getCasted(Vector2Value.class)).toString(!prefix.equals("") ? prefix : "~"); break;
-                case Type.VECTOR3:
-                    formatString = Value.value(varVal.getCasted(Vector3Value.class)).toString(!prefix.equals("") ? prefix : "~"); break;
-                default:
-                    Error("formatString");
-            }
-
-            stmnt = stmnt.replace(prefix + "v{" + varName + "}", formatString);
-        }
-
-        command = stmnt.replace("$", "");
-        return command;
-    }
-
-    private void loadParamsToScope(MinespeakParser.FuncCallContext ctx, FuncEntry func) {
-        ArrayList<Template> paramList = new ArrayList<>();
-
-        for (int i = 0; i < func.getParams().size(); i++) {
-            String paramName = func.scope.lookup(func.getParams().get(i).getName()).getVarName();
-            Value val = visit(ctx.expr(i));
-
-            String exprName = factorNameTable.get(ctx.expr(i));
-          
-            if (val.type.equals(Type._block))
-                paramList.add(templateFactory.createInstanST(func.scope.lookup(exprName), Type._block, getPrefix()));
-            else if (!val.type.equals(Type._string))
-                paramList.add(templateFactory.createInstanST(paramName, exprName, getPrefix()));
-          
-            SymEntry entry = func.scope.lookup(func.getParams().get(i).getName());
-
-            switch (val.type.getTypeAsInt()) {
-                case Type.NUM:
-                    entry.setValue(Value.value(val.getCasted(NumValue.class))); break;
-                case Type.BLOCK:
-                    entry.setValue(Value.value(val.getCasted(BlockValue.class))); break;
-                case Type.BOOL:
-                    entry.setValue(Value.value(val.getCasted(BoolValue.class))); break;
-                case Type.STRING:
-                    entry.setValue(Value.value(val.getCasted(StringValue.class))); break;
-                case Type.VECTOR2:
-                    entry.setValue(Value.value(val.getCasted(Vector2Value.class))); break;
-                case Type.VECTOR3:
-                    entry.setValue(Value.value(val.getCasted(Vector3Value.class))); break;
-                default:
-                    Error("loadParamsToScope:InvalidType");
-            }
-        }
-        paramList.addAll(func.getOutput());
-        func.setOutput(paramList);
-    }
-
-    private void recompileFunction(FuncEntry func) {
-        var tempScope = currentScope;
-        var tempFunc = currentFunc;
-
-        for (Template t: func.getOutput()) {
-            if (t instanceof ParameterDependantStmntST) {
-                currentScope = func.scope;
-                break;
-            }
-        }
-        currentFunc = func;
-
-        var outputSize = func.getOutput().size();
-        for (int i = 0; i < outputSize; i++) {
-            Template t = func.getOutput().get(i);
-            if (t instanceof ParameterDependantStmntST) {
-                ParameterDependantStmntST wt = ((ParameterDependantStmntST) t);
-                visit(wt.context);  // do stmnt again
-                wt.setOutput("");
-                while (outputSize < func.getOutput().size()){
-                    wt.setOutput(wt.getOutput() + func.getOutput().get(outputSize).getOutput()); // move new output to failed stmnt
-                    func.getOutput().remove(outputSize);     // remove new stmnt from end
-                }
-            }
-            else if (t instanceof FunctionDependantStmntST){
-                FunctionDependantStmntST wt = ((FunctionDependantStmntST) t);
-                visit(wt.context);  // do stmnt again
-                func.getOutput().set(i, func.getOutput().get(outputSize));
-                while (outputSize < func.getOutput().size()){
-                    func.getOutput().remove(outputSize);     // remove new stmnt from end
-                }
-            }
-        }
-
-        currentScope = tempScope;
-        currentFunc = tempFunc;
-    }
-
-    private Value calcLogicalExpr(MinespeakParser.ExprContext e1, MinespeakParser.ExprContext e2, String operator) {
-        Value v1 = visit(e1);
-        Value v2 = visit(e2);
-
-        var b1 = Value.value(v1.getCasted(BoolValue.class));
-        var b2 = Value.value(v2.getCasted(BoolValue.class));
-
-        var expr1Name = factorNameTable.get(e1);
-        var expr2Name = factorNameTable.get(e2);
-
-        if (expr1Name.equals(templateFactory.factor1UUID))
-            output.add(templateFactory.createAssignST(expr1Name, b1 ? 1 : 0, getPrefix()));
-        if (expr2Name.equals(templateFactory.factor2UUID))
-            output.add(templateFactory.createAssignST(expr2Name, b2 ? 1 : 0, getPrefix()));
-
-        currentFunc.addTemplate(templateFactory.createLogicalExprST(expr1Name, expr2Name, operator, getPrefix()));
-
-        if (operator.equals("and"))
-            return msValueFactory.createValue((b1 && b2), Type._bool);
-        else if (operator.equals("or"))
-            return msValueFactory.createValue((b1 || b2), Type._bool);
-
-        Error("calcLogicalExpr");
-        return null;
+        return ret;
     }
 
     private void Error(String errMsg){
-        System.out.println(errMsg + ":SHOULD NOT HAPPEN!");
+        throw new RuntimeException(errMsg);
     }
     //endregion
 }

@@ -15,7 +15,7 @@ public class STemplateFactory {
 
     private Integer newExprCounter() {return ++exprCounter; }
 
-    private String getNewExprCounterString() {return "expr_" + newExprCounter(); }
+    public String getNewExprCounterString() {return "expr_" + newExprCounter(); }
     public String getExprCounterString() {return "expr_" + exprCounter; }
 
     public static String getPlayerTag() {
