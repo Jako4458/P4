@@ -1,5 +1,6 @@
 import logging.logs.ErrorLog;
 import logging.Logger;
+import org.antlr.v4.Tool;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -40,6 +41,17 @@ public class Main {
         // Dump all the logs
         Logger.shared.print();
     }
+
+    public static Tool.Option[] options = {
+            new Tool.Option("optimasationOff", "-o", "All optimisation off"),
+            new Tool.Option("warningsErrors", "-we", "Handle warnings like errors"),
+            new Tool.Option("outputPath", "-p", Tool.OptionArgType.STRING, "Specified location for generated files"),
+    };
+
+    // Options
+    public boolean optimisationOff = false;
+    public boolean warningsErrors = false;
+    public String outputPath;
 
     private static CommonTokenStream lex(String file) {
         if (file == null)
@@ -97,7 +109,7 @@ public class Main {
         CodeGenVisitor codeGenVisitor = new CodeGenVisitor(Main.functionSignatures);
         codeGenVisitor.visit(tree);
     }
-    
+
 }
 
 
@@ -120,6 +132,7 @@ class Configuration {
         }
     }
 }
+
 
 
 
