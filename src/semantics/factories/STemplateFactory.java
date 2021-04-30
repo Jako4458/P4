@@ -88,6 +88,12 @@ public class STemplateFactory {
         return new FuncCallST(entry.getName() + paramList + entry.toString(), combinedST.getOutput());
     }
 
+    public Template createFuncCallST(String name, boolean isMC) {
+        if (isMC)
+            return FuncCallST.generateFuncCallToMC(name, "mcfuncs");
+        return FuncCallST.generateFuncCallToNonMC(name);
+    }
+
     // MCStatementsST
     public MCStatementST createMCStatementST(String command, String prefix) {
         return new MCStatementST(command, prefix);
@@ -121,6 +127,10 @@ public class STemplateFactory {
         return new InstanST(varName, exprName, prefix);
     }
 
+    public InstanST createInstanST(String varName, String exprName, Type type, String prefix) {
+        return new InstanST(varName, exprName, type, prefix);
+    }
+
     public InstanST createInstanST(String varName, int varVal, String prefix) {
         return new InstanST(varName, varVal, prefix);
     }
@@ -143,7 +153,7 @@ public class STemplateFactory {
     }
 
     public AssignST createAssignST(String varName, Type type, String prefix){
-        return new AssignST(varName, getNewExprCounterString(), type, prefix);
+        return new AssignST(varName, getNewExprCounterString(), type, prefix); //TODO: Check if this should be new expr counter
     }
 
     public AssignST createAssignST(String varName, String exprName, Type type, String prefix){

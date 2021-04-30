@@ -21,7 +21,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     private final Map<ParseTree, String> factorNameTable = new HashMap<>();
 
     private final ArrayList<String> prefixs = new ArrayList<>();
-    private final ArrayList<Template> output = new ArrayList<>();
+    private ArrayList<Template> output = new ArrayList<>();
     //endregion
 
     public CodeGenVisitor(Map<String, FuncEntry> funcSignature) {
@@ -86,7 +86,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
             }
         }
 */
-
+        this.output = templates;
         printOutput();
         return null;
     }
@@ -191,7 +191,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         if (ctx.MCStmnt() != null)
             ret.add(templateFactory.createMCStatementST(ctx.MCStmnt().getText(), getPrefix()));
 
-        ret.addAll(super.visit(ctx));   //TODO: check
+        ret.addAll(visit(ctx.children.get(0)));   //TODO: check
         return ret;
     }
 
@@ -263,9 +263,10 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
     @Override
     public ArrayList<Template> visitBody(MinespeakParser.BodyContext ctx) {
-        ArrayList<Template> ret;
+        ArrayList<Template> ret = new ArrayList<>();
         enterScope(ctx.scope);
-        ret = super.visit(ctx);
+        if (ctx.stmnts() != null)
+            ret = visit(ctx.stmnts());
         exitScope();
         return ret;
     }
@@ -313,8 +314,9 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
             var expr = ctx.initialValue(i).expr();
             ret.addAll(visit(expr));
             SymEntry lookup = currentScope.lookup(ID);
+            String exprName = factorNameTable.get(expr);
 
-            currentFunc.addTemplate(templateFactory.createInstanST(lookup.getVarName(), expr.type, getPrefix()));
+            ret.add(templateFactory.createInstanST(lookup.getVarName(), exprName, expr.type, getPrefix()));
         }
         return ret;
     }
@@ -478,23 +480,20 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     }
 
     @Override
-    public Value visitFuncCall(MinespeakParser.FuncCallContext ctx) {
-        var func = funcSignature.get(ctx.ID().getText());
+    public ArrayList<Template> visitFuncCall(MinespeakParser.FuncCallContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
+        FuncEntry func = funcSignature.get(ctx.ID().getText());
 
-        if (!func.isCompiled)
-            throw new FuncCompileDependantException();
+        for (int i = 0; i < ctx.expr().size(); i++) {
+            ret.addAll(visit(ctx.expr(i)));
+        }
 
-        if (!func.isMCFunction()){
-            loadParamsToScope(ctx, func);
-            recompileFunction(func);
-            currentFunc.addTemplate(templateFactory.createFuncCallST(func));
-            return func.getValue();
+        for (int i = 0; i < ctx.expr().size(); i++) {
+            ret.add(templateFactory.createAssignST(func.getParams().get(i).getVarName(), factorNameTable.get(ctx.expr(i)), ctx.expr(i).type, getPrefix()));
         }
-        else {
-            recompileFunction(func);
-            currentFunc.addTemplate(templateFactory.createMCFuncCallST(func));
-        }
-        return null;
+
+        ret.add(templateFactory.createFuncCallST(func.getName(), func.isMCFunction()));
+        return ret;
     }
 
     @Override
@@ -508,51 +507,51 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         ret.addAll(visit(ctx.expr()));
 
         Type type = ctx.expr().type;
-
         String operator = SymbolConverter.getSymbol( ctx.ASSIGN() != null ? MinespeakParser.ASSIGN : ctx.compAssign().op.getType());
 
+        String exprName = factorNameTable.get(ctx.expr());
+
         switch (type.getTypeAsInt()) {
-            case Type.BLOCK:
-                if (ctx.ASSIGN() != null)
-                    //TODO: FIX BLOCK
-                    currentFunc.addTemplate(templateFactory.createAssignST(varName, Value.value(exprVal.getCasted(BlockValue.class)), Type._block, getPrefix()));
-                break;
             case Type.NUM:
             case Type.VECTOR2:
             case Type.VECTOR3:
                 if (ctx.ASSIGN() == null)
                     ret.add(templateFactory.createArithmeticExprST(varName, operator, var.getType(), type, getPrefix()));
-                ret.add(templateFactory.createAssignST(varName, type, getPrefix()));
+                break;
+            case Type.BLOCK:
+            case Type.BOOL:
                 break;
             case Type.STRING:
-            case Type.BOOL:
             default:
                 Error("visitAssign");
-                return null;
         }
+        ret.add(templateFactory.createAssignST(varName, exprName, type, getPrefix()));
         return  ret;
     }
 
     //region literal
     @Override
     public ArrayList<Template> visitLiteral(MinespeakParser.LiteralContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
         switch (ctx.type.getTypeAsInt()) {
             case Type.BLOCK:
                 //TODO FIX
-                BlockValue block = msValueFactory.createValue(ctx.BlockLiteral().getText(), Type._block);
-                templateFactory.createInstanST(templateFactory.getNewExprCounterString(), , );
+                BlockValue block = (BlockValue)msValueFactory.createValue(ctx.BlockLiteral().getText(), Type._block);
+                ret.add(templateFactory.createInstanST(templateFactory.getNewExprCounterString(), block, templateFactory.getNewBlockPos(), getPrefix()));
+                break;
             case Type.NUM:
-                return visit(ctx.numberLiteral());
+                ret.addAll(visit(ctx.numberLiteral())); break;
             case Type.BOOL:
-                return visit(ctx.booleanLiteral());
+                ret.addAll(visit(ctx.booleanLiteral())); break;
             case Type.VECTOR2:
-                return visit(ctx.vector2Literal());
+                ret.addAll(visit(ctx.vector2Literal())); break;
             case Type.VECTOR3:
-                return visit(ctx.vector3Literal());
+                ret.addAll(visit(ctx.vector3Literal())); break;
             case Type.STRING:
             default:
                 Error("VisitLiteral: Invalid type");
         }
+        return ret;
     }
 
     @Override
