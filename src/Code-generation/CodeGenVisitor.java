@@ -9,8 +9,9 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
+public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     //region variable instantiations
+    private final boolean debug = true;
     private Scope currentScope;
     private FuncEntry currentFunc;
     private final Map<String, FuncEntry> funcSignature;
@@ -28,46 +29,52 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     }
 
     //region program header + footer
-    private void makeProgramHeaders(boolean debug) {
+    private List<Template> makeProgramHeaders() {
+        ArrayList<Template> ret = new ArrayList<>();
+
         if (debug)
-            output.add(templateFactory.createMCStatementST("scoreboard players reset @s", "")); // for debug
+            ret.add(templateFactory.createMCStatementST("scoreboard players reset @s", "")); // for debug
 
         int defaultNum = Value.value(msValueFactory.getDefaultValue(Type._num).getCasted(NumValue.class));
         Vector3Value defaultVector3 = msValueFactory.getDefaultValue(Type._vector3).getCasted(Vector3Value.class);
         BlockValue defaultBlock = msValueFactory.getDefaultValue(Type._block).getCasted(BlockValue.class);
 
-        output.add(templateFactory.createInstanST(templateFactory.factor1UUID, defaultNum, ""));
-        output.add(templateFactory.createInstanST(templateFactory.factor2UUID, defaultNum, ""));
-        output.add(templateFactory.createInstanST(templateFactory.factor1UUID, defaultVector3, ""));
-        output.add(templateFactory.createInstanST(templateFactory.factor2UUID, defaultVector3, ""));
-        output.add(templateFactory.createInstanST("BlockFactor1", defaultBlock, templateFactory.blockFactor1Pos, Type._block, ""));
-        output.add(templateFactory.createInstanST("BlockFactor2", defaultBlock, templateFactory.blockFactor2Pos, Type._block, ""));
+        ret.add(templateFactory.createInstanST(templateFactory.factor1UUID, defaultNum, ""));
+        ret.add(templateFactory.createInstanST(templateFactory.factor2UUID, defaultNum, ""));
+        ret.add(templateFactory.createInstanST(templateFactory.factor1UUID, defaultVector3, ""));
+        ret.add(templateFactory.createInstanST(templateFactory.factor2UUID, defaultVector3, ""));
+        ret.add(templateFactory.createInstanST("BlockFactor1", defaultBlock, templateFactory.blockFactor1Pos, Type._block, ""));
+        ret.add(templateFactory.createInstanST("BlockFactor2", defaultBlock, templateFactory.blockFactor2Pos, Type._block, ""));
+        return ret;
     }
 
-    private void makeProgramFooters(boolean debug) {
+    private List<Template> makeProgramFooters() {
+        ArrayList<Template> ret = new ArrayList<>();
         if (debug)
-            return;
+            return ret;
 
-        output.add(new BlankST("execute as @e[tag=variable] at @e[tag=variable] run setblock ~ ~-1 ~ air"));
-        output.add(new BlankST("kill @e[tag=MineSpeak]"));
+        ret.add(new BlankST("execute as @e[tag=variable] at @e[tag=variable] run setblock ~ ~-1 ~ air"));
+        ret.add(new BlankST("kill @e[tag=MineSpeak]"));
+        return ret;
     }
     //endregion
 
     @Override
-    public Value visitProg(MinespeakParser.ProgContext ctx) {
-        currentScope = ctx.scope;
+    public ArrayList<Template> visitProg(MinespeakParser.ProgContext ctx) {
+        enterScope(ctx.scope);
         boolean debug = true;
+        ArrayList<Template> templates = new ArrayList<>();
 
-        makeProgramHeaders(debug);   // set to false when not debugging
+           // set to false when not debugging
 
         for (FuncEntry func:this.funcSignature.values()) {
             try {
-                visit(func.getCtx().parent);
+                templates.addAll(visit(func.getCtx().parent));
             } catch (CompileTimeException e) {
                 return null;
             }
         }
-
+/*
         for (FuncEntry func:funcSignature.values()) {
             if (func.isMCFunction()) {
                 try {
@@ -78,81 +85,141 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
                 output.add(templateFactory.createFuncCallST(func));
             }
         }
+*/
 
-        makeProgramFooters(debug);
         printOutput();
         return null;
     }
 
     @Override
-    public Value visitBlock(MinespeakParser.BlockContext ctx) {
-        currentScope = ctx.scope;
-        return super.visitBlock(ctx);
+    public ArrayList<Template> visitBlocks(MinespeakParser.BlocksContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
+
+        for (MinespeakParser.BlockContext child : ctx.block()) {
+            ret.addAll(visit(child));
+        }
+
+        return ret;
     }
 
     @Override
-    public Value visitFunc(MinespeakParser.FuncContext ctx) {
-        currentFunc = funcSignature.get(ctx.funcSignature().ID().getText());
-        currentFunc.scope = ctx.funcBody().scope;
-        currentScope = currentFunc.scope;
-
-        visit(ctx.funcBody());
-        currentFunc.isCompiled = true;
-        return null;
+    public ArrayList<Template> visitBlock(MinespeakParser.BlockContext ctx) {
+        enterScope(ctx.scope);
+        ArrayList<Template> ret = super.visitBlock(ctx);
+        exitScope();
+        return ret;
     }
 
     @Override
-    public Value visitFuncBody(MinespeakParser.FuncBodyContext ctx) {
-        if (ctx.stmnts() != null)
-            visit(ctx.stmnts());
-        if (ctx.retVal() != null)
-            currentFunc.setValue(visit(ctx.retVal()));
-        return null;
+    public ArrayList<Template> visitMcFunc(MinespeakParser.McFuncContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
+        ret.addAll(makeProgramHeaders());
+        ret.addAll(super.visitMcFunc(ctx));
+        ret.addAll(makeProgramFooters());
+
+        return ret;
     }
 
     @Override
-    public Value visitRetVal(MinespeakParser.RetValContext ctx) {
-        return visit(ctx.expr());
+    public ArrayList<Template> visitFunc(MinespeakParser.FuncContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
+        enterScope(ctx.scope);
+
+        // New file here
+        if (ctx.parent instanceof MinespeakParser.McFuncContext) {
+            // Make the file with set name and in correct folder
+        } else {
+            // Make the file with random name in bin folder
+        }
+
+        ret.addAll(visit(ctx.funcSignature()));
+        ret.addAll(visit(ctx.funcBody()));
+        exitScope();
+        return ret;
     }
 
     @Override
-    public Value visitStmnts(MinespeakParser.StmntsContext ctx) {
+    public ArrayList<Template> visitFuncSignature(MinespeakParser.FuncSignatureContext ctx) {
+        FuncEntry func = funcSignature.get(ctx.ID().getText());
 
-        for (var child:ctx.children) {
-            try {
-                visit(child);
-            } catch (ParameterDependantException e) {   // if stmnt depends on a parameter
-                currentFunc.addTemplate(templateFactory.createParamDependantStmntST(child));
-            } catch (FuncCompileDependantException e) { // if a function is called before it is compiled
-                currentFunc.addTemplate(templateFactory.createFunctionDependantStmntST(child));
+        for (SymEntry entry : func.getParams()) {
+            entry.setName(STemplateFactory.generateValidUUID());    //TODO:check
+        }
+
+        return new ArrayList<>();
+    }
+
+    @Override
+    public ArrayList<Template> visitFuncBody(MinespeakParser.FuncBodyContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
+        boolean hasRetval = ctx.retVal() != null;
+
+        enterScope(ctx.scope);
+
+        if (hasRetval) {
+            SymEntry retEntry = ctx.scope.lookup("return");
+            if (retEntry != null) {
+                retEntry.setName(STemplateFactory.generateValidUUID());
             }
         }
-        return null;
+
+        if (ctx.stmnts() != null)
+            ret.addAll(visit(ctx.stmnts()));
+
+        if (hasRetval)
+            ret.addAll(visit(ctx.retVal()));
+
+        exitScope();
+        return ret;
     }
 
     @Override
-    public Value visitStmnt(MinespeakParser.StmntContext ctx) {
-        if (ctx.MCStmnt() != null)
-            return visitMCStmnt(ctx);
-
-        return super.visitStmnt(ctx);
+    public ArrayList<Template> visitRetVal(MinespeakParser.RetValContext ctx) {
+        ArrayList<Template> ret;
+        ret = visit(ctx.expr());
+        ret.add(templateFactory.createAssignST(currentScope.lookup("return").getName(), ctx.expr().type, getPrefix()));
+        return ret;
     }
 
     @Override
-    public Value visitDoWhile(MinespeakParser.DoWhileContext ctx) {
-        return super.visitDoWhile(ctx);
+    public ArrayList<Template> visitStmnts(MinespeakParser.StmntsContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
+
+        for (MinespeakParser.StmntContext child : ctx.stmnt()) {
+            ret.addAll(visit(child));
+        }
+
+        return ret;
     }
 
     @Override
-    public Value visitWhileStmnt(MinespeakParser.WhileStmntContext ctx) {
-        return super.visitWhileStmnt(ctx);
+    public ArrayList<Template> visitDoWhile(MinespeakParser.DoWhileContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
+        enterScope(ctx.scope);
+
+        ret.add(null);//TODO: Make dowhileST
+
+        exitScope();
+        return ret;
     }
 
     @Override
-    public Value visitForStmnt(MinespeakParser.ForStmntContext ctx) {
-        currentScope = ctx.scope;
+    public ArrayList<Template> visitWhileStmnt(MinespeakParser.WhileStmntContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
+        enterScope(ctx.scope);
+
+        ret.add(null);//TODO: Make whileST
+
+        exitScope();
+        return ret;
+    }
+
+    @Override
+    public ArrayList<Template> visitForStmnt(MinespeakParser.ForStmntContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
+        enterScope(ctx.scope);
         visit(ctx.instan());
-
+        //TODO: make ForLoop
         //new file (forStmntFile)
 
 
@@ -160,45 +227,50 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
         //end of file (forStmntFile)
 
 //        return super.visitForStmnt(ctx);
-        return null;
+        exitScope();
+        return ret;
     }
 
     @Override
-    public Value visitIfStmnt(MinespeakParser.IfStmntContext ctx) {
+    public ArrayList<Template> visitIfStmnt(MinespeakParser.IfStmntContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
+        enterScope(ctx.scope);
+
         prefixs.add("");
-        visit(ctx.expr(0));
-        String curPrefix = prefixs.get(prefixs.size() - 1);
-        curPrefix = curPrefix.replace("matches 1", "matches 0");
-        curPrefix = curPrefix.concat("execute if score @s " + templateFactory.getExprCounterString() + " matches 1 run ");
-        prefixs.set(prefixs.size() - 1, curPrefix);
-        visit(ctx.body(0));
-        for (int i = 1; i < ctx.expr().size(); i++) {
-            curPrefix = prefixs.get(prefixs.size() - 1);
-            curPrefix = curPrefix.replace("matches 1", "matches 0");
-            prefixs.set(prefixs.size() - 1, curPrefix);
-            visit(ctx.expr(i));
-            curPrefix = curPrefix.concat("execute if score @s " + templateFactory.getExprCounterString() + " matches 1 run ");
-            prefixs.set(prefixs.size() - 1, curPrefix);
-            visit(ctx.body(i));
+        for (int i = 0; i < ctx.expr().size(); i++) {
+            String currentPrefix = prefixs.get(prefixs.size() - 1);
+            currentPrefix = currentPrefix.replace("matches 1", "matches 0");
+            prefixs.set(prefixs.size() - 1, currentPrefix);
+
+            ret.addAll(visit(ctx.expr(i)));
+            currentPrefix = currentPrefix.concat("execute if score @s " + templateFactory.getExprCounterString() + " matches 1 run ");
+            prefixs.set(prefixs.size() - 1, currentPrefix);
+            ret.addAll(visit(ctx.body(i)));
         }
 
         if (ctx.ELSE() != null){
             prefixs.set(prefixs.size() - 1, prefixs.get(prefixs.size() - 1).replace("matches 1", "matches 0"));
-            visit(ctx.body(ctx.body().size() - 1));
+            ret.addAll(visit(ctx.body(ctx.body().size() - 1)));
         }
 
         prefixs.remove(prefixs.size() - 1);
-        return null;
+        exitScope();
+        return ret;
     }
 
     @Override
-    public Value visitBody(MinespeakParser.BodyContext ctx) {
-        currentScope = ctx.scope;
-        return super.visitBody(ctx);
+    public ArrayList<Template> visitBody(MinespeakParser.BodyContext ctx) {
+        ArrayList<Template> ret;
+        enterScope(ctx.scope);
+        ret = super.visit(ctx);
+        exitScope();
+        return ret;
     }
 
     @Override
-    public Value visitDcls(MinespeakParser.DclsContext ctx) { //FIX
+    public ArrayList<Template> visitDcls(MinespeakParser.DclsContext ctx) { //FIX?FIX!
+        ArrayList<Template> ret = new ArrayList<>();
+
         for (int i = 0; i < ctx.ID().size(); i++){
             String ID = ctx.ID(i).getText();
             currentFunc.addTemplate(templateFactory.createDclST(ID, ctx.primaryType(i).type, getPrefix()));
@@ -620,6 +692,14 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<Value>{
     //endregion
 
     //region Helper functions
+    private void enterScope(Scope scope) {
+        this.currentScope = scope;
+    }
+
+    private void exitScope() {
+        enterScope(this.currentScope.getParent());
+    }
+
     private Value visitMCStmnt(MinespeakParser.StmntContext ctx) {
         String stmnt = ctx.MCStmnt().getText();
 //        currentFunc.addTemplate(templateFactory.createMCStatementST(formatString(stmnt), getPrefix()));

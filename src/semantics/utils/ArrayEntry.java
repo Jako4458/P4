@@ -1,7 +1,7 @@
 import org.antlr.v4.runtime.ParserRuleContext;
 
 public class ArrayEntry implements SymEntry {
-    private final String name;
+    private String name;
     private final ArrayType type;
     private final Type baseType;
     private final int size;
@@ -20,6 +20,11 @@ public class ArrayEntry implements SymEntry {
     @Override
     public String getName() {
         return this.name;
+    }
+
+    @Override
+    public void setName(String newName) {
+        this.name = newName;
     }
 
     @Override

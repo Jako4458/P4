@@ -27,6 +27,11 @@ public class FuncEntry implements SymEntry {
     }
 
     @Override
+    public void setName(String newName) {
+
+    }
+
+    @Override
     public String getVarName() {
         return null;
     }

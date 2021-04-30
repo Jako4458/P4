@@ -4,7 +4,7 @@ import java.util.Vector;
 
 public class SimpleEntry implements SymEntry {
     private final Type type;
-    private final String name;
+    private String name;
     private final ParserRuleContext ctx;
     private final int modifier;
     private Value value;
@@ -19,6 +19,11 @@ public class SimpleEntry implements SymEntry {
     @Override
     public String getName() {
         return this.name;
+    }
+
+    @Override
+    public void setName(String newName) {
+        this.name = newName;
     }
 
     public String getVarName() {

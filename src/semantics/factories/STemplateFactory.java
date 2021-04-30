@@ -164,5 +164,5 @@ public class STemplateFactory {
         return new AssignST(varName, val, prefix);
     }
 
-    public String generateValidUUID() {return UUID.randomUUID().toString().replace("-", "_").substring(0,11);}
+    public static String generateValidUUID() {return UUID.randomUUID().toString().replace("-", "_").substring(0,11);}
 }
