@@ -12,9 +12,9 @@ public class DclST implements Template {
         }
         else if (type == Type._vector2 || type == Type._vector3) {
             if (type == Type._vector2)
-                st = new ST("<DclX><DclY>");
+                st = new ST("#Vector2\n<DclX><DclY>");
             else
-                st = new ST("<DclX><DclY><DclZ>");
+                st = new ST("#vector3\n<DclX><DclY><DclZ>");
 
             DclST DclX = new DclST(varName + "_x", Type._num, prefix);
             DclST DclY = new DclST(varName + "_y", Type._num, prefix);

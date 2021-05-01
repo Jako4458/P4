@@ -517,16 +517,17 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
             case Type.VECTOR3:
                 if (ctx.ASSIGN() == null)
                     ret.add(templateFactory.createArithmeticExprST(varName, operator, var.getType(), type, getPrefix()));
+                ret.add(templateFactory.createAssignST(varName, exprName, type, getPrefix()));
                 break;
             case Type.BLOCK:
+                ret.add(templateFactory.createAssignST(varName, type, getPrefix()));
             case Type.BOOL:
                 break;
             case Type.STRING:
             default:
                 Error("visitAssign");
         }
-        ret.add(templateFactory.createAssignST(varName, exprName, type, getPrefix()));
-        return  ret;
+        return ret;
     }
 
     //region literal

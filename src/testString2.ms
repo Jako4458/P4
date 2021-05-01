@@ -1,12 +1,8 @@
 minespeak
 
     func Test(c:num) do
-        var a:num = 3
-
-        for var i:num = 2 until i > a where i += 1 do
-            var b:block = #DIRT
-        endfor
-
+        var a:block
+        a = #DIRT
     endfunc
 
     func Test2() do

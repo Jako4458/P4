@@ -20,6 +20,9 @@ public class FuncCallST implements Template{
 
     public static FuncCallST generateFuncCallToNonMC(String name) {
         ST template = new ST("#Call <name> - <Comment>\nexecute as @s run function <folder>:<name>\n");
+
+        template.add("Comment", "FuncCallST");
+
         template.add("name", name);
         template.add("folder", "bin");
 
@@ -28,6 +31,9 @@ public class FuncCallST implements Template{
 
     public static FuncCallST generateFuncCallToMC(String name, String folderName) {
         ST template = new ST("#Call <name> - <Comment>\nexecute as @s run function <folder>:<name>\n");
+
+        template.add("Comment", "FuncCallST");
+
         template.add("name", name);
         template.add("folder", folderName);
 

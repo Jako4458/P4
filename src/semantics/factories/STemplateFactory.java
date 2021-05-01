@@ -140,25 +140,20 @@ public class STemplateFactory {
     }
 
     // InstantST
-    public InstanST createInstanST(SymEntry entry, Type type, String prefix) {
-        if (type == Type._block)
-            return new InstanST(entry.getVarName(), (BlockValue) entry.getValue(), getNewBlockPos(), prefix);
-        else
-            return new InstanST(entry.getVarName(), getExprCounterString(), type, prefix);
-    }
-
-    // InstantST
     public InstanST createInstanST(String VarName, BlockValue blockValue, Vector3 pos, String prefix) {
         return new InstanST(VarName, blockValue, pos, prefix);
     }
 
     public AssignST createAssignST(String varName, Type type, String prefix){
-        return new AssignST(varName, getNewExprCounterString(), type, prefix); //TODO: Check if this should be new expr counter
+        if (type == Type._block)
+            return new AssignST(varName, blockFactor1Pos, getExprCounterString(), prefix);
+        return new AssignST(varName, getExprCounterString(), type, prefix);
     }
 
     public AssignST createAssignST(String varName, String exprName, Type type, String prefix){
         if (type == Type._block)
-            exprName = exprName.toLowerCase();
+            return new AssignST(varName, blockFactor1Pos, exprName, prefix);
+
         return new AssignST(varName, exprName, type, prefix);
     }
 
