@@ -21,6 +21,10 @@ public class Main {
         // Configure the compiler through the compiler arguments.
         Configuration config = new Configuration(args);
 
+        // Building builtin functions
+        FileManager fManager = new FileManager((new File("")).getAbsolutePath());
+        fManager.build();
+
         // Lexing
         System.out.println("Lexing...");
         CommonTokenStream tokenStream = lex(config.source_file.toString());
@@ -83,7 +87,7 @@ public class Main {
         SignatureWalker walker = new SignatureWalker();
         walker.visit(tree);
         Main.functionSignatures = walker.functionSignatures;
-        ScopeListener scopeListener = new ScopeListener(walker.functionSignatures);
+        ScopeListener scopeListener = new ScopeListener(walker.functionSignatures, BuiltinFuncs.paramMap);
         ParseTreeWalker.DEFAULT.walk(scopeListener, tree);
 
         UnassignedVariableListener unassignedVariableListener = new UnassignedVariableListener();
@@ -94,7 +98,7 @@ public class Main {
     }
 
     public static void codeGeneration(ParseTree tree) {
-        CodeGenVisitor codeGenVisitor = new CodeGenVisitor(Main.functionSignatures);
+        CodeGenVisitor codeGenVisitor = new CodeGenVisitor(Main.functionSignatures, BuiltinFuncs.paramMap);
         codeGenVisitor.visit(tree);
     }
     

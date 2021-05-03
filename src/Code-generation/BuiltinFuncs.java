@@ -1,9 +1,12 @@
 import org.stringtemplate.v4.ST;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class BuiltinFuncs {
+    public static HashMap<String, FuncEntry> paramMap = new HashMap<>();
+
     public static MSFile createSetB(String playerTag, String destIDName, String blockIDName, String relativeIDName) {
         ST start = new ST("summon minecraft:armor_stand ~ ~ ~ {Tags:[\"tpID\"],NoGravity:1} \n" +
                 "execute as @e[tag=tpID,limit=1] run function builtin:setbhelper\n");
@@ -35,7 +38,22 @@ public class BuiltinFuncs {
             add(new FFile("", end.render()));
         }};
 
+        // String id, Type type, ParserRuleContext ctx, int modifier
+        ArrayList<SymEntry> fParams = new ArrayList<SymEntry>() {{
+            add(new SimpleEntry(destIDName, Type._vector3, null, MinespeakParser.VAR));
+            add(new SimpleEntry(blockIDName, Type._block, null, MinespeakParser.VAR));
+            add(new SimpleEntry(relativeIDName, Type._bool, null, MinespeakParser.VAR));
+        }};
+
+        BuiltinFuncs.paramMap.put("setB", new FuncEntry(true, "setB", Type._void, fParams, null));
+
         return new CFile("setb", content);
     }
+
+
+
+
+
+
 
 }

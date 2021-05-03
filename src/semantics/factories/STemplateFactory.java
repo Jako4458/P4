@@ -138,6 +138,9 @@ public class STemplateFactory {
     }
 
     public InstanST createInstanST(String varName, String exprName, Type type, String prefix) {
+        if (type.getTypeAsInt() == Type.BLOCK) {
+            return new InstanST(varName, exprName, getNewBlockPos(), blockFactor1Pos, prefix);
+        }
         return new InstanST(varName, exprName, type, prefix);
     }
 
