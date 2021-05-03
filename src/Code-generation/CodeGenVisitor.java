@@ -15,6 +15,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     private Scope currentScope;
     private FuncEntry currentFunc;
     private final Map<String, FuncEntry> funcSignature;
+    private final Map<String, FuncEntry> builtinFunctions;
     private final MSValueFactory msValueFactory = new MSValueFactory();
     private final STemplateFactory templateFactory = new STemplateFactory();
     private final LogFactory logFactory = new LogFactory();
@@ -24,8 +25,9 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     private ArrayList<Template> output = new ArrayList<>();
     //endregion
 
-    public CodeGenVisitor(Map<String, FuncEntry> funcSignature) {
+    public CodeGenVisitor(Map<String, FuncEntry> funcSignature, Map<String, FuncEntry> builtinFunctions) {
         this.funcSignature = funcSignature;
+        this.builtinFunctions = builtinFunctions;
     }
 
     //region program header + footer
@@ -145,7 +147,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         FuncEntry func = funcSignature.get(ctx.ID().getText());
         for (SymEntry param : func.getParams()) {
             SymEntry sl = currentScope.lookup(param.getName());
-            ret.add(templateFactory.createAssignST(sl.getVarName(), param.getVarName(), param.getType(), getPrefix()));
+            ret.add(templateFactory.createInstanST(sl.getVarName(), param.getVarName(), param.getType(), getPrefix()));
         }
 
         return ret;
@@ -473,14 +475,20 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     public ArrayList<Template> visitFuncCall(MinespeakParser.FuncCallContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
         FuncEntry func = funcSignature.get(ctx.ID().getText());
+        boolean isBuiltin = false;
+
+        if (func == null) {
+            func = this.builtinFunctions.get(ctx.ID().getText());
+            isBuiltin = true;
+        }
 
         for (int i = 0; i < ctx.expr().size(); i++) {
             ret.addAll(visit(ctx.expr(i)));
         }
 
         for (int i = 0; i < ctx.expr().size(); i++) {
-            String vName = func.getParams().get(i).getVarName();
-            ret.add(templateFactory.createAssignST(func.getParams().get(i).getVarName(), factorNameTable.get(ctx.expr(i)), ctx.expr(i).type, getPrefix()));
+            String name = isBuiltin ? func.getParams().get(i).getName() : func.getParams().get(i).getVarName();
+            ret.add(templateFactory.createInstanST(name, factorNameTable.get(ctx.expr(i)), ctx.expr(i).type, getPrefix()));
         }
 
         ret.add(templateFactory.createFuncCallST(func.getName(), func.isMCFunction()));

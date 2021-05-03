@@ -1,4 +1,5 @@
 import logging.*;
+import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
@@ -15,15 +16,24 @@ public class ScopeListener extends MinespeakBaseListener {
     private final EntryFactory entryFac = new EntryFactory();
     private final LogFactory logFac = new LogFactory();
     private boolean isInvalidFunc = false;
+    private Map<String, FuncEntry> builtinFunctions;
 
     public ScopeListener() {
         enterScope(null);
         this.functions = new HashMap<>();
+        this.builtinFunctions = new HashMap<>();
     }
 
     public ScopeListener(Map<String, FuncEntry> funcSignatures) {
         enterScope(null);
         this.functions = funcSignatures;
+        this.builtinFunctions = new HashMap<>();
+    }
+
+    public ScopeListener(Map<String, FuncEntry> funcSignatures, Map<String, FuncEntry> builtinFunctions) {
+        enterScope(null);
+        this.functions = funcSignatures;
+        this.builtinFunctions = builtinFunctions;
     }
 
     @Override
@@ -495,6 +505,8 @@ public class ScopeListener extends MinespeakBaseListener {
     @Override
     public void exitFuncCall(MinespeakParser.FuncCallContext ctx) {
         FuncEntry function = functions.get(ctx.ID().getText());
+        if (function == null)
+            function = this.builtinFunctions.get(ctx.ID().getText());
 
         if (function == null) {
             Logger.shared.add(logFac.createVariableNotDeclaredLog(ctx.ID().getText(), ctx));
