@@ -12,7 +12,7 @@ public class EqualityExprST implements Template {
             this.output = createVector3EqualityST(a, b, operator, exprID, prefix).render();
     }
 
-    public EqualityExprST(String a, String b, String operator, String exprID, Vector3 pos1, Vector3 pos2, Type type, String prefix) {
+    public EqualityExprST(String a, String b, String operator, String exprID, Vector3 pos1, Vector3 pos2, String prefix) {
         ST template = new ST("#<Comment>\n" +
                         "<prefix>execute as @e[tag=<a>] at @e[tag=<a>] run clone ~ ~-1 ~ ~ ~-1 ~ <pos1X> <pos1Y> <pos1Z>\n" +
                         "<prefix>execute as @e[tag=<b>] at @e[tag=<b>] run clone ~ ~-1 ~ ~ ~-1 ~ <pos2X> <pos2Y> <pos2Z>\n" +

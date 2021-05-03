@@ -409,18 +409,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         String operator = SymbolConverter.getSymbol(ctx.op.getType());
 
-        if (expr1Type == Type._block && expr1Name == null){
-            expr1Name = templateFactory.BlockFactor1;
-            //TODO:BLOCKS
-//            currentFunc.addTemplate(templateFactory.createAssignST(expr1Name, expr1.getValue().toString(), Type._block, getPrefix()));
-        }
-
-        if (expr2Type == Type._block && expr2Name == null){
-            //TODO:BLOCKS
-            expr2Name = templateFactory.BlockFactor2;
-//            currentFunc.addTemplate(templateFactory.createAssignST(expr2Name, expr2.getValue().toString(), Type._block, getPrefix()));
-        }
-
         ret.add(templateFactory.createEqualityExprST(expr1Name, expr2Name, operator, expr1Type, getPrefix()));
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
 
@@ -512,6 +500,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         String exprName = factorNameTable.get(ctx.expr());
 
         switch (type.getTypeAsInt()) {
+            case Type.BOOL:
             case Type.NUM:
             case Type.VECTOR2:
             case Type.VECTOR3:
@@ -521,7 +510,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
                 break;
             case Type.BLOCK:
                 ret.add(templateFactory.createAssignST(varName, type, getPrefix()));
-            case Type.BOOL:
                 break;
             case Type.STRING:
             default:
@@ -536,7 +524,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         ArrayList<Template> ret = new ArrayList<>();
         switch (ctx.type.getTypeAsInt()) {
             case Type.BLOCK:
-                //TODO FIX
                 BlockValue block = (BlockValue)msValueFactory.createValue(ctx.BlockLiteral().getText(), Type._block);
                 ret.add(templateFactory.createInstanST(templateFactory.getNewExprCounterString(), block, templateFactory.getNewBlockPos(), getPrefix()));
                 break;

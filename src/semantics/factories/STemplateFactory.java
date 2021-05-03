@@ -44,7 +44,7 @@ public class STemplateFactory {
     // EqualityExprST
     public EqualityExprST createEqualityExprST(String a, String b, String operator, Type type, String prefix) {
         if (type == Type._block)
-            return new EqualityExprST(a, b, operator, getNewExprCounterString(), blockFactor1Pos, blockFactor2Pos, type, prefix);
+            return new EqualityExprST(a, b, operator, getNewExprCounterString(), blockFactor1Pos, blockFactor2Pos, prefix);
         else
             return new EqualityExprST(a, b, operator, getNewExprCounterString(), type, prefix);
     }
