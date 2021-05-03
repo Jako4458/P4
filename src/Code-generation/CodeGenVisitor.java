@@ -4,7 +4,7 @@ import java.util.*;
 
 public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     //region variable instantiations
-    private final boolean debug = true;
+    private final boolean debug = false;
     private Scope currentScope;
     private final Map<String, FuncEntry> funcSignature;
     private final Map<String, FuncEntry> builtinFunctions;
@@ -31,6 +31,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         Vector3Value defaultVector3 = msValueFactory.getDefaultValue(Type._vector3).getCasted(Vector3Value.class);
         BlockValue defaultBlock = msValueFactory.getDefaultValue(Type._block).getCasted(BlockValue.class);
 
+        ret.add(templateFactory.createMCStatementST("tag @s add active", ""));
         ret.add(templateFactory.createInstanST(templateFactory.factor1UUID, defaultNum, ""));
         ret.add(templateFactory.createInstanST(templateFactory.factor2UUID, defaultNum, ""));
         ret.add(templateFactory.createInstanST(templateFactory.factor1UUID, defaultVector3, ""));
@@ -93,10 +94,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     @Override
     public ArrayList<Template> visitMcFunc(MinespeakParser.McFuncContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
-        ret.addAll(makeProgramHeaders());
         ret.addAll(visit(ctx.func()));
-        ret.addAll(makeProgramFooters());
-
         return ret;
     }
 
@@ -106,17 +104,20 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         enterScope(ctx.scope);
 
         // New file here
-        if (ctx.parent instanceof MinespeakParser.McFuncContext) {
-            ret.add(templateFactory.createEnterNewFileST(ctx.funcSignature().ID().getText(), true));
+        if (!(ctx.parent instanceof MinespeakParser.McFuncContext)) {
+            String generatedName = generateValidFileName();
+            ret.add(templateFactory.createEnterNewFileST(generatedName, false));
+            funcSignature.get(ctx.funcSignature().ID().getText()).setName(generatedName);
         } else {
-            ret.add(templateFactory.createEnterNewFileST(generateValidFileName(), false));
+            ret.add(templateFactory.createEnterNewFileST(ctx.funcSignature().ID().getText().toLowerCase(), true));
+            ret.addAll(makeProgramHeaders());
         }
 
         ret.addAll(visit(ctx.funcSignature()));
         ret.addAll(visit(ctx.funcBody()));
 
+        ret.addAll(makeProgramFooters());
         ret.add(templateFactory.createExitFileST());
-
         exitScope();
         return ret;
     }
@@ -153,8 +154,9 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     @Override
     public ArrayList<Template> visitRetVal(MinespeakParser.RetValContext ctx) {
         ArrayList<Template> ret;
+        FuncEntry func = funcSignature.get(((MinespeakParser.FuncContext)ctx.parent.parent).funcSignature().ID().getText());
         ret = visit(ctx.expr());
-        ret.add(templateFactory.createAssignST(currentScope.lookup("return").getVarName(), ctx.expr().type, getPrefix()));
+        ret.add(templateFactory.createInstanST(func.retVal.getVarName(), factorNameTable.get(ctx.expr()), ctx.expr().type, getPrefix()));
         return ret;
     }
 
@@ -216,8 +218,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         ArrayList<String> oldPrefixs = new ArrayList<>(prefixs);
 
-        ret.add(templateFactory.createFuncCallST(loopID, false,
-                getPrefix() + "execute if score @s " + templateFactory.getExprCounterString() + "matches 1 run "));
+        ret.add(templateFactory.createFuncCallST(loopID, false, false,
+                getPrefix() + "execute unless score @s " + templateFactory.getExprCounterString() + " matches 1 run "));
 
         //new file (forStmntFile)
         prefixs = new ArrayList<>();
@@ -225,8 +227,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         ret.addAll(visit(ctx.body()));
         ret.addAll(visit(ctx.assign()));
         ret.addAll(visit(ctx.expr()));
-        ret.add(templateFactory.createFuncCallST(loopID, false,
-                getPrefix() + "execute if score @s " + templateFactory.getExprCounterString() + "matches 1 run "));
+        ret.add(templateFactory.createFuncCallST(loopID, false, false,
+                getPrefix() + "execute unless score @s " + templateFactory.getExprCounterString() + " matches 1 run "));
 
         ret.add(templateFactory.createExitFileST());
         //end of file (forStmntFile)
@@ -452,7 +454,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
             return ret;
         } else if (ctx.funcCall() != null) {
             ret.addAll(visit(ctx.funcCall()));
-            String funcRetName = funcSignature.get(ctx.funcCall().ID().getText()).scope.lookup("return").getVarName();
+            String funcRetName = funcSignature.get(ctx.funcCall().ID().getText()).retVal.getVarName();
             factorNameTable.put(ctx, funcRetName);
             return ret;
         } else if (ctx.rArray() != null) {
@@ -489,7 +491,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
             ret.add(templateFactory.createInstanST(name, factorNameTable.get(ctx.expr(i)), ctx.expr(i).type, getPrefix()));
         }
 
-        ret.add(templateFactory.createFuncCallST(func.getName(), func.isMCFunction(), getPrefix()));
+        ret.add(templateFactory.createFuncCallST(func.getName().toLowerCase(), func.isMCFunction(), isBuiltin, getPrefix()));
         return ret;
     }
 
@@ -515,7 +517,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
             case Type.VECTOR3:
                 if (ctx.ASSIGN() == null)
                     ret.add(templateFactory.createArithmeticExprST(varName, operator, var.getType(), type, getPrefix()));
-                ret.add(templateFactory.createAssignST(varName, exprName, type, getPrefix()));
+                ret.add(templateFactory.createAssignST(varName, type, getPrefix()));
                 break;
             case Type.BLOCK:
                 ret.add(templateFactory.createAssignST(varName, type, getPrefix()));
@@ -621,7 +623,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     }
 
     private String generateValidFileName() {
-        return UUID.randomUUID().toString();
+        return UUID.randomUUID().toString().toLowerCase();
     }
 
     private void printOutput(ArrayList<Template> templateList) {
@@ -655,7 +657,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         ret.addAll(visit(body));
         ret.addAll(visit(expr));
-        ret.add(templateFactory.createFuncCallST(whileName, false,
+        ret.add(templateFactory.createFuncCallST(whileName, false, false,
                 "execute if score @s " + templateFactory.getExprCounterString() + " matches 1 run "));
 
         //exit file
@@ -663,7 +665,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         prefixs = new ArrayList<>(tempPrefix);
         prefixs.add("execute if score @s " + templateFactory.getExprCounterString() + " matches 1 run ");
-        ret.add(templateFactory.createFuncCallST(whileName, false, getPrefix()));
+        ret.add(templateFactory.createFuncCallST(whileName, false, false, getPrefix()));
 
         return ret;
     }

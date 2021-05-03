@@ -51,7 +51,7 @@ public class InstanST implements Template {
 
         ST summonTemplate = new ST("summon armor_stand <x> <y> <z> {Tags:[\"<varName>\", \"variable\",\"MineSpeak\"],NoGravity:1}\n");
         summonTemplate.add("x", newBlockPos.getX());
-        summonTemplate.add("y", newBlockPos.getY());
+        summonTemplate.add("y", newBlockPos.getY()+1);
         summonTemplate.add("z", newBlockPos.getZ());
         summonTemplate.add("varName", varName);
 

@@ -3,13 +3,13 @@ import java.util.List;
 
 public class FuncEntry implements SymEntry {
     private final boolean isMCFunction;
-    private final String name;
+    private String name;
     private final Type retType;
     private final List<SymEntry> params;
     private final MinespeakParser.FuncSignatureContext ctx;
     public Scope scope;
     private Value value;
-    public boolean isCompiled;
+    public SymEntry retVal;
 
     private ArrayList<Template> output = new ArrayList<>();
 
@@ -28,7 +28,7 @@ public class FuncEntry implements SymEntry {
 
     @Override
     public void setName(String newName) {
-
+        this.name = newName;
     }
 
     @Override

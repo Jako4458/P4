@@ -8,7 +8,7 @@ public class STemplateFactory {
     public Vector3 blockFactor2Pos = new Vector3(1, 255, 0); // is dependant on dcl before block var uses
     public String BlockFactor1 = "BlockFactor1";
     public String BlockFactor2 = "BlockFactor2";
-    private Vector3 blockPos = new Vector3(0, 255, 0);
+    private Vector3 blockPos = new Vector3(2, 255, 0);
 
     private Integer newExprCounter() {return ++exprCounter; }
 
@@ -20,8 +20,9 @@ public class STemplateFactory {
     }
 
     public Vector3 getNewBlockPos() {
+        Vector3 retPos = blockPos;
         blockPos = new Vector3(blockPos.getX()+1, blockPos.getY(), blockPos.getZ());
-        return blockPos;
+        return retPos;
     }
 
     // EnterNewFileST
@@ -41,7 +42,7 @@ public class STemplateFactory {
 
     // ArithmeticExprST
     public ArithmeticExprST createArithmeticExprST (String expr1Name, String operator, Type type1, Type type2, String prefix) {
-        return new ArithmeticExprST(expr1Name, getNewExprCounterString(), operator, getNewExprCounterString(), type1, type2, prefix);
+        return new ArithmeticExprST(expr1Name, getExprCounterString(), operator, getNewExprCounterString(), type1, type2, prefix);
     }
 
     // EqualityExprST
@@ -67,7 +68,9 @@ public class STemplateFactory {
         return new RelationExprST(a, b, operator, prefix, getNewExprCounterString());
     }
 
-    public Template createFuncCallST(String name, boolean isMC, String prefix) {
+    public Template createFuncCallST(String name, boolean isMC, boolean isBuiltin, String prefix) {
+        if (isBuiltin)
+            return FuncCallST.generateFuncCallToMC(name, "builtin", prefix);
         if (isMC)
             return FuncCallST.generateFuncCallToMC(name, "mcfuncs", prefix);
         return FuncCallST.generateFuncCallToNonMC(name, prefix);

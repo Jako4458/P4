@@ -52,9 +52,9 @@ public class AssignST implements Template {
     }
 
     public AssignST(String varName, Vector3 tempPos, String exprName, String prefix){
-        ST st = new ST( "<Comment>\n" +
-                                "<prefix>execute as <exprName> at <exprName> run clone ~ ~-1 ~ ~ ~-1 ~ <tempX> <tempY> <tempZ>\n" +
-                                "<prefix>execute as <varName> at <varName> run clone <tempX> <tempY> <tempZ> <tempX> <tempY> <tempZ> ~ ~-1 ~\n");
+        ST st = new ST( "#<Comment>\n" +
+                                "<prefix>execute as @e[tag=<exprName>,limit=1] at @e[tag=<exprName>,limit=1] run clone ~ ~-1 ~ ~ ~-1 ~ <tempX> <tempY> <tempZ>\n" +
+                                "<prefix>execute as @e[tag=<varName>,limit=1] at @e[tag=<varName>,limit=1] run clone <tempX> <tempY> <tempZ> <tempX> <tempY> <tempZ> ~ ~-1 ~\n");
 
         st.add("Comment", this.getClass().toString().substring(6));  //substring to remove "class "
         st.add("prefix", prefix);
@@ -70,7 +70,7 @@ public class AssignST implements Template {
     }
 
     public AssignST(String varName, Vector2 vec2, String prefix){
-        ST st = new ST("<Comment>\n<AssignX><AssignY>");
+        ST st = new ST("#<Comment>\n<AssignX><AssignY>");
 
         AssignST AssignX = new AssignST(varName + "_x", vec2.getX(), prefix);
         AssignST AssignY = new AssignST(varName + "_y", vec2.getY(), prefix);
@@ -84,7 +84,7 @@ public class AssignST implements Template {
     }
 
     public AssignST(String varName, Vector3 vec3, String prefix){
-        ST st = new ST("<Comment>\n<AssignX><AssignY><AssignZ>");
+        ST st = new ST("#<Comment>\n<AssignX><AssignY><AssignZ>");
 
         AssignST AssignX = new AssignST(varName + "_x", vec3.getX(), prefix);
         AssignST AssignY = new AssignST(varName + "_y", vec3.getY(), prefix);

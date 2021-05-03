@@ -6,10 +6,9 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
-import java.io.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.Map;
 
 
@@ -23,7 +22,7 @@ public class Main {
 
         // Building builtin functions
         FileManager fManager = new FileManager((new File("")).getAbsolutePath());
-        fManager.build();
+        fManager.buildBeforeCodeGen();
 
         // Lexing
         System.out.println("Lexing...");
@@ -39,10 +38,18 @@ public class Main {
 
         // Code gen
         System.out.println("Code gene...");
-        codeGeneration(parseTree);
+        ArrayList<Template> output = codeGeneration(parseTree);
+
+        // Outputting to files
+        System.out.println("Making files...");
+        makeFiles(fManager, output);
 
         // Dump all the logs
         Logger.shared.print();
+    }
+
+    private static boolean makeFiles(FileManager fManager, ArrayList<Template> output) {
+        return fManager.buildCodeGen(output);
     }
 
     private static CommonTokenStream lex(String file) {
@@ -97,9 +104,9 @@ public class Main {
         ParseTreeWalker.DEFAULT.walk(infiniteLoopDetectionListener, tree);
     }
 
-    public static void codeGeneration(ParseTree tree) {
+    public static ArrayList<Template> codeGeneration(ParseTree tree) {
         CodeGenVisitor codeGenVisitor = new CodeGenVisitor(Main.functionSignatures, BuiltinFuncs.paramMap);
-        codeGenVisitor.visit(tree);
+        return codeGenVisitor.visit(tree);
     }
     
 }

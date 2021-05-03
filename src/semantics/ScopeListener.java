@@ -88,6 +88,7 @@ public class ScopeListener extends MinespeakBaseListener {
             }
         }
 
+        functions.get(name).scope = currentScope;
         exitScope();
     }
 

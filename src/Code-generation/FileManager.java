@@ -1,15 +1,19 @@
+import javax.xml.xpath.XPathException;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 public class FileManager {
+    private final String originalPath;
     private String path;
     private final ArrayList<MSFile> builtinFunctions = FileManager.initFunctions();
 
     public FileManager(String path) {
         this.path = path;
+        this.originalPath = new String(path);
     }
 
     private void buildBuiltin() {
@@ -28,8 +32,6 @@ public class FileManager {
             int functionsAdded = buildBuiltinFunctions();
             System.out.println("Missed functions: " + functionsAdded);
         }
-
-
     }
 
     private int buildBuiltinFunctions() {
@@ -51,7 +53,7 @@ public class FileManager {
     }
 
 
-    public void build() {
+    public void buildBeforeCodeGen() {
         buildContainer();
         buildBuiltin();
     }
@@ -67,6 +69,47 @@ public class FileManager {
 
         if (made || folder.exists())
             this.path = path + "/result";
+    }
+
+    public boolean buildCodeGen(List<Template> templates) {
+        buildFolders();
+        Stack<FileWriter> writers = new Stack<>();
+
+        for (Template template : templates) {
+            try {
+                FileWriter currentWriter = writers.size() == 0 ? null : writers.peek();
+                if (template instanceof EnterNewFileST) {
+                    EnterNewFileST currentTemplate = (EnterNewFileST) template;
+                    String pathExtension = currentTemplate.isMcfunction ? "/result/mcfuncs/functions/" : "/result/bin/functions/";
+                    writers.push(new FileWriter(this.originalPath + pathExtension + currentTemplate.fileName + ".mcfunction", true));
+                } else if (template instanceof ExitFileST) {
+                    currentWriter.close();
+                    writers.pop();
+                } else {
+                    currentWriter.write(template.getOutput());
+                }
+            } catch (IOException e) {
+                return false;
+            } catch (NullPointerException e) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void buildFolders() {
+        File folder = new File(originalPath + "/result/bin");
+        File folder2 = new File(originalPath + "/result/bin/functions");
+        File folder3 = new File(originalPath + "/result/mcfuncs");
+        File folder4 = new File(originalPath + "/result/mcfuncs/functions");
+        try {
+            folder.mkdir();
+            folder2.mkdir();
+            folder3.mkdir();
+            folder4.mkdir();
+        } catch (SecurityException ignored) {
+        }
     }
 
     private static ArrayList<MSFile> initFunctions() {
