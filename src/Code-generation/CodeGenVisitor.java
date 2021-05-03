@@ -69,7 +69,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         for (FuncEntry func:this.funcSignature.values()) {
             try {
-                templates.addAll(visit(func.getCtx().parent));
+                templates.addAll(visit(func.getCtx().parent.parent));
             } catch (CompileTimeException e) {
                 return null;
             }
@@ -105,7 +105,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     @Override
     public ArrayList<Template> visitBlock(MinespeakParser.BlockContext ctx) {
         enterScope(ctx.scope);
-        ArrayList<Template> ret = super.visitBlock(ctx);
+        ArrayList<Template> ret = new ArrayList<>();
+        ret.addAll(visit(ctx.func() != null ? ctx.func() : ctx.mcFunc()));
         exitScope();
         return ret;
     }
@@ -114,7 +115,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     public ArrayList<Template> visitMcFunc(MinespeakParser.McFuncContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
         ret.addAll(makeProgramHeaders());
-        ret.addAll(super.visitMcFunc(ctx));
+        ret.addAll(visit(ctx.func()));
         ret.addAll(makeProgramFooters());
 
         return ret;
@@ -140,13 +141,14 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
     @Override
     public ArrayList<Template> visitFuncSignature(MinespeakParser.FuncSignatureContext ctx) {
+        ArrayList<Template> ret = new ArrayList<>();
         FuncEntry func = funcSignature.get(ctx.ID().getText());
-
-        for (SymEntry entry : func.getParams()) {
-            entry.setName(STemplateFactory.generateValidUUID());    //TODO:check
+        for (SymEntry param : func.getParams()) {
+            SymEntry sl = currentScope.lookup(param.getName());
+            ret.add(templateFactory.createAssignST(sl.getVarName(), param.getVarName(), param.getType(), getPrefix()));
         }
 
-        return new ArrayList<>();
+        return ret;
     }
 
     @Override
@@ -489,6 +491,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         }
 
         for (int i = 0; i < ctx.expr().size(); i++) {
+            String vName = func.getParams().get(i).getVarName();
             ret.add(templateFactory.createAssignST(func.getParams().get(i).getVarName(), factorNameTable.get(ctx.expr(i)), ctx.expr(i).type, getPrefix()));
         }
 
