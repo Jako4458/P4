@@ -222,16 +222,32 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     @Override
     public ArrayList<Template> visitForStmnt(MinespeakParser.ForStmntContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
+        String loopID = UUID.randomUUID().toString();
         enterScope(ctx.scope);
         visit(ctx.instan());
+        visit(ctx.expr());
+
+        ArrayList<String> oldPrefixs = new ArrayList<>(prefixs);
+
         //TODO: make ForLoop
+        ret.add(templateFactory.createFuncCallST(loopID, false,
+                getPrefix() + "execute if score @s " + templateFactory.getExprCounterString() + "matches 1 run "));
+
         //new file (forStmntFile)
+        prefixs = new ArrayList<>();
+        ret.add(templateFactory.createEnterNewFileST(loopID), false);
+        ret.addAll(visit(ctx.body()));
+        ret.addAll(visit(ctx.assign()));
+        ret.addAll(visit(ctx.expr()));
+        ret.add(templateFactory.createFuncCallST(loopID, false,
+                getPrefix() + "execute if score @s " + templateFactory.getExprCounterString() + "matches 1 run "));
 
-
-
+        ret.add(templateFactory.createExitFileST());
         //end of file (forStmntFile)
 
-//        return super.visitForStmnt(ctx);
+        prefixs = new ArrayList<>(oldPrefixs);
+
+//      return super.visitForStmnt(ctx);
         exitScope();
         return ret;
     }
@@ -483,7 +499,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
             ret.add(templateFactory.createAssignST(func.getParams().get(i).getVarName(), factorNameTable.get(ctx.expr(i)), ctx.expr(i).type, getPrefix()));
         }
 
-        ret.add(templateFactory.createFuncCallST(func.getName(), func.isMCFunction()));
+        ret.add(templateFactory.createFuncCallST(func.getName(), func.isMCFunction(), getPrefix()));
         return ret;
     }
 
