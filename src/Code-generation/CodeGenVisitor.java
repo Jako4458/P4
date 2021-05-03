@@ -1,13 +1,6 @@
-import jdk.dynalink.linker.support.Lookup;
-import logging.Logger;
 import exceptions.CompileTimeException;
-import exceptions.FuncCompileDependantException;
-import exceptions.ParameterDependantException;
 import org.antlr.v4.runtime.tree.ParseTree;
 import java.util.*;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     //region variable instantiations
@@ -18,12 +11,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     private final MSValueFactory msValueFactory = new MSValueFactory();
     private final STemplateFactory templateFactory = new STemplateFactory();
     private final Map<ParseTree, String> factorNameTable = new HashMap<>();
-    //TODO: Cleanup
-//    private FuncEntry currentFunc;
-//    private final LogFactory logFactory = new LogFactory();
 
     private ArrayList<String> prefixs = new ArrayList<>();
-    private ArrayList<Template> output = new ArrayList<>();
     //endregion
 
     public CodeGenVisitor(Map<String, FuncEntry> funcSignature, Map<String, FuncEntry> builtinFunctions) {
@@ -46,8 +35,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         ret.add(templateFactory.createInstanST(templateFactory.factor2UUID, defaultNum, ""));
         ret.add(templateFactory.createInstanST(templateFactory.factor1UUID, defaultVector3, ""));
         ret.add(templateFactory.createInstanST(templateFactory.factor2UUID, defaultVector3, ""));
-        ret.add(templateFactory.createInstanST("BlockFactor1", defaultBlock, templateFactory.blockFactor1Pos, ""));
-        ret.add(templateFactory.createInstanST("BlockFactor2", defaultBlock, templateFactory.blockFactor2Pos, ""));
+        ret.add(templateFactory.createInstanST(templateFactory.BlockFactor1, defaultBlock, templateFactory.blockFactor1Pos, ""));
+        ret.add(templateFactory.createInstanST(templateFactory.BlockFactor2, defaultBlock, templateFactory.blockFactor2Pos, ""));
         return ret;
     }
 
@@ -68,7 +57,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         boolean debug = true;
         ArrayList<Template> templates = new ArrayList<>();
 
-           // set to false when not debugging
 
         for (FuncEntry func:this.funcSignature.values()) {
             try {
@@ -77,21 +65,9 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
                 return null;
             }
         }
-/*
-        for (FuncEntry func:funcSignature.values()) {
-            if (func.isMCFunction()) {
-                try {
-                    recompileFunction(func);
-                } catch (CompileTimeException e) {
-                    return null;
-                }
-                output.add(templateFactory.createFuncCallST(func));
-            }
-        }
-*/
-        this.output = templates;
-        printOutput();
-        return null;
+
+        printOutput(templates);
+        return templates;
     }
 
     @Override
@@ -131,13 +107,16 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         // New file here
         if (ctx.parent instanceof MinespeakParser.McFuncContext) {
-            // Make the file with set name and in correct folder
+            ret.add(templateFactory.createEnterNewFileST(ctx.funcSignature().ID().getText(), true));
         } else {
-            // Make the file with random name in bin folder
+            ret.add(templateFactory.createEnterNewFileST(generateValidFileName(), false));
         }
 
         ret.addAll(visit(ctx.funcSignature()));
         ret.addAll(visit(ctx.funcBody()));
+
+        ret.add(templateFactory.createExitFileST());
+
         exitScope();
         return ret;
     }
@@ -205,7 +184,9 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         ArrayList<Template> ret = new ArrayList<>();
         enterScope(ctx.scope);
 
-        ret.add(null);//TODO: Make dowhileST
+        String whileName = generateValidFileName();
+
+        ret.addAll(generateWhileTemplates(whileName, ctx.body(), ctx.expr()));
 
         exitScope();
         return ret;
@@ -216,29 +197,10 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         ArrayList<Template> ret = new ArrayList<>();
         enterScope(ctx.scope);
 
-        String whileName = UUID.randomUUID().toString();
+        String whileName = generateValidFileName();
 
-        visit(ctx.expr());
-
-        ArrayList<String> tempPrefix = new ArrayList<>(prefixs);
-
-        //enter new file
-        ret.add(templateFactory.createEnterNewFileST(whileName, false));
-
-        //reset prefix
-        prefixs = new ArrayList<>();
-
-        ret.addAll(visit(ctx.body()));
         ret.addAll(visit(ctx.expr()));
-        ret.add(templateFactory.createFuncCallST(whileName, false,
-                    "execute if score @s " + templateFactory.getExprCounterString() + " matches 1 run "));
-
-        //exit file
-        ret.add(templateFactory.createExitFileST());
-
-        prefixs = new ArrayList<>(tempPrefix);
-        prefixs.add("execute if score @s " + templateFactory.getExprCounterString() + " matches 1 run ");
-        ret.add(templateFactory.createFuncCallST(whileName, false, getPrefix()));
+        ret.addAll(generateWhileTemplates(whileName, ctx.body(), ctx.expr()));
 
         exitScope();
         return ret;
@@ -247,10 +209,10 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     @Override
     public ArrayList<Template> visitForStmnt(MinespeakParser.ForStmntContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
-        String loopID = UUID.randomUUID().toString();
+        String loopID = generateValidFileName();
         enterScope(ctx.scope);
-        visit(ctx.instan());
-        visit(ctx.expr());
+        ret.addAll(visit(ctx.instan()));
+        ret.addAll(visit(ctx.expr()));
 
         ArrayList<String> oldPrefixs = new ArrayList<>(prefixs);
 
@@ -448,7 +410,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         String expr1Name = factorNameTable.get(ctx.expr(0));
         String expr2Name = factorNameTable.get(ctx.expr(1));
         Type expr1Type = ctx.expr(0).type;
-        Type expr2Type = ctx.expr(1).type;
 
         String operator = SymbolConverter.getSymbol(ctx.op.getType());
 
@@ -507,7 +468,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     public ArrayList<Template> visitRvalue(MinespeakParser.RvalueContext ctx) {
         SymEntry lookup = currentScope.lookup(ctx.ID().getText());
         factorNameTable.put(ctx, lookup.getVarName());
-        return new ArrayList<Template>();
+        return new ArrayList<>();
     }
 
     @Override
@@ -661,8 +622,12 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         return builder.toString();
     }
 
-    private void printOutput() {
-        for (Template t:output) {
+    private String generateValidFileName() {
+        return UUID.randomUUID().toString();
+    }
+
+    private void printOutput(ArrayList<Template> templateList) {
+        for (Template t:templateList) {
             System.out.println(t.getOutput());
         }
     }
@@ -676,6 +641,31 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         String expr2Name = factorNameTable.get(e2);
 
         ret.add(templateFactory.createLogicalExprST(expr1Name, expr2Name, operator, getPrefix()));
+
+        return ret;
+    }
+
+    private ArrayList<Template> generateWhileTemplates(String whileName, MinespeakParser.BodyContext body, MinespeakParser.ExprContext expr) {
+        ArrayList<Template> ret = new ArrayList<>();
+        ArrayList<String> tempPrefix = new ArrayList<>(prefixs);
+
+        //enter new file
+        ret.add(templateFactory.createEnterNewFileST(whileName, false));
+
+        //reset prefix
+        prefixs = new ArrayList<>();
+
+        ret.addAll(visit(body));
+        ret.addAll(visit(expr));
+        ret.add(templateFactory.createFuncCallST(whileName, false,
+                "execute if score @s " + templateFactory.getExprCounterString() + " matches 1 run "));
+
+        //exit file
+        ret.add(templateFactory.createExitFileST());
+
+        prefixs = new ArrayList<>(tempPrefix);
+        prefixs.add("execute if score @s " + templateFactory.getExprCounterString() + " matches 1 run ");
+        ret.add(templateFactory.createFuncCallST(whileName, false, getPrefix()));
 
         return ret;
     }
