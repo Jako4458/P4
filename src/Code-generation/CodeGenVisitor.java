@@ -258,7 +258,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         //new file (forStmntFile)
         prefixs = new ArrayList<>();
-        ret.add(templateFactory.createEnterNewFileST(loopID), false);
+        ret.add(templateFactory.createEnterNewFileST(loopID, false));
         ret.addAll(visit(ctx.body()));
         ret.addAll(visit(ctx.assign()));
         ret.addAll(visit(ctx.expr()));
