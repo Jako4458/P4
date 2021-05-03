@@ -216,7 +216,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         ArrayList<String> oldPrefixs = new ArrayList<>(prefixs);
 
-        //TODO: make ForLoop
         ret.add(templateFactory.createFuncCallST(loopID, false,
                 getPrefix() + "execute if score @s " + templateFactory.getExprCounterString() + "matches 1 run "));
 
@@ -234,7 +233,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         prefixs = new ArrayList<>(oldPrefixs);
 
-//      return super.visitForStmnt(ctx);
         exitScope();
         return ret;
     }
