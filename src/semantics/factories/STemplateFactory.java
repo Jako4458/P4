@@ -1,5 +1,6 @@
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -25,6 +26,16 @@ public class STemplateFactory {
     public Vector3 getNewBlockPos() {
         blockPos = new Vector3(blockPos.getX()+1, blockPos.getY(), blockPos.getZ());
         return blockPos;
+    }
+
+    // EnterNewFileST
+    public EnterNewFileST createEnterNewFileST (String fileName, boolean isMcfunction) {
+        return new EnterNewFileST(fileName, isMcfunction);
+    }
+
+    // ExitFileST
+    public ExitFileST createExitFileST () {
+        return new ExitFileST();
     }
 
     // ArithmeticExprST
@@ -65,33 +76,32 @@ public class STemplateFactory {
         return new RelationExprST(a, b, operator, prefix, getNewExprCounterString());
     }
 
-
     // MCFuncCallST
     public MCFuncCallST createMCFuncCallST(FuncEntry entry) {
         return new MCFuncCallST(entry.getName());
     }
 
     // FuncCallST
-    public FuncCallST createFuncCallST(FuncEntry entry) {
+//    public FuncCallST createFuncCallST(FuncEntry entry) {
+//
+//        var combinedST = entry.getOutput().stream().reduce(
+//                (str1, str2) -> new BlankST(str1.getOutput() + str2.getOutput())
+//        ).get();
+//
+//        String paramList = " ";
+//
+//        for (var param:entry.getParams()) {
+//            paramList += entry.scope.lookup(param.getName()).prettyPrint() + ", ";
+//        }
+//        paramList += " ";
+//
+//        return new FuncCallST(entry.getName() + paramList + entry.toString(), combinedST.getOutput());
+//    }
 
-        var combinedST = entry.getOutput().stream().reduce(
-                (str1, str2) -> new BlankST(str1.getOutput() + str2.getOutput())
-        ).get();
-
-        String paramList = " ";
-
-        for (var param:entry.getParams()) {
-            paramList += entry.scope.lookup(param.getName()).prettyPrint() + ", ";
-        }
-        paramList += " ";
-
-        return new FuncCallST(entry.getName() + paramList + entry.toString(), combinedST.getOutput());
-    }
-
-    public Template createFuncCallST(String name, boolean isMC) {
+    public Template createFuncCallST(String name, boolean isMC, String prefix) {
         if (isMC)
-            return FuncCallST.generateFuncCallToMC(name, "mcfuncs");
-        return FuncCallST.generateFuncCallToNonMC(name);
+            return FuncCallST.generateFuncCallToMC(name, "mcfuncs", prefix);
+        return FuncCallST.generateFuncCallToNonMC(name, prefix);
     }
 
     // MCStatementsST
