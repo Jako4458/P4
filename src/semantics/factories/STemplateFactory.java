@@ -1,5 +1,6 @@
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -25,6 +26,16 @@ public class STemplateFactory {
     public Vector3 getNewBlockPos() {
         blockPos = new Vector3(blockPos.getX()+1, blockPos.getY(), blockPos.getZ());
         return blockPos;
+    }
+
+    // EnterNewFileST
+    public EnterNewFileST createEnterNewFileST (String fileName, boolean isMcfunction) {
+        return new EnterNewFileST(fileName, isMcfunction);
+    }
+
+    // ExitFileST
+    public ExitFileST createExitFileST () {
+        return new ExitFileST();
     }
 
     // ArithmeticExprST
@@ -64,7 +75,6 @@ public class STemplateFactory {
     public RelationExprST createRelationExprST(String a, String b, String operator, String prefix) {
         return new RelationExprST(a, b, operator, prefix, getNewExprCounterString());
     }
-
 
     // MCFuncCallST
     public MCFuncCallST createMCFuncCallST(FuncEntry entry) {

@@ -13,14 +13,15 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     //region variable instantiations
     private final boolean debug = true;
     private Scope currentScope;
-    private FuncEntry currentFunc;
     private final Map<String, FuncEntry> funcSignature;
     private final MSValueFactory msValueFactory = new MSValueFactory();
     private final STemplateFactory templateFactory = new STemplateFactory();
-    private final LogFactory logFactory = new LogFactory();
     private final Map<ParseTree, String> factorNameTable = new HashMap<>();
+    //TODO: Cleanup
+//    private FuncEntry currentFunc;
+//    private final LogFactory logFactory = new LogFactory();
 
-    private final ArrayList<String> prefixs = new ArrayList<>();
+    private ArrayList<String> prefixs = new ArrayList<>();
     private ArrayList<Template> output = new ArrayList<>();
     //endregion
 
@@ -192,8 +193,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         ArrayList<Template> ret = new ArrayList<>();
         if (ctx.MCStmnt() != null)
             ret.add(templateFactory.createMCStatementST(ctx.MCStmnt().getText(), getPrefix()));
-
-        ret.addAll(visit(ctx.children.get(0)));   //TODO: check
+        else
+            ret.addAll(visit(ctx.children.get(0)));
         return ret;
     }
 
@@ -213,7 +214,29 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         ArrayList<Template> ret = new ArrayList<>();
         enterScope(ctx.scope);
 
-        ret.add(null);//TODO: Make whileST
+        String whileName = UUID.randomUUID().toString();
+
+        visit(ctx.expr());
+
+        ArrayList<String> tempPrefix = new ArrayList<>(prefixs);
+
+        //enter new file
+        ret.add(templateFactory.createEnterNewFileST(whileName, false));
+
+        //reset prefix
+        prefixs = new ArrayList<>();
+
+        ret.addAll(visit(ctx.body()));
+        ret.addAll(visit(ctx.expr()));
+        ret.add(templateFactory.createFuncCallST(whileName, false,
+                    "execute if score @s " + templateFactory.getExprCounterString() + " matches 1 run "));
+
+        //exit file
+        ret.add(templateFactory.createExitFileST());
+
+        prefixs = new ArrayList<>(tempPrefix);
+        prefixs.add("execute if score @s " + templateFactory.getExprCounterString() + " matches 1 run ");
+        ret.add(templateFactory.createFuncCallST(whileName, false, getPrefix()));
 
         exitScope();
         return ret;
@@ -290,7 +313,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     }
 
     @Override
-    public ArrayList<Template> visitDcls(MinespeakParser.DclsContext ctx) { //FIX?FIX!
+    public ArrayList<Template> visitDcls(MinespeakParser.DclsContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
 
         for (int i = 0; i < ctx.ID().size(); i++){
@@ -308,13 +331,13 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
                     boolean boolValue = Value.value(msValueFactory.getDefaultValue(Type._bool).getCasted(BoolValue.class));
                     ret.add(templateFactory.createInstanST(ID, boolValue ? 1 : 0, getPrefix()));
                     break;
-                case Type.STRING:
-                    break;  //TODO: Don't
                 case Type.VECTOR2:
                 case Type.VECTOR3:
                     Vector3Value valueVec3 = msValueFactory.getDefaultValue(Type._vector3).getCasted(Vector3Value.class);
                     ret.add(templateFactory.createInstanST(ID, valueVec3, getPrefix()));
                     break;
+                case Type.STRING:
+                    break;  //Don't
                 default:
                     Error("visitInstan");
             }
@@ -360,7 +383,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
     @Override
     public ArrayList<Template> visitPow(MinespeakParser.PowContext ctx) {
-        return new ArrayList<>(); //TODO: Pow cannot work with the current setup
+        return new ArrayList<>(); //Pow cannot work with the current setup
     }
 
     @Override
