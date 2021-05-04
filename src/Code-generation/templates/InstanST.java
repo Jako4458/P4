@@ -27,10 +27,7 @@ public class InstanST implements Template {
         }
     }
 
-    public InstanST(String varName, BlockValue blockValue, Vector3 pos,Type type, String prefix) {
-        if (type != Type._block)
-            return;
-
+    public InstanST(String varName, BlockValue blockValue, Vector3 pos, String prefix) {
         ST st = new ST( "#<Comment>\n<prefix>setblock <posX> <posY> <posZ> <block>\n" +
                 "<prefix>summon armor_stand <posX> <posStandY> <posZ> {Tags:[\"<varName>\", \"variable\",\"MineSpeak\"],NoGravity:1}\n"
                 );
@@ -49,8 +46,26 @@ public class InstanST implements Template {
         output = st.render();
     }
 
+    public InstanST(String varName, String exprName, Vector3 newBlockPos, Vector3 blockFactor1Pos, String prefix) {
+        ST template = new ST("<prefix><summon>\n<prefix><assign>");
 
-        private ST createVectorInstant(String varName, String exprName, Type type, String prefix) {
+        ST summonTemplate = new ST("summon armor_stand <x> <y> <z> {Tags:[\"<varName>\", \"variable\",\"MineSpeak\"],NoGravity:1}\n");
+        summonTemplate.add("x", newBlockPos.getX());
+        summonTemplate.add("y", newBlockPos.getY()+1);
+        summonTemplate.add("z", newBlockPos.getZ());
+        summonTemplate.add("varName", varName);
+
+        template.add("summon", summonTemplate.render());
+
+        AssignST assignTemplate = new AssignST(varName, blockFactor1Pos, exprName, prefix);
+        template.add("assign", assignTemplate.getOutput());
+        template.add("prefix", prefix);
+
+        this.output = template.render();
+    }
+
+
+    private ST createVectorInstant(String varName, String exprName, Type type, String prefix) {
         ST template;
         if (type == Type._vector2)
             template = new ST("<X><Y>");
