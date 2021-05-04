@@ -1,18 +1,19 @@
 minespeak
-
-    func Test(c:num) do
-        var b:block = #DIRT
-        var a:bool = #DIRT == b
-
-    endfunc
-
-    func Test2() do
-        Test(1)
-    endfunc
-
-    @mc
-    func Main() do
-        Test2()
-    endfunc
-
+   @mc
+   func Test2() do
+        var myBlock: block = #DIRT
+        var dim: num = 10
+        for var i: num = 0 until i == dim where i += 1 do
+            for var j: num = 0 until j == dim where j += 1 do
+                for var k: num = 0 until k == dim where k += 1 do
+                    if (i + j + k) % 2 == 0 do
+                        myBlock = #BLOCK_OF_GOLD
+                    else do
+                        myBlock = #DIRT
+                    endif
+                    setB(<100 + j, 245 + k, i>, myBlock, false)
+                endfor
+            endfor
+        endfor
+   endfunc
 closespeak

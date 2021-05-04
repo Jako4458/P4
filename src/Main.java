@@ -6,10 +6,9 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
-import java.io.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.Map;
 
 
@@ -20,6 +19,10 @@ public class Main {
     public static void main(String[] args) {
         // Configure the compiler through the compiler arguments.
         Configuration config = new Configuration(args);
+
+        // Building builtin functions
+        FileManager fManager = new FileManager((new File("")).getAbsolutePath());
+        fManager.buildBeforeCodeGen();
 
         // Lexing
         System.out.println("Lexing...");
@@ -35,10 +38,18 @@ public class Main {
 
         // Code gen
         System.out.println("Code gene...");
-        codeGeneration(parseTree);
+        ArrayList<Template> output = codeGeneration(parseTree);
+
+        // Outputting to files
+        System.out.println("Making files...");
+        makeFiles(fManager, output);
 
         // Dump all the logs
         Logger.shared.print();
+    }
+
+    private static boolean makeFiles(FileManager fManager, ArrayList<Template> output) {
+        return fManager.buildCodeGen(output);
     }
 
     private static CommonTokenStream lex(String file) {
@@ -83,7 +94,7 @@ public class Main {
         SignatureWalker walker = new SignatureWalker();
         walker.visit(tree);
         Main.functionSignatures = walker.functionSignatures;
-        ScopeListener scopeListener = new ScopeListener(walker.functionSignatures);
+        ScopeListener scopeListener = new ScopeListener(walker.functionSignatures, BuiltinFuncs.paramMap);
         ParseTreeWalker.DEFAULT.walk(scopeListener, tree);
 
         UnassignedVariableListener unassignedVariableListener = new UnassignedVariableListener();
@@ -93,9 +104,9 @@ public class Main {
         ParseTreeWalker.DEFAULT.walk(infiniteLoopDetectionListener, tree);
     }
 
-    public static void codeGeneration(ParseTree tree) {
-        CodeGenVisitor codeGenVisitor = new CodeGenVisitor(Main.functionSignatures);
-        codeGenVisitor.visit(tree);
+    public static ArrayList<Template> codeGeneration(ParseTree tree) {
+        CodeGenVisitor codeGenVisitor = new CodeGenVisitor(Main.functionSignatures, BuiltinFuncs.paramMap);
+        return codeGenVisitor.visit(tree);
     }
     
 }
@@ -103,6 +114,7 @@ public class Main {
 
 class Configuration {
     public File source_file;
+    public String filePath = System.getProperty("user.dir");
 
     public Configuration(String[] args) {
         parse_args(args);

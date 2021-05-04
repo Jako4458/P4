@@ -10,6 +10,7 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
     private boolean nextIsMCFunc = false;
     public Map<String, FuncEntry> functionSignatures = new HashMap<>();
     private List<SymEntry> currentParameters = new ArrayList<>();
+    private SymEntry currentRetval;
     private final LogFactory logFac = new LogFactory();
     private final EntryFactory entryFac = new EntryFactory();
 
@@ -54,6 +55,7 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
     @Override
     public Type visitFunc(MinespeakParser.FuncContext ctx) {
         visit(ctx.funcSignature());
+        visit(ctx.funcBody());
         this.currentParameters = new ArrayList<>();
         return Type._void;
     }
@@ -82,6 +84,25 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
         }
 
         return Type._void;
+    }
+
+    @Override
+    public Type visitFuncBody(MinespeakParser.FuncBodyContext ctx) {
+        if (ctx.retVal() != null) {
+            visit(ctx.retVal());
+        }
+
+        return Type._void;
+    }
+
+    @Override
+    public Type visitRetVal(MinespeakParser.RetValContext ctx) {
+        FuncEntry func = functionSignatures.get(((MinespeakParser.FuncContext)ctx.parent.parent).funcSignature().ID().getText());
+        Type type = func.getType();
+        func.retVal = entryFac.createFromType("return", type, ctx, MinespeakParser.VAR);
+        functionSignatures.replace(func.getName(), func);
+
+        return type;
     }
 
     @Override

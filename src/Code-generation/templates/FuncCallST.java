@@ -4,14 +4,42 @@ import org.stringtemplate.v4.ST;
 public class FuncCallST implements Template{
     private String output;
 
-    public FuncCallST(String funcName, String call){
-        ST st = new ST("#Call <funcName> - <Comment>\n<call>\n");
+//    public FuncCallST(String funcName, String call){
+//        ST st = new ST("#Call <funcName> - <Comment>\n<call>\n");
+//
+//        st.add("Comment", this.getClass().toString().substring(6)); //substring to remove "class "
+//        st.add("funcName", funcName);
+//        st.add("call", call);
+//
+//        output = st.render();
+//    }
 
-        st.add("Comment", this.getClass().toString().substring(6)); //substring to remove "class "
-        st.add("funcName", funcName);
-        st.add("call", call);
+    public FuncCallST(ST template) {
+        this.output = template.render();
+    }
 
-        output = st.render();
+    public static FuncCallST generateFuncCallToNonMC(String name, String prefix) {
+        ST template = new ST("#Call <name> - <Comment>\n<prefix>execute as @s run function <folder>:<name>\n");
+
+        template.add("Comment", "FuncCallST");
+
+        template.add("name", name);
+        template.add("folder", "bin");
+        template.add("prefix", prefix);
+
+        return new FuncCallST(template);
+    }
+
+    public static FuncCallST generateFuncCallToMC(String name, String folderName, String prefix) {
+        ST template = new ST("#Call <name> - <Comment>\n<prefix>execute as @s run function <folder>:<name>\n");
+
+        template.add("Comment", "FuncCallST");
+
+        template.add("name", name);
+        template.add("folder", folderName);
+        template.add("prefix", prefix);
+
+        return new FuncCallST(template);
     }
 
     @Override
