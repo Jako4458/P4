@@ -5,6 +5,8 @@ import java.util.*;
 public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     //region variable instantiations
     private final boolean debug = true;
+    private final boolean useReadableVariableNames = debug;
+    
     private Scope currentScope;
     private final Map<String, FuncEntry> funcSignature;
     private final Map<String, FuncEntry> builtinFunctions;
@@ -128,7 +130,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         FuncEntry func = funcSignature.get(ctx.ID().getText());
         for (SymEntry param : func.getParams()) {
             SymEntry sl = currentScope.lookup(param.getName());
-            ret.add(templateFactory.createInstanST(sl.getVarName(debug), param.getVarName(debug), param.getType(), getPrefix()));
+            ret.add(templateFactory.createInstanST(sl.getVarName(useReadableVariableNames), param.getVarName(useReadableVariableNames), param.getType(), getPrefix()));
         }
 
         return ret;
@@ -156,7 +158,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         ArrayList<Template> ret;
         FuncEntry func = funcSignature.get(((MinespeakParser.FuncContext)ctx.parent.parent).funcSignature().ID().getText());
         ret = visit(ctx.expr());
-        ret.add(templateFactory.createInstanST(func.retVal.getVarName(debug), factorNameTable.get(ctx.expr()), ctx.expr().type, getPrefix()));
+        ret.add(templateFactory.createInstanST(func.retVal.getVarName(useReadableVariableNames), factorNameTable.get(ctx.expr()), ctx.expr().type, getPrefix()));
         return ret;
     }
 
@@ -321,7 +323,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
             SymEntry lookup = currentScope.lookup(ID);
             String exprName = factorNameTable.get(expr);
 
-            ret.add(templateFactory.createInstanST(lookup.getVarName(debug), exprName, expr.type, getPrefix()));
+            ret.add(templateFactory.createInstanST(lookup.getVarName(useReadableVariableNames), exprName, expr.type, getPrefix()));
         }
         return ret;
     }
@@ -454,7 +456,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
             return ret;
         } else if (ctx.funcCall() != null) {
             ret.addAll(visit(ctx.funcCall()));
-            String funcRetName = funcSignature.get(ctx.funcCall().ID().getText()).retVal.getVarName(debug);
+            String funcRetName = funcSignature.get(ctx.funcCall().ID().getText()).retVal.getVarName(useReadableVariableNames);
             factorNameTable.put(ctx, funcRetName);
             return ret;
         } else if (ctx.rArray() != null) {
@@ -467,7 +469,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     @Override
     public ArrayList<Template> visitRvalue(MinespeakParser.RvalueContext ctx) {
         SymEntry lookup = currentScope.lookup(ctx.ID().getText());
-        factorNameTable.put(ctx, lookup.getVarName(debug));
+        factorNameTable.put(ctx, lookup.getVarName(useReadableVariableNames));
         return new ArrayList<>();
     }
 
@@ -487,7 +489,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         }
 
         for (int i = 0; i < ctx.expr().size(); i++) {
-            String name = isBuiltin ? func.getParams().get(i).getName() : func.getParams().get(i).getVarName(debug);
+            String name = isBuiltin ? func.getParams().get(i).getName() : func.getParams().get(i).getVarName(useReadableVariableNames);
             ret.add(templateFactory.createInstanST(name, factorNameTable.get(ctx.expr(i)), ctx.expr(i).type, getPrefix()));
         }
 
@@ -501,7 +503,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         String ID = ctx.ID().getText();
         SymEntry var = currentScope.lookup(ID);
-        String varName = var.getVarName(debug);
+        String varName = var.getVarName(useReadableVariableNames);
 
         ret.addAll(visit(ctx.expr()));
 
