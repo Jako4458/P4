@@ -18,10 +18,10 @@ public class FuncCallST implements Template{
         this.output = template.render();
     }
 
-    public static FuncCallST generateFuncCallToNonMC(String name, String prefix) {
-        ST template = new ST("#Call <name> - <Comment>\n<prefix>execute as @s run function <folder>:<name>\n");
+    public static FuncCallST generateFuncCallToNonMC(String name, String prefix, boolean setComment) {
+        ST template = new ST("<Comment><prefix>execute as @s run function <folder>:<name>\n");
 
-        template.add("Comment", "FuncCallST");
+        template.add("Comment", setComment ? "#Call " + name + " - FuncCall\n" : "");
 
         template.add("name", name);
         template.add("folder", "bin");
@@ -30,11 +30,10 @@ public class FuncCallST implements Template{
         return new FuncCallST(template);
     }
 
-    public static FuncCallST generateFuncCallToMC(String name, String folderName, String prefix) {
-        ST template = new ST("#Call <name> - <Comment>\n<prefix>execute as @s run function <folder>:<name>\n");
+    public static FuncCallST generateFuncCallToMC(String name, String folderName, String prefix, boolean setComment) {
+        ST template = new ST("<Comment><prefix>execute as @s run function <folder>:<name>\n");
 
-        template.add("Comment", "FuncCallST");
-
+        template.add("Comment", setComment ? "#Call " + name + " - FuncCall\n" : "");
         template.add("name", name);
         template.add("folder", folderName);
         template.add("prefix", prefix);

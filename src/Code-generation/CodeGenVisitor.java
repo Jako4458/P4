@@ -6,12 +6,13 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     //region variable instantiations
     private final boolean debug = true;
     private final boolean useReadableVariableNames = debug;
-    
+    private final boolean setTemplateComments = debug;
+
     private Scope currentScope;
     private final Map<String, FuncEntry> funcSignature;
     private final Map<String, FuncEntry> builtinFunctions;
     private final MSValueFactory msValueFactory = new MSValueFactory();
-    private final STemplateFactory templateFactory = new STemplateFactory();
+    private final STemplateFactory templateFactory = new STemplateFactory(setTemplateComments);
     private final Map<ParseTree, String> factorNameTable = new HashMap<>();
 
     private ArrayList<String> prefixs = new ArrayList<>();
@@ -48,8 +49,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         if (debug)
             return ret;
 
-        ret.add(new BlankST("execute as @e[tag=variable] at @e[tag=variable] run setblock ~ ~-1 ~ air"));
-        ret.add(new BlankST("kill @e[tag=MineSpeak]"));
+        ret.add(new BlankST("execute as @e[tag=variable] at @e[tag=variable] run setblock ~ ~-1 ~ air", setTemplateComments));
+        ret.add(new BlankST("kill @e[tag=MineSpeak]", setTemplateComments));
         return ret;
     }
     //endregion
