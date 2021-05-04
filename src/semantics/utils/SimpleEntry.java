@@ -1,10 +1,11 @@
 import org.antlr.v4.runtime.ParserRuleContext;
 
-import java.util.Vector;
+import java.util.UUID;
 
 public class SimpleEntry implements SymEntry {
     private final Type type;
     private String name;
+    private String varName;
     private final ParserRuleContext ctx;
     private final int modifier;
     private Value value;
@@ -26,9 +27,12 @@ public class SimpleEntry implements SymEntry {
         this.name = newName;
     }
 
-    public String getVarName() {
-        var name = (this.name + "_" + this.toString().replace("@", "").substring(11));
-        return name.length() <= 10 ? name : name.substring(0,11);
+    public String getVarName(boolean readableNames) {
+        varName = readableNames ? (this.name + "_" + this.toString().replace("@", ""))
+                                : UUID.randomUUID().toString().toLowerCase().replace("-", "");
+
+        varName = varName.length() > 16 ? varName.substring(0,16) : varName;
+        return varName ;
     }
 
     @Override
