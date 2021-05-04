@@ -31,7 +31,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         Vector3Value defaultVector3 = msValueFactory.getDefaultValue(Type._vector3).getCasted(Vector3Value.class);
         BlockValue defaultBlock = msValueFactory.getDefaultValue(Type._block).getCasted(BlockValue.class);
 
-        ret.add(templateFactory.createMCStatementST("tag @s add active", ""));
+        ret.add(templateFactory.createMCStatementST(String.format("tag @s add %s", STemplateFactory.getPlayerTag()), ""));
         ret.add(templateFactory.createInstanST(templateFactory.factor1UUID, defaultNum, ""));
         ret.add(templateFactory.createInstanST(templateFactory.factor2UUID, defaultNum, ""));
         ret.add(templateFactory.createInstanST(templateFactory.factor1UUID, defaultVector3, ""));
