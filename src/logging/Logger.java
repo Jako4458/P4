@@ -1,5 +1,6 @@
 package logging;
 
+import logging.logs.ErrorLog;
 import logging.logs.Log;
 
 import java.util.ArrayList;
@@ -64,5 +65,13 @@ public class Logger implements ILogger {
 
     public void setSourceProg(String[] sourceProg) {
         this.sourceProg = sourceProg;
+    }
+
+    public boolean containsErrors() {
+        for (Log log : logs) {
+            if (log instanceof ErrorLog)
+                return true;
+        }
+        return false;
     }
 }

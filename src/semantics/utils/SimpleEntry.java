@@ -28,10 +28,12 @@ public class SimpleEntry implements SymEntry {
     }
 
     public String getVarName(boolean readableNames) {
-        varName = readableNames ? (this.name + "_" + this.toString().replace("@", ""))
-                                : UUID.randomUUID().toString().toLowerCase().replace("-", "");
+        if (varName == null) {
+            varName = readableNames ? (this.name + "_" + this.toString().replace("@", ""))
+                    : UUID.randomUUID().toString().toLowerCase().replace("-", "");
 
-        varName = varName.length() > 16 ? varName.substring(0,16) : varName;
+            varName = varName.length() > 16 ? varName.substring(0, 16) : varName;
+        }
         return varName ;
     }
 

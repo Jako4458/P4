@@ -18,8 +18,16 @@ public class Main {
 
     public static void main(String[] args) {
         // Configure the compiler through the compiler arguments.
-        Configuration config = new Configuration(args);
+        config = new Configuration(args);
 
+        // Compile the file
+        compile();
+
+        // Dump all the logs
+        Logger.shared.print();
+    }
+
+    private static void compile() {
         // Building builtin functions
         FileManager fManager = new FileManager((new File("")).getAbsolutePath());
         fManager.buildBeforeCodeGen();
@@ -27,25 +35,35 @@ public class Main {
         // Lexing
         System.out.println("Lexing...");
         CommonTokenStream tokenStream = lex(config.source_file.toString());
+        if (checkLoggerIsNotOK())
+            return;
 
         // Parsing
         System.out.println("Parsing...");
         ParseTree parseTree = parse(tokenStream);
+        if (checkLoggerIsNotOK())
+            return;
 
         // Semantic analysis
         System.out.println("Semantics...");
         semanticAnalysis(parseTree);
+        if (checkLoggerIsNotOK())
+            return;
 
         // Code gen
         System.out.println("Code gene...");
         ArrayList<Template> output = codeGeneration(parseTree);
+        if (checkLoggerIsNotOK())
+            return;
 
         // Outputting to files
         System.out.println("Making files...");
         makeFiles(fManager, output);
 
-        // Dump all the logs
-        Logger.shared.print();
+    }
+
+    private static boolean checkLoggerIsNotOK() {
+        return Logger.shared.containsErrors();
     }
 
     private static boolean makeFiles(FileManager fManager, ArrayList<Template> output) {
