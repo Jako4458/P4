@@ -32,7 +32,7 @@ public class FuncEntry implements SymEntry {
     }
 
     @Override
-    public String getVarName() {
+    public String getVarName(boolean readableNames) {
         return null;
     }
 
