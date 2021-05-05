@@ -15,10 +15,12 @@ import java.util.Map;
 public class Main {
     private static Configuration config;
     private static Map<String, FuncEntry> functionSignatures;
+    public static Setup setup;
 
     public static void main(String[] args) {
         // Configure the compiler through the compiler arguments.
         config = new Configuration(args);
+        setup = (new SetupReader()).readSetupJSON();
 
         // Compile the file
         compile();
@@ -29,7 +31,7 @@ public class Main {
 
     private static void compile() {
         // Building builtin functions
-        FileManager fManager = new FileManager((new File("")).getAbsolutePath());
+        FileManager fManager = new FileManager(setup.outputPath);
         fManager.buildBeforeCodeGen();
 
         // Lexing

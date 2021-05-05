@@ -4,7 +4,7 @@ import java.util.*;
 
 public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     //region variable instantiations
-    private final boolean debug = true;
+    private final boolean debug = Main.setup.debug;
     private Scope currentScope;
     private final Map<String, FuncEntry> funcSignature;
     private final Map<String, FuncEntry> builtinFunctions;
@@ -55,7 +55,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     @Override
     public ArrayList<Template> visitProg(MinespeakParser.ProgContext ctx) {
         enterScope(ctx.scope);
-        boolean debug = true;
         ArrayList<Template> templates = new ArrayList<>();
 
 
