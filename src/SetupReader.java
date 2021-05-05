@@ -25,7 +25,7 @@ public class SetupReader {
             Setup setup = gson.fromJson(jReader, Setup.class);
             return setup;
         } catch (IOException e) {
-            return null;
+            return new Setup();
         }
     }
 }
