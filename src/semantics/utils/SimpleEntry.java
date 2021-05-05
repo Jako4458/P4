@@ -32,7 +32,7 @@ public class SimpleEntry implements SymEntry {
             varName = readableNames ? (this.name + "_" + this.toString().replace("@", ""))
                     : UUID.randomUUID().toString().toLowerCase().replace("-", "");
 
-            varName = varName.length() > 16 ? varName.substring(0, 16) : varName;
+            varName = varName.length() > 14 ? varName.substring(0, 14) : varName;
         }
         return varName ;
     }
