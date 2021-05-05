@@ -59,6 +59,12 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         enterScope(ctx.scope);
         ArrayList<Template> templates = new ArrayList<>();
 
+        for (FuncEntry func:this.funcSignature.values()) {
+            if (!func.isMCFunction()) {
+                String generatedName = generateValidFileName();
+                func.setName(generatedName);
+            }
+        }
 
         for (FuncEntry func:this.funcSignature.values()) {
             try {
@@ -106,9 +112,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         // New file here
         if (!(ctx.parent instanceof MinespeakParser.McFuncContext)) {
-            String generatedName = generateValidFileName();
-            ret.add(templateFactory.createEnterNewFileST(generatedName, false));
-            funcSignature.get(ctx.funcSignature().ID().getText()).setName(generatedName);
+            String funcName = funcSignature.get(ctx.funcSignature().ID().getText()).getName();
+            ret.add(templateFactory.createEnterNewFileST(funcName, false));
         } else {
             ret.add(templateFactory.createEnterNewFileST(ctx.funcSignature().ID().getText().toLowerCase(), true));
             ret.addAll(makeProgramHeaders());
@@ -116,8 +121,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         ret.addAll(visit(ctx.funcSignature()));
         ret.addAll(visit(ctx.funcBody()));
-
-        ret.addAll(makeProgramFooters());
+        if (ctx.parent instanceof MinespeakParser.McFuncContext)
+            ret.addAll(makeProgramFooters());
         ret.add(templateFactory.createExitFileST());
         exitScope();
         return ret;

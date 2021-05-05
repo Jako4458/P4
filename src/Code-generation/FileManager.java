@@ -28,9 +28,11 @@ public class FileManager {
         }
 
         if (made || folder.exists()) {
+            String tempPath = new String(path);
             this.path = path + "/builtin/functions";
             int functionsAdded = buildBuiltinFunctions();
             System.out.println("Missed functions: " + functionsAdded);
+            this.path = tempPath;
         }
     }
 
@@ -80,8 +82,8 @@ public class FileManager {
                 FileWriter currentWriter = writers.size() == 0 ? null : writers.peek();
                 if (template instanceof EnterNewFileST) {
                     EnterNewFileST currentTemplate = (EnterNewFileST) template;
-                    String pathExtension = currentTemplate.isMcfunction ? "/result/mcfuncs/functions/" : "/result/bin/functions/";
-                    writers.push(new FileWriter(this.originalPath + pathExtension + currentTemplate.fileName + ".mcfunction", true));
+                    String pathExtension = currentTemplate.isMcfunction ? "/mcfuncs/functions/" : "/bin/functions/";
+                    writers.push(new FileWriter(this.path + pathExtension + currentTemplate.fileName + ".mcfunction", true));
                 } else if (template instanceof ExitFileST) {
                     currentWriter.close();
                     writers.pop();
@@ -99,12 +101,12 @@ public class FileManager {
     }
 
     private void buildFolders() {
-        File folder = new File(originalPath + "/result/bin");
-        File folder2 = new File(originalPath + "/result/bin/functions");
-        File folder3 = new File(originalPath + "/result/mcfuncs");
-        File folder4 = new File(originalPath + "/result/mcfuncs/functions");
+        File folder1 = new File(path + "/bin");
+        File folder2 = new File(path + "/bin/functions");
+        File folder3 = new File(path + "/mcfuncs");
+        File folder4 = new File(path + "/mcfuncs/functions");
         try {
-            folder.mkdir();
+            folder1.mkdir();
             folder2.mkdir();
             folder3.mkdir();
             folder4.mkdir();
