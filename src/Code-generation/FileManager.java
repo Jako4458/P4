@@ -56,7 +56,7 @@ public class FileManager {
 
 
     public void buildBeforeCodeGen() {
-        buildContainer();
+//        buildContainer();
         buildBuiltin();
     }
 

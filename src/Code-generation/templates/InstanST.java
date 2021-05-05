@@ -46,7 +46,7 @@ public class InstanST implements Template {
     }
 
     public InstanST(String varName, String exprName, Vector3 newBlockPos, Vector3 blockFactor1Pos, String prefix, boolean setComment) {
-        ST template = new ST("<Comment><prefix><summon>\n<prefix><assign>");
+        ST template = new ST("<Comment><prefix><summon><prefix><assign>");
 
         ST summonTemplate = new ST("summon armor_stand <x> <y> <z> {Tags:[\"<varName>\", \"variable\",\"MineSpeak\"],NoGravity:1}\n");
         template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "

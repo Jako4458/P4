@@ -4,10 +4,10 @@ import org.stringtemplate.v4.ST;
 public class BlankST implements Template {
     private String output;
 
-    public BlankST(String string, boolean setComment){
-        ST st = new ST("<Comment><string>\n");
+    public BlankST(String string, String comment, boolean setComment){
+        ST template = new ST("<Comment><string>\n");
 
-        template.add("Comment", setComment ? "#Template\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#" + comment +"\n" : ""); //substring to remove "class "
         template.add("string", string);
 
         output = template.render();
