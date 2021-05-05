@@ -3,6 +3,7 @@ package logging;
 import com.sun.tools.javac.Main;
 import logging.logs.ErrorLog;
 import logging.logs.Log;
+import logging.logs.WarningLog;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,14 +69,19 @@ public class Logger implements ILogger {
     }
 
     public boolean containsErrors() {
-        if (Main.setup.pedantic) {
-            return logs.size() != 0;
-        }
-
         for (Log log : logs) {
             if (log instanceof ErrorLog)
                 return true;
         }
+        return false;
+    }
+
+    public boolean containsWarnings() {
+        for (Log log : logs) {
+            if (log instanceof WarningLog)
+                return true;
+        }
+
         return false;
     }
 }

@@ -1,5 +1,6 @@
 import logging.logs.ErrorLog;
 import logging.Logger;
+import logging.logs.Log;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -43,7 +44,7 @@ public class Main {
         // Parsing
         System.out.println("Parsing...");
         ParseTree parseTree = parse(tokenStream);
-        if (checkLoggerIsNotOK())
+        if (parseTree == null)
             return;
 
         // Semantic analysis
@@ -65,6 +66,9 @@ public class Main {
     }
 
     private static boolean checkLoggerIsNotOK() {
+        if(setup.pedantic) {
+            return Logger.shared.containsWarnings() || Logger.shared.containsErrors();
+        }
         return Logger.shared.containsErrors();
     }
 
