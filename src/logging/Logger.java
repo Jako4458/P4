@@ -1,5 +1,6 @@
 package logging;
 
+import com.sun.tools.javac.Main;
 import logging.logs.ErrorLog;
 import logging.logs.Log;
 
@@ -13,7 +14,6 @@ public class Logger implements ILogger {
     private final ArrayList<Log> logs;
     private final int indentations = 5;
     private String[] sourceProg;
-
     public static Logger shared = new Logger();
 
     private Logger() {
@@ -68,6 +68,10 @@ public class Logger implements ILogger {
     }
 
     public boolean containsErrors() {
+        if (Main.setup.pedantic) {
+            return logs.size() != 0;
+        }
+
         for (Log log : logs) {
             if (log instanceof ErrorLog)
                 return true;

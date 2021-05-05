@@ -5,7 +5,7 @@ public class BlankST implements Template {
     private String output;
 
     public BlankST(String string, boolean setComment){
-        ST st = new ST("<Comment><string>\n");
+        ST template = new ST("<Comment><string>\n");
 
         template.add("Comment", setComment ? "#Template\n" : ""); //substring to remove "class "
         template.add("string", string);

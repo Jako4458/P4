@@ -11,18 +11,18 @@ public class AssignST implements Template {
             case Type.NUM:
             case Type.BOOL:
                 template = new ST("<Comment>" +
-                        "<prefix>execute at @s store result score @s <varName> run scoreboard players get @s <exprName>\n");
+                        "<prefix>execute as @s store result score @s <varName> run scoreboard players get @s <exprName>\n");
                 break;
             case Type.VECTOR2:
                 template = new ST("<Comment>" +
-                        "<prefix>execute at @s store result score @s <varName>_x run scoreboard players get @s <exprName>_x\n" +
-                        "<prefix>execute at @s store result score @s <varName>_y run scoreboard players get @s <exprName>_y\n");
+                        "<prefix>execute as @s store result score @s <varName>_x run scoreboard players get @s <exprName>_x\n" +
+                        "<prefix>execute as @s store result score @s <varName>_y run scoreboard players get @s <exprName>_y\n");
                 break;
             case Type.VECTOR3:
                 template = new ST("<Comment>" +
-                        "<prefix>execute at @s store result score @s <varName>_x run scoreboard players get @s <exprName>_x\n" +
-                        "<prefix>execute at @s store result score @s <varName>_y run scoreboard players get @s <exprName>_y\n" +
-                        "<prefix>execute at @s store result score @s <varName>_z run scoreboard players get @s <exprName>_z\n");
+                        "<prefix>execute as @s store result score @s <varName>_x run scoreboard players get @s <exprName>_x\n" +
+                        "<prefix>execute as @s store result score @s <varName>_y run scoreboard players get @s <exprName>_y\n" +
+                        "<prefix>execute as @s store result score @s <varName>_z run scoreboard players get @s <exprName>_z\n");
                 break;
             case Type.STRING:
             default:
