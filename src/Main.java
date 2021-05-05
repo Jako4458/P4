@@ -124,8 +124,11 @@ public class Main {
         UnassignedVariableListener unassignedVariableListener = new UnassignedVariableListener();
         ParseTreeWalker.DEFAULT.walk(unassignedVariableListener, tree);
 
-        InfiniteLoopDetectionListener infiniteLoopDetectionListener = new InfiniteLoopDetectionListener();
-        ParseTreeWalker.DEFAULT.walk(infiniteLoopDetectionListener, tree);
+        InfiniteLoopDetectionVisitor infiniteLoopDetectionVisitor = new InfiniteLoopDetectionVisitor();
+        infiniteLoopDetectionVisitor.visit(tree);
+
+//        InfiniteLoopDetectionListener infiniteLoopDetectionListener = new InfiniteLoopDetectionListener();
+//        ParseTreeWalker.DEFAULT.walk(infiniteLoopDetectionListener, tree);
     }
 
     public static ArrayList<Template> codeGeneration(ParseTree tree) {
