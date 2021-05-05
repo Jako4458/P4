@@ -5,13 +5,16 @@ import java.util.*;
 public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     //region variable instantiations
     private final boolean debug = Main.setup.debug;
-    private final boolean useReadableVariableNames = debug;
-    private final boolean setTemplateComments = debug;
+
+    private final boolean useReadableVariableNames = Main.setup.nameMode.equals(NamingMode.readable);
+    private boolean setTemplateComments = Main.setup.commenting;
+    private final VariableMode VariableMode = Main.setup.variableMode;
+
     private Scope currentScope;
     private final Map<String, FuncEntry> funcSignature;
     private final Map<String, FuncEntry> builtinFunctions;
     private final MSValueFactory msValueFactory = new MSValueFactory();
-    private final STemplateFactory templateFactory = new STemplateFactory(setTemplateComments);
+    private final STemplateFactory templateFactory = new STemplateFactory();
     private final Map<ParseTree, String> factorNameTable = new HashMap<>();
 
     private ArrayList<String> prefixs = new ArrayList<>();
@@ -45,11 +48,16 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
     private List<Template> makeProgramFooters() {
         ArrayList<Template> ret = new ArrayList<>();
-        if (debug)
-            return ret;
 
-        ret.add(new BlankST("execute as @e[tag=variable] at @e[tag=variable] run setblock ~ ~-1 ~ air", setTemplateComments));
-        ret.add(new BlankST("kill @e[tag=MineSpeak]", setTemplateComments));
+        if (VariableMode.equals(VariableMode.delete))
+            ret.add(templateFactory.deleteVariables());
+
+        if (!debug){
+            ret.add(new BlankST("execute as @e[tag=variable] at @e[tag=variable] run setblock ~ ~-1 ~ air", "remove all block variables" ,setTemplateComments));
+            ret.add(new BlankST("kill @e[tag=MineSpeak]", "kill all stands" ,setTemplateComments));
+            ret.add(templateFactory.resetExpressions());
+        }
+
         return ret;
     }
     //endregion
@@ -555,8 +563,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         Type type = ctx.expr().type;
         String operator = SymbolConverter.getSymbol( ctx.ASSIGN() != null ? MinespeakParser.ASSIGN : ctx.compAssign().op.getType());
-
-        String exprName = factorNameTable.get(ctx.expr());
 
         switch (type.getTypeAsInt()) {
             case Type.BOOL:

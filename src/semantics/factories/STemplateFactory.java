@@ -1,8 +1,10 @@
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class STemplateFactory {
     private Integer exprCounter = 0;
-    private boolean setComments;
+    private boolean setComments = Main.setup.commenting;
+    private ArrayList<String> varaibleNames = new ArrayList<>();
     public String factor1UUID = generateValidUUID();
     public String factor2UUID = generateValidUUID();
     public Vector3 blockFactor1Pos = new Vector3(0, 255, 0); // is dependant on dcl before block var uses
@@ -10,10 +12,6 @@ public class STemplateFactory {
     public String BlockFactor1 = "BlockFactor1";
     public String BlockFactor2 = "BlockFactor2";
     private Vector3 blockPos = new Vector3(2, 255, 0);
-
-    public STemplateFactory(boolean setComments) {
-        this.setComments = setComments;
-    }
 
     private Integer newExprCounter() {return ++exprCounter; }
 
@@ -23,6 +21,30 @@ public class STemplateFactory {
     public static String getPlayerTag() {
         return "active";
     }
+
+    public Template resetExpressions(){
+        String tempString = "";
+
+        for (; exprCounter > 0; exprCounter--) {
+             tempString += "scoreboard objectives remove " + getExprCounterString() + "\n";
+        }
+
+        tempString += "scoreboard objectives remove " + factor1UUID + "\n";
+        tempString += "scoreboard objectives remove " + factor2UUID + "\n";
+
+         return new BlankST(tempString, "remove expressions",setComments);
+    }
+
+    public Template deleteVariables(){
+        String tempString = "";
+
+        for (String name: varaibleNames) {
+            tempString += "scoreboard objectives remove " + name + "\n";
+        }
+        return new BlankST(tempString, "delete variables",setComments);
+    }
+
+
 
     public Vector3 getNewBlockPos() {
         Vector3 retPos = blockPos;
@@ -92,6 +114,7 @@ public class STemplateFactory {
     }
 
     public InstanST createInstanST(String varName, String exprName, Type type, String prefix) {
+        varaibleNames.add(varName);
         if (type.getTypeAsInt() == Type.BLOCK) {
             return new InstanST(varName, exprName, getNewBlockPos(), blockFactor1Pos, prefix, setComments);
         }
@@ -99,16 +122,19 @@ public class STemplateFactory {
     }
 
     public InstanST createInstanST(String varName, int varVal, String prefix) {
+        varaibleNames.add(varName);
         return new InstanST(varName, varVal, prefix, setComments);
     }
 
     public InstanST createInstanST(String varName, Vector3Value varVal, String prefix) {
+        varaibleNames.add(varName);
         return new InstanST(varName, varVal, prefix, setComments);
     }
 
     // InstantST
-    public InstanST createInstanST(String VarName, BlockValue blockValue, Vector3 pos, String prefix) {
-        return new InstanST(VarName, blockValue, pos, prefix, setComments);
+    public InstanST createInstanST(String varName, BlockValue blockValue, Vector3 pos, String prefix) {
+        varaibleNames.add(varName);
+        return new InstanST(varName, blockValue, pos, prefix, setComments);
     }
 
     public AssignST createAssignST(String varName, Type type, String prefix){
