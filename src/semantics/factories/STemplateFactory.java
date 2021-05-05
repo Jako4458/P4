@@ -4,7 +4,7 @@ import java.util.UUID;
 public class STemplateFactory {
     private Integer exprCounter = 0;
     private boolean setComments = Main.setup.commenting;
-    private ArrayList<String> varaibleNames = new ArrayList<>();
+    private ArrayList<String> variableNames = new ArrayList<>();
     public String factor1UUID = generateValidUUID();
     public String factor2UUID = generateValidUUID();
     public Vector3 blockFactor1Pos = new Vector3(0, 255, 0); // is dependant on dcl before block var uses
@@ -23,25 +23,32 @@ public class STemplateFactory {
     }
 
     public Template resetExpressions(){
-        String tempString = "";
+        StringBuilder tempString = new StringBuilder();
 
         for (; exprCounter > 0; exprCounter--) {
-             tempString += "scoreboard objectives remove " + getExprCounterString() + "\n";
+             tempString.append("scoreboard objectives remove ").append(getExprCounterString()).append("\n");
         }
 
-        tempString += "scoreboard objectives remove " + factor1UUID + "\n";
-        tempString += "scoreboard objectives remove " + factor2UUID + "\n";
+        tempString.append("scoreboard objectives remove ").append(factor1UUID).append("\n");
+        tempString.append("scoreboard objectives remove ").append(factor2UUID).append("\n");
+        tempString.append("scoreboard objectives remove ").append(factor1UUID).append("_x\n");
+        tempString.append("scoreboard objectives remove ").append(factor1UUID).append("_y\n");
+        tempString.append("scoreboard objectives remove ").append(factor1UUID).append("_z\n");
+        tempString.append("scoreboard objectives remove ").append(factor2UUID).append("_x\n");
+        tempString.append("scoreboard objectives remove ").append(factor2UUID).append("_y\n");
+        tempString.append("scoreboard objectives remove ").append(factor2UUID).append("_z\n");
 
-         return new BlankST(tempString, "remove expressions",setComments);
+         return new BlankST(tempString.toString(), "remove expressions",setComments);
     }
 
     public Template deleteVariables(){
-        String tempString = "";
+        StringBuilder tempString = new StringBuilder();
 
-        for (String name: varaibleNames) {
-            tempString += "scoreboard objectives remove " + name + "\n";
+        for (String name: variableNames) {
+            if (!name.startsWith("expr_") && !(name.startsWith(factor1UUID) || name.startsWith(factor2UUID)))
+                tempString.append("scoreboard objectives remove ").append(name).append("\n");
         }
-        return new BlankST(tempString, "delete variables",setComments);
+        return new BlankST(tempString.toString(), "delete variables",setComments);
     }
 
 
@@ -114,7 +121,7 @@ public class STemplateFactory {
     }
 
     public InstanST createInstanST(String varName, String exprName, Type type, String prefix) {
-        varaibleNames.add(varName);
+        variableNames.add(varName);
         if (type.getTypeAsInt() == Type.BLOCK) {
             return new InstanST(varName, exprName, getNewBlockPos(), blockFactor1Pos, prefix, setComments);
         }
@@ -122,18 +129,18 @@ public class STemplateFactory {
     }
 
     public InstanST createInstanST(String varName, int varVal, String prefix) {
-        varaibleNames.add(varName);
+        variableNames.add(varName);
         return new InstanST(varName, varVal, prefix, setComments);
     }
 
     public InstanST createInstanST(String varName, Vector3Value varVal, String prefix) {
-        varaibleNames.add(varName);
+        variableNames.add(varName);
         return new InstanST(varName, varVal, prefix, setComments);
     }
 
     // InstantST
     public InstanST createInstanST(String varName, BlockValue blockValue, Vector3 pos, String prefix) {
-        varaibleNames.add(varName);
+        variableNames.add(varName);
         return new InstanST(varName, blockValue, pos, prefix, setComments);
     }
 
@@ -143,5 +150,5 @@ public class STemplateFactory {
         return new AssignST(varName, getExprCounterString(), type, prefix, setComments);
     }
 
-    public static String generateValidUUID() {return UUID.randomUUID().toString().replace("-", "_").substring(0,11);}
+    public static String generateValidUUID() {return UUID.randomUUID().toString().replace("-", "").substring(0,14);}
 }
