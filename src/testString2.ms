@@ -7,9 +7,9 @@ minespeak
             for var j: num = 0 until j == dim where j += 1 do
                 for var k: num = 0 until k == dim where k += 1 do
                     if (i + j + k) % 2 == 0 do
-                        myBlock = #BLOCK_OF_GOLD
+                        myBlock = #gold_block
                     else do
-                        myBlock = #DIRT
+                        myBlock = #dirt
                     endif
                     setB(<100 + j, 245 + k, i>, myBlock, false)
                 endfor

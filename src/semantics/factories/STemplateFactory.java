@@ -2,6 +2,7 @@ import java.util.UUID;
 
 public class STemplateFactory {
     private Integer exprCounter = 0;
+    private boolean setComments;
     public String factor1UUID = generateValidUUID();
     public String factor2UUID = generateValidUUID();
     public Vector3 blockFactor1Pos = new Vector3(0, 255, 0); // is dependant on dcl before block var uses
@@ -9,6 +10,10 @@ public class STemplateFactory {
     public String BlockFactor1 = "BlockFactor1";
     public String BlockFactor2 = "BlockFactor2";
     private Vector3 blockPos = new Vector3(2, 255, 0);
+
+    public STemplateFactory(boolean setComments) {
+        this.setComments = setComments;
+    }
 
     private Integer newExprCounter() {return ++exprCounter; }
 
@@ -27,96 +32,96 @@ public class STemplateFactory {
 
     // EnterNewFileST
     public EnterNewFileST createEnterNewFileST (String fileName, boolean isMcfunction) {
-        return new EnterNewFileST(fileName, isMcfunction);
+        return new EnterNewFileST(fileName, isMcfunction, setComments);
     }
 
     // ExitFileST
     public ExitFileST createExitFileST () {
-        return new ExitFileST();
+        return new ExitFileST(setComments);
     }
 
     // ArithmeticExprST
     public ArithmeticExprST createArithmeticExprST (String expr1Name, String expr2Name, String operator, Type type1, Type type2, String prefix) {
-        return new ArithmeticExprST(expr1Name, expr2Name, operator, getNewExprCounterString(), type1, type2, prefix);
+        return new ArithmeticExprST(expr1Name, expr2Name, operator, getNewExprCounterString(), type1, type2, prefix, setComments);
     }
 
     // ArithmeticExprST
     public ArithmeticExprST createArithmeticExprST (String expr1Name, String operator, Type type1, Type type2, String prefix) {
-        return new ArithmeticExprST(expr1Name, getExprCounterString(), operator, getNewExprCounterString(), type1, type2, prefix);
+        return new ArithmeticExprST(expr1Name, getExprCounterString(), operator, getNewExprCounterString(), type1, type2, prefix, setComments);
     }
 
     // EqualityExprST
     public EqualityExprST createEqualityExprST(String a, String b, String operator, Type type, String prefix) {
         if (type == Type._block)
-            return new EqualityExprST(a, b, operator, getNewExprCounterString(), blockFactor1Pos, blockFactor2Pos, prefix);
+            return new EqualityExprST(a, b, operator, getNewExprCounterString(), blockFactor1Pos, blockFactor2Pos, prefix, setComments);
         else
-            return new EqualityExprST(a, b, operator, getNewExprCounterString(), type, prefix);
+            return new EqualityExprST(a, b, operator, getNewExprCounterString(), type, prefix, setComments);
     }
 
     // LogicalExprST
     public LogicalExprST createLogicalExprST(String a, String b, String operator, String prefix) {
-        return new LogicalExprST(a, b, operator, prefix, getNewExprCounterString(), generateValidUUID());
+        return new LogicalExprST(a, b, operator, prefix, getNewExprCounterString(), generateValidUUID(), setComments);
     }
 
     // NegationExprST
     public NegationExprST createNegationExprST(String a, String operator, String prefix, Type type) {
-        return new NegationExprST(a, operator, prefix, getNewExprCounterString(), type);
+        return new NegationExprST(a, operator, prefix, getNewExprCounterString(), type, setComments);
     }
 
     // RelationExprST
     public RelationExprST createRelationExprST(String a, String b, String operator, String prefix) {
-        return new RelationExprST(a, b, operator, prefix, getNewExprCounterString());
+        return new RelationExprST(a, b, operator, prefix, getNewExprCounterString(), setComments);
     }
 
     public Template createFuncCallST(String name, boolean isMC, boolean isBuiltin, String prefix) {
         if (isBuiltin)
-            return FuncCallST.generateFuncCallToMC(name, "builtin", prefix);
+            return FuncCallST.generateFuncCallToMC(name, "builtin", prefix, setComments);
         if (isMC)
-            return FuncCallST.generateFuncCallToMC(name, "mcfuncs", prefix);
-        return FuncCallST.generateFuncCallToNonMC(name, prefix);
+            return FuncCallST.generateFuncCallToMC(name, "mcfuncs", prefix, setComments);
+        return FuncCallST.generateFuncCallToNonMC(name, prefix, setComments);
     }
 
     // MCStatementsST
     public MCStatementST createMCStatementST(String command, String prefix) {
-        return new MCStatementST(command, prefix);
+        return new MCStatementST(command, prefix, setComments);
     }
 
     // InstantST
     public InstanST createInstanST(String varName, String exprName, String prefix) {
-        return new InstanST(varName, exprName, prefix);
+        return new InstanST(varName, exprName, prefix, setComments);
     }
 
     public InstanST createInstanST(String varName, String exprName, Type type, String prefix) {
         if (type.getTypeAsInt() == Type.BLOCK) {
-            return new InstanST(varName, exprName, getNewBlockPos(), blockFactor1Pos, prefix);
+            return new InstanST(varName, exprName, getNewBlockPos(), blockFactor1Pos, prefix, setComments);
         }
-        return new InstanST(varName, exprName, type, prefix);
+        return new InstanST(varName, exprName, type, prefix, setComments);
     }
 
     public InstanST createInstanST(String varName, int varVal, String prefix) {
-        return new InstanST(varName, varVal, prefix);
+        return new InstanST(varName, varVal, prefix, setComments);
     }
 
     public InstanST createInstanST(String varName, Vector3Value varVal, String prefix) {
-        return new InstanST(varName, varVal, prefix);
+        return new InstanST(varName, varVal, prefix, setComments);
     }
 
     // InstantST
     public InstanST createInstanST(String VarName, BlockValue blockValue, Vector3 pos, String prefix) {
-        return new InstanST(VarName, blockValue, pos, prefix);
+        return new InstanST(VarName, blockValue, pos, prefix, setComments);
     }
 
     public AssignST createAssignST(String varName, Type type, String prefix){
         if (type == Type._block)
-            return new AssignST(varName, blockFactor1Pos, getExprCounterString(), prefix);
-        return new AssignST(varName, getExprCounterString(), type, prefix);
+            return new AssignST(varName, blockFactor1Pos, getExprCounterString(), prefix, setComments);
+        return new AssignST(varName, getExprCounterString(), type, prefix, setComments);
     }
 
     public AssignST createAssignST(String varName, String exprName, Type type, String prefix){
         if (type == Type._block)
-            return new AssignST(varName, blockFactor1Pos, exprName, prefix);
+            return new AssignST(varName, blockFactor1Pos, exprName, prefix, setComments);
 
-        return new AssignST(varName, exprName, type, prefix);
+        return new AssignST(varName, exprName, type, prefix, setComments);
     }
 
     public static String generateValidUUID() {return UUID.randomUUID().toString().replace("-", "_").substring(0,11);}

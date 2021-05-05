@@ -4,9 +4,12 @@ import org.stringtemplate.v4.ST;
 public class MCStatementST implements Template{
     private String output;
 
-    public MCStatementST(String command, String prefix){
-        ST st = new ST("#<Comment> \n<prefix><Command>\n");
-        st.add("Comment", this.getClass().toString().substring(6)); //substring to remove "class "
+    public MCStatementST(String command, String prefix, boolean setComment){
+        ST st = new ST("<Comment><prefix><Command>\n");
+
+
+        st.add("Comment", setComment ? "#" + this.getClass().toString().substring(6) + "\n" : ""); //substring to remove "class "
+
         st.add("prefix", prefix);
         st.add("Command", command);
 

@@ -4,8 +4,8 @@ import org.stringtemplate.v4.ST;
 public class ExitFileST implements Template {
     private String output;
 
-    public ExitFileST(){
-        ST st = new ST("#exit file");
+    public ExitFileST(boolean setComment){
+        ST st = new ST(setComment ? "#exit file\n" : "");
         output = st.render();
     }
 

@@ -7,10 +7,12 @@ public class EnterNewFileST implements Template {
     public final String fileName;
     public boolean isMcfunction;
 
-    public EnterNewFileST(String fileName, boolean isMcfunction){
-        ST st = new ST("#newfile <FileName>");
+    public EnterNewFileST(String fileName, boolean isMcfunction, boolean setComment){
+        ST st = new ST(setComment ? "#newfile <FileName>\n" : "");
 
-        st.add("FileName", fileName);
+        if (setComment)
+            st.add("FileName", fileName);
+
         output = st.render();
 
         this.fileName = fileName;
