@@ -348,7 +348,26 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
     @Override
     public ArrayList<Template> visitPow(MinespeakParser.PowContext ctx) {
-        return new ArrayList<>(); //Pow cannot work with the current setup
+        ArrayList<Template> ret = new ArrayList<>();
+        String loopID = generateValidFileName();
+        ret.addAll(visit(ctx.expr(0)));
+        ret.addAll(visit(ctx.expr(1)));
+        String expr1 = factorNameTable.get(ctx.expr(0));
+        String expr2 = factorNameTable.get(ctx.expr(1));
+        String counterString = templateFactory.getNewExprCounterString();
+
+        ret.add(templateFactory.createInstanST(counterString, 1, getPrefix()));
+        ret.add(templateFactory.createFuncCallST(loopID, false, false,
+                getPrefix()));
+        ret.add(templateFactory.createEnterNewFileST(loopID, false));
+        ret.add(templateFactory.createArithmeticExprST(expr1, "*", ctx.expr(0).type, ctx.expr(0).type, getPrefix()));
+        ret.add(templateFactory.createMCStatementST("scoreboard players operation @s " + counterString + " += 1" , getPrefix()));
+        ret.add(templateFactory.createFuncCallST(loopID, false, false,
+                getPrefix() + "execute unless score @s " + counterString + " > @s " + expr2 + " run "));
+        ret.add(templateFactory.createExitFileST());
+
+        factorNameTable.put(ctx, templateFactory.getExprCounterString());
+        return ret;
     }
 
     @Override
