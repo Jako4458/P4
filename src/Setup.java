@@ -7,8 +7,9 @@ public class Setup {
     public boolean commenting;
     public NamingMode nameMode;
     public VariableMode variableMode;
+    public boolean pedantic;
 
-    public Setup(String outputPath, String inputPath, boolean debug, FileMode fileMode, ErrorMode errorMode, boolean commenting, NamingMode nameMode, VariableMode variableMode) {
+    public Setup(String outputPath, String inputPath, boolean debug, FileMode fileMode, ErrorMode errorMode, boolean commenting, NamingMode nameMode, VariableMode variableMode, boolean pedantic) {
         this.outputPath = outputPath;
         this.inputPath = inputPath;
         this.debug = debug;
@@ -17,6 +18,7 @@ public class Setup {
         this.commenting = commenting;
         this.nameMode = nameMode;
         this.variableMode = variableMode;
+        this.pedantic = pedantic;
     }
 
     public Setup() {
@@ -28,6 +30,7 @@ public class Setup {
         this.commenting = false;
         this.nameMode = NamingMode.random;
         this.variableMode = VariableMode.delete;
+        this.pedantic = false;
     }
 }
 

@@ -150,5 +150,13 @@ public class STemplateFactory {
         return new AssignST(varName, getExprCounterString(), type, prefix, setComments);
     }
 
+    public AssignST createAssignST(String varName, String exprName, Type type, String prefix){
+        if (type == Type._block)
+            return new AssignST(varName, blockFactor1Pos, exprName, prefix, setComments);
+
+        return new AssignST(varName, exprName, type, prefix, setComments);
+    }
+
     public static String generateValidUUID() {return UUID.randomUUID().toString().replace("-", "").substring(0,14);}
+
 }
