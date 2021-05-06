@@ -505,6 +505,12 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitFuncCall(MinespeakParser.FuncCallContext ctx) {
+        if (ctx.parent instanceof MinespeakParser.StmntContext) {
+            if(ctx.type != Type._void){
+                Logger.shared.add(logFac.createResultIgnoredWarning(ctx.getText(), ctx));
+            }
+        }
+
         FuncEntry function = functions.get(ctx.ID().getText());
         if (function == null)
             function = this.builtinFunctions.get(ctx.ID().getText());
