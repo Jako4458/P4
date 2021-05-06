@@ -395,7 +395,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         ret.add(templateFactory.createAssignST(expr1, templateFactory.getExprCounterString(), ctx.expr(0).type, getPrefix()));
         ret.add(templateFactory.createFuncCallST(loopID, false, false,
-                getPrefix() + "execute as @s unless score @s " + counterString + " > @s " + expr2 + " run "));
+                getPrefix() + "execute as @s unless score @s " + counterString + " >= @s " + expr2 + " run "));
 
         ret.add(templateFactory.createExitFileST());
 
