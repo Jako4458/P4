@@ -8,8 +8,10 @@ public class Setup {
     public NamingMode nameMode;
     public VariableMode variableMode;
     public boolean pedantic;
+    public ContainerMode containerMode;
+    public String containerName;
 
-    public Setup(String outputPath, String inputPath, boolean debug, FileMode fileMode, ErrorMode errorMode, boolean commenting, NamingMode nameMode, VariableMode variableMode, boolean pedantic) {
+    public Setup(String outputPath, String inputPath, boolean debug, FileMode fileMode, ErrorMode errorMode, boolean commenting, NamingMode nameMode, VariableMode variableMode, boolean pedantic, ContainerMode containerMode) {
         this.outputPath = outputPath;
         this.inputPath = inputPath;
         this.debug = debug;
@@ -19,6 +21,7 @@ public class Setup {
         this.nameMode = nameMode;
         this.variableMode = variableMode;
         this.pedantic = pedantic;
+        this.containerMode = containerMode;
     }
 
     public Setup() {
@@ -31,6 +34,7 @@ public class Setup {
         this.nameMode = NamingMode.random;
         this.variableMode = VariableMode.delete;
         this.pedantic = false;
+        this.containerMode = ContainerMode.auto;
     }
 }
 
@@ -48,5 +52,9 @@ enum NamingMode {
 
 enum VariableMode {
     keep, delete
+}
+
+enum ContainerMode {
+    named, auto, none
 }
 

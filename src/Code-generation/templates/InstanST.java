@@ -15,7 +15,7 @@ public class InstanST implements Template {
             return;
         else {
             ST template = new ST( "<Comment><prefix>scoreboard objectives add <varName> dummy \n" +
-                    "<prefix>execute at @s store result score @s <varName> run scoreboard players get @s <exprName> \n");
+                    "<prefix>execute as @s store result score @s <varName> run scoreboard players get @s <exprName> \n");
 
             template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
 
@@ -55,6 +55,27 @@ public class InstanST implements Template {
         summonTemplate.add("y", newBlockPos.getY()+1);
         summonTemplate.add("z", newBlockPos.getZ());
         summonTemplate.add("varName", varName);
+
+        template.add("summon", summonTemplate.render());
+
+        AssignST assignTemplate = new AssignST(varName, blockFactor1Pos, exprName, prefix, false);
+        template.add("assign", assignTemplate.getOutput());
+        template.add("prefix", prefix);
+
+        this.output = template.render();
+    }
+
+    public InstanST(String varName, String exprName, Vector3 newBlockPos, Vector3 blockFactor1Pos, String prefix, boolean setComment, String funcName) {
+        ST template = new ST("<Comment><prefix><summon><prefix><assign>");
+
+        ST summonTemplate = new ST("summon armor_stand <x> <y> <z> {Tags:[\"<varName>\",\"<func>\",\"variable\",\"MineSpeak\"],NoGravity:1}\n");
+        template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+
+        summonTemplate.add("x", newBlockPos.getX());
+        summonTemplate.add("y", newBlockPos.getY()+1);
+        summonTemplate.add("z", newBlockPos.getZ());
+        summonTemplate.add("varName", varName);
+        summonTemplate.add("func", funcName);
 
         template.add("summon", summonTemplate.render());
 

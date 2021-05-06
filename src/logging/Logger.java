@@ -35,13 +35,19 @@ public class Logger implements ILogger {
     }
 
     @Override
-    public void print() {
+    public void print(boolean all) {
         for (Log log : logs) {
-            String formattedMessage = formatMessage(log);
-
-
-            System.out.println(formattedMessage);
+            if (!(log instanceof WarningLog) || all) {
+                String formattedMessage = formatMessage(log);
+                System.out.println(formattedMessage);
+            }
         }
+    }
+
+    @Override
+    public void dump(boolean all) {
+        print(all);
+        clear();
     }
 
     public List<Log> getLogs() {

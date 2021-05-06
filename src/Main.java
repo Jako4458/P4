@@ -27,7 +27,8 @@ public class Main {
         compile();
 
         // Dump all the logs
-        Logger.shared.print();
+        if (!setup.errorMode.equals(ErrorMode.none))
+            Logger.shared.dump(setup.errorMode.equals(ErrorMode.all));
     }
 
     private static void compile() {
