@@ -368,47 +368,48 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         String expr1 = factorNameTable.get(ctx.expr(0));
         String expr2 = factorNameTable.get(ctx.expr(1));
-        //variable to save the base
-        String x = templateFactory.getNewExprCounterString();
-        //counter to count iterations
-        String counterString = templateFactory.getNewExprCounterString();
-        //one constant to add to counter
-        //CANNOT BE DONE WITH LITERAL(?)
-        String one = templateFactory.getNewExprCounterString();
-        String zero = templateFactory.getNewExprCounterString();
 
-        //create the variable to save base to x
-        ret.add(templateFactory.createInstanST(x, 0, getPrefix()));
-        ret.add(templateFactory.createAssignST(x, expr1, ctx.expr(0).type,getPrefix()));
-
-        //create counter and one constant
-        ret.add(templateFactory.createInstanST(counterString, 1, getPrefix()));
-        ret.add(templateFactory.createInstanST(one, 1, getPrefix()));
-        ret.add(templateFactory.createInstanST(zero, 0, getPrefix()));
-
-        //call power function
-        ret.add(templateFactory.createFuncCallST(loopID, false, false,
-                getPrefix() + "execute unless score @s " + expr2 + " matches 0 run "));
-        ret.add(templateFactory.createEnterNewFileST(loopID, false));
-        //do acc * x
-        ret.add(templateFactory.createArithmeticExprST(expr1, x, "*", ctx.expr(0).type, ctx.expr(0).type, getPrefix()));
-        //increment counter
-        ret.add(templateFactory.createMCStatementST("execute as @s run scoreboard players operation @s " + counterString + " += @s " + one, getPrefix()));
-
-        //save acc
-        ret.add(templateFactory.createAssignST(expr1, templateFactory.getExprCounterString(), ctx.expr(0).type, getPrefix()));
-        ret.add(templateFactory.createFuncCallST(loopID, false, false,
-                getPrefix() + "execute as @s unless score @s " + counterString + " >= @s " + expr2 + " run "));
-
-        ret.add(templateFactory.createExitFileST());
-
-        //check for 0
-        ret.add(templateFactory.createAssignST(expr1, one, ctx.expr(0).type,
-                getPrefix() + "execute as @s if score @s " + expr2 + " matches 0 run "));
-
-        //set to 0 if expr2 is negative
-        ret.add(templateFactory.createAssignST(expr1, zero, ctx.expr(0).type,
-                getPrefix() + "execute as @s if score @s " + expr2 + " matches ..-1 run "));
+        ret.addAll(templateFactory.createPowTemplates(expr1, expr2, getPrefix()));
+//        //variable to save the base
+//        String x = templateFactory.getNewExprCounterString();
+//        //counter to count iterations
+//        String counterString = templateFactory.getNewExprCounterString();
+//        //one constant to add to counter
+//        //CANNOT BE DONE WITH LITERAL(?)
+//        String one = templateFactory.getNewExprCounterString();
+//        String zero = templateFactory.getNewExprCounterString();
+//
+//        //create the variable to save base to x
+//        ret.add(templateFactory.createInstanST(x, 0, getPrefix()));
+//        ret.add(templateFactory.createAssignST(x, expr1, ctx.expr(0).type,getPrefix()));
+//
+//        //create counter and one constant
+//        ret.add(templateFactory.createInstanST(counterString, 1, getPrefix()));
+//        ret.add(templateFactory.createInstanST(one, 1, getPrefix()));
+//        ret.add(templateFactory.createInstanST(zero, 0, getPrefix()));
+//
+//        //call power function
+//        ret.add(templateFactory.createFuncCallST(loopID, false, false, getPrefix() + "execute unless score @s " + expr2 + " matches 0 run "));
+//        ret.add(templateFactory.createEnterNewFileST(loopID, false));
+//        //do acc * x
+//        ret.add(templateFactory.createArithmeticExprST(expr1, x, "*", ctx.expr(0).type, ctx.expr(0).type, getPrefix()));
+//        //increment counter
+//        ret.add(templateFactory.createMCStatementST("execute as @s run scoreboard players operation @s " + counterString + " += @s " + one, getPrefix()));
+//
+//        //save acc
+//        ret.add(templateFactory.createAssignST(expr1, templateFactory.getExprCounterString(), ctx.expr(0).type, getPrefix()));
+//        ret.add(templateFactory.createFuncCallST(loopID, false, false,
+//                getPrefix() + "execute as @s unless score @s " + counterString + " >= @s " + expr2 + " run "));
+//
+//        ret.add(templateFactory.createExitFileST());
+//
+//        //check for 0
+//        ret.add(templateFactory.createAssignST(expr1, one, ctx.expr(0).type,
+//                getPrefix() + "execute as @s if score @s " + expr2 + " matches 0 run "));
+//
+//        //set to 0 if expr2 is negative
+//        ret.add(templateFactory.createAssignST(expr1, zero, ctx.expr(0).type,
+//                getPrefix() + "execute as @s if score @s " + expr2 + " matches ..-1 run "));
 
         factorNameTable.put(ctx, expr1);
         return ret;

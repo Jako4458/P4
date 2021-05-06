@@ -4,12 +4,11 @@ import org.stringtemplate.v4.ST;
 public class ArithmeticExprST implements Template {
     private String output;
 
-    /* Assumes that operator is a string in {+, -, *, /, %, Pow} */
-    public ArithmeticExprST(String a, int b, String operator, String prefix, String exprID, boolean setComment) {
-        if (operator.equals("Pow"))
-            this.output = createPowTemplate(a, b, prefix, exprID, setComment).render();
+    public ArithmeticExprST(ST template) {
+        this.output = template.render();
     }
 
+    /* Assumes that operator is a string in {+, -, *, /, %} */
     public ArithmeticExprST(String a, String b, String operator, String exprID, Type t1, Type t2, String prefix, boolean setComment) {
         if (t1 == Type._vector2) {
             if (t2 == Type._vector2)
@@ -110,34 +109,56 @@ public class ArithmeticExprST implements Template {
         return template;
     }
 
-    private ST createPowTemplate(String a, int b, String prefix, String exprID, boolean setComment) {
-        ST template;
-        String follow = "";
+    public static ArithmeticExprST createPowSetupTemplate(String expr1, String expr2, String baseName, String counterName, String loopID ,String prefix, boolean setComment) {
+            ST template = new ST(   "<Comment><prefix><instanCounter><instanBase><instanZero>" +
+                                            "<funcCall>" +
+                                            "<assignIfZero><assignIfNegative>\n" +
+                                            "<delCounter><delBase>");
 
-        if (b > 0) {
-            template = new ST("<Comment>" +
-                            "<prefix>scoreboard objectives add <exprID> dummy\n" +
-                            "<prefix>scoreboard players operation @s <exprID> = @s <aID>\n" +
-                            "<follow>");
+        String instanCounter = new InstanST(counterName ,1, prefix, false).getOutput();
+        String instanBase = new InstanST(baseName ,expr1, prefix, false).getOutput();
+        String instanZero = new InstanST(counterName ,0, prefix, false).getOutput();
 
-            template.add("aID", a);
-            for (int i = b - 1; i > 0; i--) {
-                follow = follow.concat(String.format("%sscoreboard players operation @s %s *= @s %s\n", prefix, exprID, a));
-            }
-        } else {
-            template = new ST("<Comment>" +
-                            "<prefix>scoreboard objectives add <exprID> dummy\n" +
-                            "<prefix>scoreboard players set @s <exprID> 1\n" +
-                            "<follow>");
-            for (int i = b; i < 0; i++) {
-                follow = follow.concat(String.format("%sscoreboard players operation @s %s /= @s %s\n", prefix, exprID, a));
-            }
-        }
-        template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"POW\n" : ""); //substring to remove "class "
-        template.add("exprID", exprID);
-        template.add("follow", follow);
+        //set to 1 if expr2 is 0
+        String assignIfZero = new AssignST(expr1, 1, prefix + "execute as @s if score @s " + expr2 + " matches 0 run ", false).getOutput();
+        //set to 0 if expr2 is negative
+        String assignIfNegative = new AssignST(expr1, 0, prefix + "execute as @s if score @s " + expr2 + " matches ..-1 run ", false).getOutput();
+
+        //call power function
+        String funcCall = FuncCallST.generateFuncCallToNonMC(loopID, prefix + "execute unless score @s " + expr2 + " matches 0 run ", false).getOutput();
+
+        template.add("Comment", setComment ? "# Pow\n" : "");
         template.add("prefix", prefix);
-        return template;
+
+        template.add("instanCounter", instanCounter);
+        template.add("instanBase", instanBase);
+        template.add("instanZero", instanZero);
+        template.add("funcCall", funcCall);
+        template.add("assignIfZero", assignIfZero);
+        template.add("assignIfNegative", assignIfNegative);
+        template.add("delCounter", new BlankST(prefix + "scoreboard objectives remove " + counterName + "\n", "", false).getOutput());
+        template.add("delBase", new BlankST(prefix + "scoreboard objectives remove " + baseName + "\n", "", false).getOutput());
+
+        return new ArithmeticExprST(template);
+    }
+
+    public static ArithmeticExprST createPowFuncTemplate(String expr1, String expr2, String tempExpr, String baseName, String loopID, String counterName ,String prefix, boolean setComment) {
+        ST template = new ST("<Comment><prefix><updateAcc><saveAcc><incrementCounter><funcCall>\n");
+
+        String updateAcc = new ArithmeticExprST(expr1, baseName, "*", tempExpr ,Type._num, Type._num , prefix, false).getOutput();
+        String saveAcc = new AssignST(expr1, tempExpr, Type._num, prefix, false).getOutput();
+        String incrementCounter = new BlankST(prefix + "execute as @s run scoreboard players add @s " + counterName + " 1\n" , "", false).getOutput();
+        String funcCall = FuncCallST.generateFuncCallToNonMC(loopID, prefix + "execute as @s unless score @s " + counterName + " >= @s " + expr2 + " run ", false).getOutput();
+
+        template.add("Comment", setComment ? "# Pow recc func\n" : "");
+        template.add("prefix", prefix);
+
+        template.add("updateAcc", updateAcc);
+        template.add("saveAcc", saveAcc);
+        template.add("incrementCounter", incrementCounter);
+        template.add("funcCall", funcCall );
+
+        return new ArithmeticExprST(template);
     }
 
     @Override

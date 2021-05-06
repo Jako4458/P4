@@ -11,7 +11,7 @@ public class FuncCallST implements Template{
     public static FuncCallST generateFuncCallToNonMC(String name, String prefix, boolean setComment) {
         ST template = new ST("<Comment><prefix>execute as @s run function <folder>:<name>\n");
 
-        template.add("Comment", setComment ? "#Call " + name + " - FuncCall\n" : "");
+        template.add("Comment", setComment ? ("#Call " + name + " - FuncCall\n") : "");
 
         template.add("name", name);
         template.add("folder", "bin");

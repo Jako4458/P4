@@ -1,3 +1,5 @@
+import org.stringtemplate.v4.ST;
+
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -78,6 +80,20 @@ public class STemplateFactory {
     // ArithmeticExprST
     public ArithmeticExprST createArithmeticExprST (String expr1Name, String operator, Type type1, Type type2, String prefix) {
         return new ArithmeticExprST(expr1Name, getExprCounterString(), operator, getNewExprCounterString(), type1, type2, prefix, setComments);
+    }
+
+    // ArithmeticExprST Pow
+    public ArrayList<Template> createPowTemplates (String expr1Name, String expr2Name, String prefix) {
+        ArrayList<Template> ret = new ArrayList<>();
+        String baseName = generateValidUUID();
+        String counterName = generateValidUUID();
+        String loopID = generateValidUUID();
+
+        ret.add(ArithmeticExprST.createPowSetupTemplate(expr1Name, expr2Name, baseName, counterName, loopID , prefix, setComments));
+        ret.add(new EnterNewFileST(loopID, false, false));
+        ret.add(ArithmeticExprST.createPowFuncTemplate(expr1Name, expr2Name, getExprCounterString(), baseName, loopID, counterName, prefix, setComments));
+        ret.add(new ExitFileST(false));
+        return ret;
     }
 
     // EqualityExprST
