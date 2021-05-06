@@ -12,11 +12,12 @@ public class STemplateFactory {
     public String BlockFactor1 = "BlockFactor1";
     public String BlockFactor2 = "BlockFactor2";
     private Vector3 blockPos = new Vector3(2, 255, 0);
+    private String exprString = Main.setup.nameMode.equals(NamingMode.readable) ? "expr_" : generateValidUUID(5);
 
     private Integer newExprCounter() {return ++exprCounter; }
 
-    public String getNewExprCounterString() {return "expr_" + newExprCounter(); }
-    public String getExprCounterString() {return "expr_" + exprCounter; }
+    public String getNewExprCounterString() {return exprString + newExprCounter(); }
+    public String getExprCounterString() {return exprString + exprCounter; }
 
     public static String getPlayerTag() {
         return "active";
@@ -166,5 +167,6 @@ public class STemplateFactory {
     }
 
     public static String generateValidUUID() {return UUID.randomUUID().toString().replace("-", "").substring(0,14);}
+    public static String generateValidUUID(int stringLength) {return UUID.randomUUID().toString().replace("-", "").substring(0,stringLength);}
 
 }

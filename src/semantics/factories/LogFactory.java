@@ -1,4 +1,5 @@
 import logging.logs.*;
+import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 
@@ -100,6 +101,9 @@ public class LogFactory {
         );
     }
 
+    public Log createResultIgnoredWarning(String text, ParserRuleContext ctx) {
+        return new ResultIgnoredWarning(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
+    }
 
     public Log createDivideByZeroError(String text, ParserRuleContext ctx) {
         return new DivisionByZeroError(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
