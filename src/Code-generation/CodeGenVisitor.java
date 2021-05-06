@@ -544,7 +544,10 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         for (int i = 0; i < ctx.expr().size(); i++) {
             String name = isBuiltin ? func.getParams().get(i).getName() : func.getParams().get(i).getVarName(useReadableVariableNames);
-            ret.add(templateFactory.createInstanST(name, factorNameTable.get(ctx.expr(i)), ctx.expr(i).type, getPrefix()));
+            if (isBuiltin)
+                ret.add(templateFactory.createInstanST(name, factorNameTable.get(ctx.expr(i)), ctx.expr(i).type, getPrefix(), func.getName().toLowerCase()));
+            else
+                ret.add(templateFactory.createInstanST(name, factorNameTable.get(ctx.expr(i)), ctx.expr(i).type, getPrefix()));
         }
 
         ret.add(templateFactory.createFuncCallST(func.getName().toLowerCase(), func.isMCFunction(), isBuiltin, getPrefix()));
