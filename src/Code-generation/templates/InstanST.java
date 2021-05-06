@@ -15,7 +15,7 @@ public class InstanST implements Template {
             return;
         else {
             ST template = new ST( "<Comment><prefix>scoreboard objectives add <varName> dummy \n" +
-                    "<prefix>execute at @s store result score @s <varName> run scoreboard players get @s <exprName> \n");
+                    "<prefix>execute as @s store result score @s <varName> run scoreboard players get @s <exprName> \n");
 
             template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
 
