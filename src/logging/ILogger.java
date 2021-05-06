@@ -7,23 +7,20 @@ public interface ILogger {
      * Adds a logable object to the log.
      * @param log
      */
-    public void add(Log log);
+    void add(Log log);
 
     /**
      * Clears all logs from the logger.
      */
-    public void clear();
+    void clear();
 
     /**
      * Prints all logs in the logger.
      */
-    public void print();
+    void print(boolean all);
 
     /**
      * Prints all the logs in the logger and clears the logs.
      */
-    public default void dump() {
-        print();
-        clear();
-    }
+    void dump(boolean all);
 }
