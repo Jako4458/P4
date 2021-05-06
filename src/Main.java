@@ -118,6 +118,11 @@ public class Main {
 
         SignatureWalker walker = new SignatureWalker();
         walker.visit(tree);
+
+        if(checkLoggerIsNotOK()){
+            return;
+        }
+
         Main.functionSignatures = walker.functionSignatures;
         ScopeListener scopeListener = new ScopeListener(walker.functionSignatures, BuiltinFuncs.paramMap);
         ParseTreeWalker.DEFAULT.walk(scopeListener, tree);

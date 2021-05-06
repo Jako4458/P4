@@ -142,6 +142,7 @@ public class FileManager {
         return new ArrayList<>() {
             {
                 add(BuiltinFuncs.createSetB("active", "varA", "varB", "boolC"));
+                add(BuiltinFuncs.createTP("active", "varA", "boolC"));
             }};
     }
 }
