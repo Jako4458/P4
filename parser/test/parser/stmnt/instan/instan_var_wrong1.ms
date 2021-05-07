@@ -1,0 +1,1 @@
+var a:num = 2, var b:num = 2
