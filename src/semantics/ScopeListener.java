@@ -505,12 +505,6 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitFuncCall(MinespeakParser.FuncCallContext ctx) {
-        if (ctx.parent instanceof MinespeakParser.StmntContext) {
-            if(ctx.type != Type._void){
-                Logger.shared.add(logFac.createResultIgnoredWarning(ctx.getText(), ctx));
-            }
-        }
-
         FuncEntry function = functions.get(ctx.ID().getText());
         if (function == null)
             function = this.builtinFunctions.get(ctx.ID().getText());
@@ -518,6 +512,12 @@ public class ScopeListener extends MinespeakBaseListener {
         if (function == null) {
             Logger.shared.add(logFac.createVariableNotDeclaredLog(ctx.ID().getText(), ctx));
             return;
+        }
+
+        if (ctx.parent instanceof MinespeakParser.StmntContext) {
+            if(function.getType() != Type._void){
+                Logger.shared.add(logFac.createResultIgnoredWarning(ctx.getText(), ctx));
+            }
         }
 
         List<SymEntry> formalParams = function.getParams();
