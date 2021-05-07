@@ -14,11 +14,22 @@ public class STemplateFactory {
     public String BlockFactor1 = "BlockFactor1";
     public String BlockFactor2 = "BlockFactor2";
     private Vector3 blockPos = new Vector3(2, 255, 0);
+    private ArrayList<String> exprNames = new ArrayList<>();
     private String exprString = Main.setup.nameMode.equals(NamingMode.readable) ? "expr_" : generateValidUUID(5);
 
     private Integer newExprCounter() {return ++exprCounter; }
 
-    public String getNewExprCounterString() {return exprString + newExprCounter(); }
+    public String getNewExprCounterString(boolean isVector) {
+        String exprName = exprString + newExprCounter();
+        if(isVector) {
+            exprNames.add(exprName + "_x");
+            exprNames.add(exprName + "_y");
+            exprNames.add(exprName + "_z");
+        } else
+            exprNames.add(exprName);
+        return exprName;
+    }
+
     public String getExprCounterString() {return exprString + exprCounter; }
 
     public static String getPlayerTag() {
@@ -28,10 +39,10 @@ public class STemplateFactory {
     public Template resetExpressions(){
         StringBuilder tempString = new StringBuilder();
 
-        for (; exprCounter > 0; exprCounter--) {
-             tempString.append("scoreboard objectives remove ").append(getExprCounterString()).append("\n");
+        for (String name: exprNames) {
+             tempString.append("scoreboard objectives remove ").append(name).append("\n");
         }
-
+        exprCounter = 0;
         tempString.append("scoreboard objectives remove ").append(factor1UUID).append("\n");
         tempString.append("scoreboard objectives remove ").append(factor2UUID).append("\n");
         tempString.append("scoreboard objectives remove ").append(factor1UUID).append("_x\n");
@@ -74,12 +85,14 @@ public class STemplateFactory {
 
     // ArithmeticExprST
     public ArithmeticExprST createArithmeticExprST (String expr1Name, String expr2Name, String operator, Type type1, Type type2, String prefix) {
-        return new ArithmeticExprST(expr1Name, expr2Name, operator, getNewExprCounterString(), type1, type2, prefix, setComments);
+        boolean isVector = type1 == Type._vector2 || type1 == Type._vector3 || type2 == Type._vector2 || type2 == Type._vector3;
+        return new ArithmeticExprST(expr1Name, expr2Name, operator, getNewExprCounterString(isVector), type1, type2, prefix, setComments);
     }
 
     // ArithmeticExprST
     public ArithmeticExprST createArithmeticExprST (String expr1Name, String operator, Type type1, Type type2, String prefix) {
-        return new ArithmeticExprST(expr1Name, getExprCounterString(), operator, getNewExprCounterString(), type1, type2, prefix, setComments);
+        boolean isVector = type1 == Type._vector2 || type1 == Type._vector3 || type2 == Type._vector2 || type2 == Type._vector3;
+        return new ArithmeticExprST(expr1Name, getExprCounterString(), operator, getNewExprCounterString(isVector), type1, type2, prefix, setComments);
     }
 
     // ArithmeticExprST Pow
@@ -88,10 +101,12 @@ public class STemplateFactory {
         String baseName = generateValidUUID();
         String counterName = generateValidUUID();
         String loopID = generateValidUUID();
+        String temp = getNewExprCounterString(false);
+        String acc = getNewExprCounterString(false);
 
-        ret.add(ArithmeticExprST.createPowSetupTemplate(expr1Name, expr2Name, baseName, counterName, loopID , prefix, setComments));
+        ret.add(ArithmeticExprST.createPowSetupTemplate(expr1Name, expr2Name, acc, baseName, counterName, loopID , prefix, setComments));
         ret.add(new EnterNewFileST(loopID, false, false));
-        ret.add(ArithmeticExprST.createPowFuncTemplate(expr1Name, expr2Name, getExprCounterString(), baseName, loopID, counterName, prefix, setComments));
+        ret.add(ArithmeticExprST.createPowFuncTemplate(expr2Name, acc, temp, baseName, loopID, counterName, prefix, setComments));
         ret.add(new ExitFileST(false));
         return ret;
     }
@@ -99,24 +114,24 @@ public class STemplateFactory {
     // EqualityExprST
     public EqualityExprST createEqualityExprST(String a, String b, String operator, Type type, String prefix) {
         if (type == Type._block)
-            return new EqualityExprST(a, b, operator, getNewExprCounterString(), blockFactor1Pos, blockFactor2Pos, prefix, setComments);
+            return new EqualityExprST(a, b, operator, getNewExprCounterString(false), blockFactor1Pos, blockFactor2Pos, prefix, setComments);
         else
-            return new EqualityExprST(a, b, operator, getNewExprCounterString(), type, prefix, setComments);
+            return new EqualityExprST(a, b, operator, getNewExprCounterString(type == Type._vector2 || type == Type._vector3), type, prefix, setComments);
     }
 
     // LogicalExprST
     public LogicalExprST createLogicalExprST(String a, String b, String operator, String prefix) {
-        return new LogicalExprST(a, b, operator, prefix, getNewExprCounterString(), generateValidUUID(), setComments);
+        return new LogicalExprST(a, b, operator, prefix, getNewExprCounterString(false), generateValidUUID(), setComments);
     }
 
     // NegationExprST
     public NegationExprST createNegationExprST(String a, String operator, String prefix, Type type) {
-        return new NegationExprST(a, operator, prefix, getNewExprCounterString(), type, setComments);
+        return new NegationExprST(a, operator, prefix, getNewExprCounterString(type == Type._vector2 || type == Type._vector3), type, setComments);
     }
 
     // RelationExprST
     public RelationExprST createRelationExprST(String a, String b, String operator, String prefix) {
-        return new RelationExprST(a, b, operator, prefix, getNewExprCounterString(), setComments);
+        return new RelationExprST(a, b, operator, prefix, getNewExprCounterString(false), setComments);
     }
 
     public Template createFuncCallST(String name, boolean isMC, boolean isBuiltin, String prefix) {
@@ -138,7 +153,14 @@ public class STemplateFactory {
     }
 
     public InstanST createInstanST(String varName, String exprName, Type type, String prefix) {
-        variableNames.add(varName);
+        if (type != Type._vector2 && type != Type._vector3)
+            variableNames.add(varName);
+        else {
+            variableNames.add(varName + "_x");
+            variableNames.add(varName + "_y");
+            variableNames.add(varName + "_z");
+        }
+
         if (type.getTypeAsInt() == Type.BLOCK) {
             return new InstanST(varName, exprName, getNewBlockPos(), blockFactor1Pos, prefix, setComments);
         }
@@ -146,7 +168,13 @@ public class STemplateFactory {
     }
 
     public InstanST createInstanST(String varName, String exprName, Type type, String prefix, String funcName) {
-        variableNames.add(varName);
+        if (type != Type._vector2 && type != Type._vector3)
+            variableNames.add(varName);
+        else {
+            variableNames.add(varName + "_x");
+            variableNames.add(varName + "_y");
+            variableNames.add(varName + "_z");
+        }
         if (type.getTypeAsInt() == Type.BLOCK) {
             return new InstanST(varName, exprName, getNewBlockPos(), blockFactor1Pos, prefix, setComments, funcName);
         }
@@ -159,7 +187,9 @@ public class STemplateFactory {
     }
 
     public InstanST createInstanST(String varName, Vector3Value varVal, String prefix) {
-        variableNames.add(varName);
+        variableNames.add(varName + "_x");
+        variableNames.add(varName + "_y");
+        variableNames.add(varName + "_z");
         return new InstanST(varName, varVal, prefix, setComments);
     }
 

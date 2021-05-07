@@ -109,30 +109,31 @@ public class ArithmeticExprST implements Template {
         return template;
     }
 
-    public static ArithmeticExprST createPowSetupTemplate(String expr1, String expr2, String baseName, String counterName, String loopID ,String prefix, boolean setComment) {
-            ST template = new ST(   "<Comment><prefix><instanCounter><instanBase><instanZero>" +
+    public static ArithmeticExprST createPowSetupTemplate(String expr1, String expr2, String acc, String baseName, String counterName, String loopID ,String prefix, boolean setComment) {
+            ST template = new ST(   "<Comment><prefix><instanAcc><instanCounter><instanBase>" +
                                             "<funcCall>" +
                                             "<assignIfZero><assignIfNegative>\n" +
                                             "<delCounter><delBase>");
 
         String instanCounter = new InstanST(counterName ,1, prefix, false).getOutput();
         String instanBase = new InstanST(baseName ,expr1, prefix, false).getOutput();
-        String instanZero = new InstanST(counterName ,0, prefix, false).getOutput();
+        String instanAcc = new InstanST(acc, expr1, prefix, false).getOutput();
 
         //set to 1 if expr2 is 0
-        String assignIfZero = new AssignST(expr1, 1, prefix + "execute as @s if score @s " + expr2 + " matches 0 run ", false).getOutput();
+        String assignIfZero = new AssignST(acc, 1, prefix + "execute as @s if score @s " + expr2 + " matches 0 run ", false).getOutput();
         //set to 0 if expr2 is negative
-        String assignIfNegative = new AssignST(expr1, 0, prefix + "execute as @s if score @s " + expr2 + " matches ..-1 run ", false).getOutput();
+        String assignIfNegative = new AssignST(acc, 0, prefix + "execute as @s if score @s " + expr2 + " matches ..-1 run ", false).getOutput();
 
         //call power function
-        String funcCall = FuncCallST.generateFuncCallToNonMC(loopID, prefix + "execute unless score @s " + expr2 + " matches 0 run ", false).getOutput();
+        String funcCall = FuncCallST.generateFuncCallToNonMC(loopID, prefix + "execute unless score @s " + expr2 + " matches 0..1 run ", false).getOutput();
+
 
         template.add("Comment", setComment ? "# Pow\n" : "");
         template.add("prefix", prefix);
 
         template.add("instanCounter", instanCounter);
         template.add("instanBase", instanBase);
-        template.add("instanZero", instanZero);
+        template.add("instanAcc", instanAcc);
         template.add("funcCall", funcCall);
         template.add("assignIfZero", assignIfZero);
         template.add("assignIfNegative", assignIfNegative);
@@ -142,11 +143,11 @@ public class ArithmeticExprST implements Template {
         return new ArithmeticExprST(template);
     }
 
-    public static ArithmeticExprST createPowFuncTemplate(String expr1, String expr2, String tempExpr, String baseName, String loopID, String counterName ,String prefix, boolean setComment) {
+    public static ArithmeticExprST createPowFuncTemplate(String expr2, String acc, String tempExpr, String baseName, String loopID, String counterName , String prefix, boolean setComment) {
         ST template = new ST("<Comment><prefix><updateAcc><saveAcc><incrementCounter><funcCall>\n");
 
-        String updateAcc = new ArithmeticExprST(expr1, baseName, "*", tempExpr ,Type._num, Type._num , prefix, false).getOutput();
-        String saveAcc = new AssignST(expr1, tempExpr, Type._num, prefix, false).getOutput();
+        String updateAcc = new ArithmeticExprST(acc, baseName, "*", tempExpr ,Type._num, Type._num , prefix, false).getOutput();
+        String saveAcc = new AssignST(acc, tempExpr, Type._num, prefix, false).getOutput();
         String incrementCounter = new BlankST(prefix + "execute as @s run scoreboard players add @s " + counterName + " 1\n" , "", false).getOutput();
         String funcCall = FuncCallST.generateFuncCallToNonMC(loopID, prefix + "execute as @s unless score @s " + counterName + " >= @s " + expr2 + " run ", false).getOutput();
 
