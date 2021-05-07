@@ -1,5 +1,7 @@
 import exceptions.CompileTimeException;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
+
 import java.util.*;
 
 public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
@@ -29,7 +31,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     private List<Template> makeProgramHeaders() {
         ArrayList<Template> ret = new ArrayList<>();
 
-        if (debug)
+        if (true) //TODO CHANGE TO (debug)
             ret.add(templateFactory.createMCStatementST("scoreboard players reset @s", "")); // for debug
 
         int defaultNum = Value.value(msValueFactory.getDefaultValue(Type._num).getCasted(NumValue.class));
@@ -249,6 +251,13 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         prefixs = new ArrayList<>(oldPrefixs);
 
+        if (!debug){
+            for (TerminalNode ID: ctx.instan().ID()) {
+                SymEntry lookup = currentScope.lookup(ID.getText());
+                ret.add(new BlankST(getPrefix() + " scoreboard objectives remove " + lookup.getVarName(useReadableVariableNames) + "\n", "", false));
+            }
+        }
+
         exitScope();
         return ret;
     }
@@ -317,7 +326,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
                 case Type.STRING:
                     break;  //Don't
                 default:
-                    Error("visitInstan");
+                    Error("visitDcl");
             }
         }
         return ret;
@@ -362,7 +371,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     @Override
     public ArrayList<Template> visitPow(MinespeakParser.PowContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
-        String loopID = generateValidFileName();
         ret.addAll(visit(ctx.expr(0)));
         ret.addAll(visit(ctx.expr(1)));
 
@@ -370,48 +378,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         String expr2 = factorNameTable.get(ctx.expr(1));
 
         ret.addAll(templateFactory.createPowTemplates(expr1, expr2, getPrefix()));
-//        //variable to save the base
-//        String x = templateFactory.getNewExprCounterString();
-//        //counter to count iterations
-//        String counterString = templateFactory.getNewExprCounterString();
-//        //one constant to add to counter
-//        //CANNOT BE DONE WITH LITERAL(?)
-//        String one = templateFactory.getNewExprCounterString();
-//        String zero = templateFactory.getNewExprCounterString();
-//
-//        //create the variable to save base to x
-//        ret.add(templateFactory.createInstanST(x, 0, getPrefix()));
-//        ret.add(templateFactory.createAssignST(x, expr1, ctx.expr(0).type,getPrefix()));
-//
-//        //create counter and one constant
-//        ret.add(templateFactory.createInstanST(counterString, 1, getPrefix()));
-//        ret.add(templateFactory.createInstanST(one, 1, getPrefix()));
-//        ret.add(templateFactory.createInstanST(zero, 0, getPrefix()));
-//
-//        //call power function
-//        ret.add(templateFactory.createFuncCallST(loopID, false, false, getPrefix() + "execute unless score @s " + expr2 + " matches 0 run "));
-//        ret.add(templateFactory.createEnterNewFileST(loopID, false));
-//        //do acc * x
-//        ret.add(templateFactory.createArithmeticExprST(expr1, x, "*", ctx.expr(0).type, ctx.expr(0).type, getPrefix()));
-//        //increment counter
-//        ret.add(templateFactory.createMCStatementST("execute as @s run scoreboard players operation @s " + counterString + " += @s " + one, getPrefix()));
-//
-//        //save acc
-//        ret.add(templateFactory.createAssignST(expr1, templateFactory.getExprCounterString(), ctx.expr(0).type, getPrefix()));
-//        ret.add(templateFactory.createFuncCallST(loopID, false, false,
-//                getPrefix() + "execute as @s unless score @s " + counterString + " >= @s " + expr2 + " run "));
-//
-//        ret.add(templateFactory.createExitFileST());
-//
-//        //check for 0
-//        ret.add(templateFactory.createAssignST(expr1, one, ctx.expr(0).type,
-//                getPrefix() + "execute as @s if score @s " + expr2 + " matches 0 run "));
-//
-//        //set to 0 if expr2 is negative
-//        ret.add(templateFactory.createAssignST(expr1, zero, ctx.expr(0).type,
-//                getPrefix() + "execute as @s if score @s " + expr2 + " matches ..-1 run "));
-
-        factorNameTable.put(ctx, expr1);
+        factorNameTable.put(ctx, templateFactory.getExprCounterString());
         return ret;
     }
 
@@ -602,7 +569,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         switch (ctx.type.getTypeAsInt()) {
             case Type.BLOCK:
                 BlockValue block = (BlockValue)msValueFactory.createValue(ctx.BlockLiteral().getText(), Type._block);
-                ret.add(templateFactory.createInstanST(templateFactory.getNewExprCounterString(), block, templateFactory.getNewBlockPos(), getPrefix()));
+                ret.add(templateFactory.createInstanST(templateFactory.getNewExprCounterString(false), block, templateFactory.getNewBlockPos(), getPrefix()));
                 break;
             case Type.NUM:
                 ret.addAll(visit(ctx.numberLiteral())); break;
@@ -625,7 +592,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         int radix = ctx.DecimalDigit() != null ? 10 : 16;
         String numText = radix == 10 ? ctx.getText(): ctx.getText().substring(2); // cut '0x' from hex
-        ret.add(templateFactory.createInstanST(templateFactory.getNewExprCounterString(), Integer.parseInt(numText, radix), getPrefix()));
+        ret.add(templateFactory.createInstanST(templateFactory.getNewExprCounterString(false), Integer.parseInt(numText, radix), getPrefix()));
 
         return ret;
     }
@@ -633,7 +600,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     @Override
     public ArrayList<Template> visitBooleanLiteral(MinespeakParser.BooleanLiteralContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
-        ret.add(templateFactory.createInstanST(templateFactory.getNewExprCounterString(), ctx.TRUE() != null ? 1 : 0 , getPrefix()));
+        ret.add(templateFactory.createInstanST(templateFactory.getNewExprCounterString(false), ctx.TRUE() != null ? 1 : 0 , getPrefix()));
         return ret;
     }
 
@@ -645,7 +612,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
             ret.addAll(visit(expr));
         }
 
-        String retExpr = templateFactory.getNewExprCounterString();
+        String retExpr = templateFactory.getNewExprCounterString(true);
 
         ret.add(templateFactory.createInstanST(retExpr + "_x", factorNameTable.get(ctx.expr(0)), getPrefix()));
         ret.add(templateFactory.createInstanST(retExpr + "_y", factorNameTable.get(ctx.expr(1)), getPrefix()));
@@ -661,7 +628,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
             ret.addAll(visit(expr));
         }
 
-        String retExpr = templateFactory.getNewExprCounterString();
+        String retExpr = templateFactory.getNewExprCounterString(true);
 
         ret.add(templateFactory.createInstanST(retExpr + "_x", factorNameTable.get(ctx.expr(0)), getPrefix()));
         ret.add(templateFactory.createInstanST(retExpr + "_y", factorNameTable.get(ctx.expr(1)), getPrefix()));
