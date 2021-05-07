@@ -206,7 +206,7 @@ public class InfiniteLoopDetectionVisitor extends MinespeakBaseVisitor<ArrayList
     @Override
     public ArrayList<SymEntry> visitStmnt(MinespeakParser.StmntContext ctx) {
         ArrayList<SymEntry> ret = new ArrayList<>();
-        if (ctx.MCStmnt() == null) {
+        if (ctx.loop() != null) {
             ArrayList<SymEntry> temp = visit(ctx.children.get(0));
             if (temp != null)
                 ret.addAll(temp);

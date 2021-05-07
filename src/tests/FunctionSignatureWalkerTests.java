@@ -1,3 +1,4 @@
+import exceptions.MCFuncWrongReturnTypeException;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Array;
@@ -269,12 +270,7 @@ public class FunctionSignatureWalkerTests {
         helper.setupFromString("@mc\nfunc test() -> num do \n endfunc \n");
         MinespeakParser.BlocksContext tree = helper.minespeakParser.blocks();
         SignatureWalker walker = new SignatureWalker();
-        helper.walkTree(tree, walker);
-
-        int actualSize = walker.functionSignatures.size();
-        int expectedSize = 0;
-
-        assertEquals(expectedSize, actualSize);
+        assertThrows(MCFuncWrongReturnTypeException.class ,() -> helper.walkTree(tree, walker));
     }
 
     @Test

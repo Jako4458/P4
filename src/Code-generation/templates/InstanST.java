@@ -14,39 +14,39 @@ public class InstanST implements Template {
         else if (type == Type._block)
             return;
         else {
-            ST st = new ST( "<Comment><prefix>scoreboard objectives add <varName> dummy \n" +
-                    "<prefix>execute at @s store result score @s <varName> run scoreboard players get @s <exprName> \n");
+            ST template = new ST( "<Comment><prefix>scoreboard objectives add <varName> dummy \n" +
+                    "<prefix>execute as @s store result score @s <varName> run scoreboard players get @s <exprName> \n");
 
-            st.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+            template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
 
-            st.add("varName", varName);
-            st.add("exprName", exprName);
-            st.add("prefix", prefix);
+            template.add("varName", varName);
+            template.add("exprName", exprName);
+            template.add("prefix", prefix);
 
-            output = st.render();
+            output = template.render();
         }
     }
 
     public InstanST(String varName, BlockValue blockValue, Vector3 pos, String prefix, boolean setComment) {
-        ST st = new ST( "<Comment><prefix>setblock <posX> <posY> <posZ> <block>\n" +
+        ST template = new ST( "<Comment><prefix>setblock <posX> <posY> <posZ> <block>\n" +
                 "<prefix>summon armor_stand <posX> <posStandY> <posZ> {Tags:[\"<varName>\", \"variable\",\"MineSpeak\"],NoGravity:1}\n"
                 );
-        st.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
-        st.add("prefix", prefix);
-        st.add("varName", varName);
-        st.add("block", blockValue.getValue().substring(1).toLowerCase());
+        template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+        template.add("prefix", prefix);
+        template.add("varName", varName);
+        template.add("block", blockValue.getValue().substring(1).toLowerCase());
 
-        st.add("posX", pos.getX());
-        st.add("posY", pos.getY());
-        st.add("posZ", pos.getZ());
+        template.add("posX", pos.getX());
+        template.add("posY", pos.getY());
+        template.add("posZ", pos.getZ());
 
-        st.add("posStandY", pos.getY()+1);
+        template.add("posStandY", pos.getY()+1);
 
-        output = st.render();
+        output = template.render();
     }
 
     public InstanST(String varName, String exprName, Vector3 newBlockPos, Vector3 blockFactor1Pos, String prefix, boolean setComment) {
-        ST template = new ST("<Comment><prefix><summon>\n<prefix><assign>");
+        ST template = new ST("<Comment><prefix><summon><prefix><assign>");
 
         ST summonTemplate = new ST("summon armor_stand <x> <y> <z> {Tags:[\"<varName>\", \"variable\",\"MineSpeak\"],NoGravity:1}\n");
         template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
@@ -55,6 +55,27 @@ public class InstanST implements Template {
         summonTemplate.add("y", newBlockPos.getY()+1);
         summonTemplate.add("z", newBlockPos.getZ());
         summonTemplate.add("varName", varName);
+
+        template.add("summon", summonTemplate.render());
+
+        AssignST assignTemplate = new AssignST(varName, blockFactor1Pos, exprName, prefix, false);
+        template.add("assign", assignTemplate.getOutput());
+        template.add("prefix", prefix);
+
+        this.output = template.render();
+    }
+
+    public InstanST(String varName, String exprName, Vector3 newBlockPos, Vector3 blockFactor1Pos, String prefix, boolean setComment, String funcName) {
+        ST template = new ST("<Comment><prefix><summon><prefix><assign>");
+
+        ST summonTemplate = new ST("summon armor_stand <x> <y> <z> {Tags:[\"<varName>\",\"<func>\",\"variable\",\"MineSpeak\"],NoGravity:1}\n");
+        template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+
+        summonTemplate.add("x", newBlockPos.getX());
+        summonTemplate.add("y", newBlockPos.getY()+1);
+        summonTemplate.add("z", newBlockPos.getZ());
+        summonTemplate.add("varName", varName);
+        summonTemplate.add("func", funcName);
 
         template.add("summon", summonTemplate.render());
 
@@ -90,15 +111,15 @@ public class InstanST implements Template {
     }
 
     public InstanST(String varName, int exprVal, String prefix, boolean setComment) {
-        ST st = new ST( "<Comment><prefix>scoreboard objectives add <varName> dummy \n" +
+        ST template = new ST( "<Comment><prefix>scoreboard objectives add <varName> dummy \n" +
                                 "<prefix>scoreboard players set @s <varName> <exprVal> \n");
 
-        st.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
-        st.add("varName", varName);
-        st.add("exprVal", exprVal);
-        st.add("prefix", prefix);
+        template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+        template.add("varName", varName);
+        template.add("exprVal", exprVal);
+        template.add("prefix", prefix);
 
-        output = st.render();
+        output = template.render();
     }
 
     public InstanST(String varName, int exprVal, boolean setComment){
@@ -106,17 +127,17 @@ public class InstanST implements Template {
     }
 
     public InstanST(String varName, Vector2Value vec2, String prefix, boolean setComment) {
-        ST st = new ST("<Comment><InstanX><InstanY>");
+        ST template = new ST("<Comment><InstanX><InstanY>");
 
-        st.add("Comment", setComment ? "#Vector2 instan\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#Vector2 instan\n" : ""); //substring to remove "class "
 
         InstanST InstanX = new InstanST(varName + "_x", vec2.getValue().getX(), prefix, false);
         InstanST InstanY = new InstanST(varName + "_y", vec2.getValue().getY(), prefix, false);
 
-        st.add("InstanX", InstanX.getOutput());
-        st.add("InstanY", InstanY.getOutput());
+        template.add("InstanX", InstanX.getOutput());
+        template.add("InstanY", InstanY.getOutput());
 
-        output = st.render();
+        output = template.render();
     }
 
     public InstanST(String varName, Vector2Value vec2, boolean setComment){
@@ -124,17 +145,17 @@ public class InstanST implements Template {
     }
 
     public InstanST(String varName, Vector3Value vec3, String prefix, boolean setComment) {
-        ST st = new ST("<Comment><InstanX><InstanY><InstanZ>");
+        ST template = new ST("<Comment><InstanX><InstanY><InstanZ>");
 
-        st.add("Comment", setComment ? "#Vector3 instan\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#Vector3 instan\n" : ""); //substring to remove "class "
         InstanST InstanX = new InstanST(varName + "_x", vec3.getValue().getX(), prefix, false);
         InstanST InstanY = new InstanST(varName + "_y", vec3.getValue().getY(), prefix, false);
         InstanST InstanZ = new InstanST(varName + "_z", vec3.getValue().getZ(), prefix, false);
 
-        st.add("InstanX", InstanX.getOutput());
-        st.add("InstanY", InstanY.getOutput());
-        st.add("InstanZ", InstanZ.getOutput());
-        output = st.render();
+        template.add("InstanX", InstanX.getOutput());
+        template.add("InstanY", InstanY.getOutput());
+        template.add("InstanZ", InstanZ.getOutput());
+        output = template.render();
     }
 
     public InstanST(String varName, Vector3Value vec3, boolean setComment){

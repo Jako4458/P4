@@ -15,6 +15,9 @@
 # Ignore result folder
 /result/
 
+# Ignore setup
+setup.json
+
 # Package Files #
 *.jar
 *.war

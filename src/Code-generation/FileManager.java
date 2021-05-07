@@ -28,9 +28,11 @@ public class FileManager {
         }
 
         if (made || folder.exists()) {
+            String tempPath = new String(path);
             this.path = path + "/builtin/functions";
             int functionsAdded = buildBuiltinFunctions();
             System.out.println("Missed functions: " + functionsAdded);
+            this.path = tempPath;
         }
     }
 
@@ -54,12 +56,20 @@ public class FileManager {
 
 
     public void buildBeforeCodeGen() {
-        buildContainer();
+        if (Main.setup.containerMode == ContainerMode.auto)
+            buildContainer();
+        else if (Main.setup.containerMode == ContainerMode.named) {
+            buildContainer(Main.setup.containerName != null ? Main.setup.containerName : "result");
+        }
         buildBuiltin();
     }
 
     private void buildContainer() {
-        File folder = new File(path + "/result");
+        buildContainer("result");
+    }
+
+    private void buildContainer(String containerName) {
+        File folder = new File(path + "/" + containerName);
         boolean made;
         try {
             made = folder.mkdir();
@@ -68,25 +78,33 @@ public class FileManager {
         }
 
         if (made || folder.exists())
-            this.path = path + "/result";
+            this.path = path + "/" + containerName;
     }
 
     public boolean buildCodeGen(List<Template> templates) {
         buildFolders();
         Stack<FileWriter> writers = new Stack<>();
+        boolean currentFileExists = false;
 
         for (Template template : templates) {
             try {
                 FileWriter currentWriter = writers.size() == 0 ? null : writers.peek();
                 if (template instanceof EnterNewFileST) {
                     EnterNewFileST currentTemplate = (EnterNewFileST) template;
-                    String pathExtension = currentTemplate.isMcfunction ? "/result/mcfuncs/functions/" : "/result/bin/functions/";
-                    writers.push(new FileWriter(this.originalPath + pathExtension + currentTemplate.fileName + ".mcfunction", true));
+                    String pathExtension = currentTemplate.isMcfunction ? "/mcfuncs/functions/" : "/bin/functions/";
+                    String fileName = this.path + pathExtension + currentTemplate.fileName + ".mcfunction";
+                    if ((new File(fileName)).exists() && Main.setup.fileMode.equals(FileMode.cleanup)) {
+                        currentFileExists = true;
+                        continue;
+                    }
+                    writers.push(new FileWriter(fileName, true));
                 } else if (template instanceof ExitFileST) {
+                    currentFileExists = false;
                     currentWriter.close();
                     writers.pop();
                 } else {
-                    currentWriter.write(template.getOutput());
+                    if (!currentFileExists)
+                        currentWriter.write(template.getOutput());
                 }
             } catch (IOException e) {
                 return false;
@@ -99,15 +117,23 @@ public class FileManager {
     }
 
     private void buildFolders() {
-        File folder = new File(originalPath + "/result/bin");
-        File folder2 = new File(originalPath + "/result/bin/functions");
-        File folder3 = new File(originalPath + "/result/mcfuncs");
-        File folder4 = new File(originalPath + "/result/mcfuncs/functions");
+        ArrayList<File> folders = new ArrayList<>() {{
+            add(new File(path + "/bin"));
+            add(new File(path + "/bin/functions"));
+            add(new File(path + "/mcfuncs"));
+            add(new File(path + "/mcfuncs/functions"));
+        }};
+
         try {
-            folder.mkdir();
-            folder2.mkdir();
-            folder3.mkdir();
-            folder4.mkdir();
+            for (File folder : folders) {
+                if (folder.exists() && Main.setup.fileMode.equals(FileMode.cleanup)) {
+                    if (!folder.delete()) {
+                        //throw new RuntimeException("Could not create folder " + folder.getName());
+                        return;
+                    }
+                } else if (!folder.mkdir())
+                    throw new RuntimeException("Could not create folder " + folder.getName());
+            }
         } catch (SecurityException ignored) {
         }
     }
@@ -116,6 +142,7 @@ public class FileManager {
         return new ArrayList<>() {
             {
                 add(BuiltinFuncs.createSetB("active", "varA", "varB", "boolC"));
+                add(BuiltinFuncs.createTP("active", "varA", "boolC"));
             }};
     }
 }
@@ -157,6 +184,8 @@ class CFile implements MSFile {
     @Override
     public String write(String folderPath) {
         FileWriter fw;
+        if ((new File(folderPath + "/" + this.name + ".mcfunction")).exists() && Main.setup.fileMode.equals(FileMode.cleanup))
+            return this.name;
         try {
             fw = new FileWriter(folderPath + "/" + this.name + ".mcfunction", false);
             for (MSFile f : this.content) {

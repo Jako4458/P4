@@ -5,8 +5,8 @@ public class ExitFileST implements Template {
     private String output;
 
     public ExitFileST(boolean setComment){
-        ST st = new ST(setComment ? "#exit file\n" : "");
-        output = st.render();
+        ST template = new ST(setComment ? "#exit file\n" : "");
+        output = template.render();
     }
 
     @Override

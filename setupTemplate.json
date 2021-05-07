@@ -1,0 +1,9 @@
+{
+    "outputPath"    : "D:\\SKOLE\\Guthub\\P4",
+    "inputPath"     : "D:\\SKOLE\\Guthub\\P4\\src\\testString2.ms",
+    "debug"         : true,
+    "fileMode"      : "cleanup",
+    "errorMode"     : "all",
+    "commenting"    : true,
+    "variableMode"  : "delete"
+}

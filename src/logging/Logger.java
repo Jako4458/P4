@@ -1,6 +1,9 @@
 package logging;
 
+import com.sun.tools.javac.Main;
+import logging.logs.ErrorLog;
 import logging.logs.Log;
+import logging.logs.WarningLog;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +15,6 @@ public class Logger implements ILogger {
     private final ArrayList<Log> logs;
     private final int indentations = 5;
     private String[] sourceProg;
-
     public static Logger shared = new Logger();
 
     private Logger() {
@@ -33,13 +35,19 @@ public class Logger implements ILogger {
     }
 
     @Override
-    public void print() {
+    public void print(boolean all) {
         for (Log log : logs) {
-            String formattedMessage = formatMessage(log);
-
-
-            System.out.println(formattedMessage);
+            if (!(log instanceof WarningLog) || all) {
+                String formattedMessage = formatMessage(log);
+                System.out.println(formattedMessage);
+            }
         }
+    }
+
+    @Override
+    public void dump(boolean all) {
+        print(all);
+        clear();
     }
 
     public List<Log> getLogs() {
@@ -64,5 +72,22 @@ public class Logger implements ILogger {
 
     public void setSourceProg(String[] sourceProg) {
         this.sourceProg = sourceProg;
+    }
+
+    public boolean containsErrors() {
+        for (Log log : logs) {
+            if (log instanceof ErrorLog)
+                return true;
+        }
+        return false;
+    }
+
+    public boolean containsWarnings() {
+        for (Log log : logs) {
+            if (log instanceof WarningLog)
+                return true;
+        }
+
+        return false;
     }
 }

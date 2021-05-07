@@ -61,8 +61,8 @@ public class NegationExprST implements Template {
     private ST generateNegationTemplate(String a, String prefix, String exprID, boolean setComment) {
         ST template = new ST("<Comment>" +
                         "<prefix>scoreboard objectives add <exprID> dummy\n" +
-                        "<prefix>execute if score @s <aID> matches 1..1 run scoreboard players set @s <exprID> 0\n" +
-                        "<prefix>execute if score @s <aID> matches 0..0 run scoreboard players set @s <exprID> 1\n"
+                        "<prefix>execute if score @s <aID> matches 1 run scoreboard players set @s <exprID> 0\n" +
+                        "<prefix>execute if score @s <aID> matches 0 run scoreboard players set @s <exprID> 1\n"
         );
 
         template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "

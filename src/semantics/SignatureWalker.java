@@ -1,3 +1,4 @@
+import exceptions.MCFuncWrongReturnTypeException;
 import logging.Logger;
 import org.antlr.v4.runtime.tree.ParseTree;
 
@@ -17,8 +18,13 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
 
     @Override
     public Type visitProg(MinespeakParser.ProgContext ctx) {
+
         if (ctx.blocks() != null) {
-            visit(ctx.blocks());
+            try {
+                visit(ctx.blocks());
+            } catch (MCFuncWrongReturnTypeException ignored){
+
+            }
         }
         return Type._void;
     }
@@ -61,7 +67,7 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
     }
 
     @Override
-    public Type visitFuncSignature(MinespeakParser.FuncSignatureContext ctx) {
+    public Type visitFuncSignature(MinespeakParser.FuncSignatureContext ctx) throws MCFuncWrongReturnTypeException {
         visit(ctx.params());
         List<SymEntry> params = this.currentParameters;
         Type type = Type._void;
@@ -71,7 +77,7 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
 
         if (this.nextIsMCFunc && ctx.primaryType() != null) {
             Logger.shared.add(logFac.createMCFuncWrongReturnType(ctx.ID().getText(), ctx, type, Type._void));
-            return Type._void;
+            throw new MCFuncWrongReturnTypeException();
         }
 
         if (!functionSignatures.containsKey(ctx.ID().getText())) {

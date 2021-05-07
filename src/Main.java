@@ -1,5 +1,6 @@
 import logging.logs.ErrorLog;
 import logging.Logger;
+import logging.logs.Log;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -15,37 +16,61 @@ import java.util.Map;
 public class Main {
     private static Configuration config;
     private static Map<String, FuncEntry> functionSignatures;
+    public static Setup setup;
 
     public static void main(String[] args) {
         // Configure the compiler through the compiler arguments.
-        Configuration config = new Configuration(args);
+        config = new Configuration(args);
+        setup = (new SetupReader()).readSetupJSON();
 
+        // Compile the file
+        compile();
+
+        // Dump all the logs
+        if (!setup.errorMode.equals(ErrorMode.none))
+            Logger.shared.dump(setup.errorMode.equals(ErrorMode.all));
+    }
+
+    private static void compile() {
         // Building builtin functions
-        FileManager fManager = new FileManager((new File("")).getAbsolutePath());
+        FileManager fManager = new FileManager(setup.outputPath);
         fManager.buildBeforeCodeGen();
 
         // Lexing
         System.out.println("Lexing...");
         CommonTokenStream tokenStream = lex(config.source_file.toString());
+        if (checkLoggerIsNotOK())
+            return;
 
         // Parsing
         System.out.println("Parsing...");
         ParseTree parseTree = parse(tokenStream);
+        if (parseTree == null)
+            return;
 
         // Semantic analysis
         System.out.println("Semantics...");
         semanticAnalysis(parseTree);
+        if (checkLoggerIsNotOK())
+            return;
 
         // Code gen
         System.out.println("Code gene...");
         ArrayList<Template> output = codeGeneration(parseTree);
+        if (checkLoggerIsNotOK())
+            return;
 
         // Outputting to files
         System.out.println("Making files...");
         makeFiles(fManager, output);
 
-        // Dump all the logs
-        Logger.shared.print();
+    }
+
+    private static boolean checkLoggerIsNotOK() {
+        if(setup.pedantic) {
+            return Logger.shared.containsWarnings() || Logger.shared.containsErrors();
+        }
+        return Logger.shared.containsErrors();
     }
 
     private static boolean makeFiles(FileManager fManager, ArrayList<Template> output) {
@@ -93,6 +118,11 @@ public class Main {
 
         SignatureWalker walker = new SignatureWalker();
         walker.visit(tree);
+
+        if(checkLoggerIsNotOK()){
+            return;
+        }
+
         Main.functionSignatures = walker.functionSignatures;
         ScopeListener scopeListener = new ScopeListener(walker.functionSignatures, BuiltinFuncs.paramMap);
         ParseTreeWalker.DEFAULT.walk(scopeListener, tree);
@@ -100,8 +130,11 @@ public class Main {
         UnassignedVariableListener unassignedVariableListener = new UnassignedVariableListener();
         ParseTreeWalker.DEFAULT.walk(unassignedVariableListener, tree);
 
-        InfiniteLoopDetectionListener infiniteLoopDetectionListener = new InfiniteLoopDetectionListener();
-        ParseTreeWalker.DEFAULT.walk(infiniteLoopDetectionListener, tree);
+        InfiniteLoopDetectionVisitor infiniteLoopDetectionVisitor = new InfiniteLoopDetectionVisitor();
+        infiniteLoopDetectionVisitor.visit(tree);
+
+//        InfiniteLoopDetectionListener infiniteLoopDetectionListener = new InfiniteLoopDetectionListener();
+//        ParseTreeWalker.DEFAULT.walk(infiniteLoopDetectionListener, tree);
     }
 
     public static ArrayList<Template> codeGeneration(ParseTree tree) {

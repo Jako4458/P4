@@ -11,18 +11,18 @@ public class AssignST implements Template {
             case Type.NUM:
             case Type.BOOL:
                 template = new ST("<Comment>" +
-                        "<prefix>execute at @s store result score @s <varName> run scoreboard players get @s <exprName>\n");
+                        "<prefix>execute as @s store result score @s <varName> run scoreboard players get @s <exprName>\n");
                 break;
             case Type.VECTOR2:
                 template = new ST("<Comment>" +
-                        "<prefix>execute at @s store result score @s <varName>_x run scoreboard players get @s <exprName>_x\n" +
-                        "<prefix>execute at @s store result score @s <varName>_y run scoreboard players get @s <exprName>_y\n");
+                        "<prefix>execute as @s store result score @s <varName>_x run scoreboard players get @s <exprName>_x\n" +
+                        "<prefix>execute as @s store result score @s <varName>_y run scoreboard players get @s <exprName>_y\n");
                 break;
             case Type.VECTOR3:
                 template = new ST("<Comment>" +
-                        "<prefix>execute at @s store result score @s <varName>_x run scoreboard players get @s <exprName>_x\n" +
-                        "<prefix>execute at @s store result score @s <varName>_y run scoreboard players get @s <exprName>_y\n" +
-                        "<prefix>execute at @s store result score @s <varName>_z run scoreboard players get @s <exprName>_z\n");
+                        "<prefix>execute as @s store result score @s <varName>_x run scoreboard players get @s <exprName>_x\n" +
+                        "<prefix>execute as @s store result score @s <varName>_y run scoreboard players get @s <exprName>_y\n" +
+                        "<prefix>execute as @s store result score @s <varName>_z run scoreboard players get @s <exprName>_z\n");
                 break;
             case Type.STRING:
             default:
@@ -39,63 +39,63 @@ public class AssignST implements Template {
     }
 
     public AssignST(String varName, int exprVal, String prefix, boolean setComment){
-        ST st = new ST( "<Comment>" +
+        ST template = new ST( "<Comment>" +
                                 "<prefix>scoreboard players set @s <varName> <exprVal> \n");
 
-        st.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
 
-        st.add("prefix", prefix);
-        st.add("varName", varName);
-        st.add("exprVal", exprVal);
+        template.add("prefix", prefix);
+        template.add("varName", varName);
+        template.add("exprVal", exprVal);
 
-        output = st.render();
+        output = template.render();
     }
 
     public AssignST(String varName, Vector3 tempPos, String exprName, String prefix, boolean setComment){
-        ST st = new ST( "<Comment>" +
+        ST template = new ST( "<Comment>" +
                                 "<prefix>execute as @e[tag=<exprName>,limit=1] at @e[tag=<exprName>,limit=1] run clone ~ ~-1 ~ ~ ~-1 ~ <tempX> <tempY> <tempZ>\n" +
                                 "<prefix>execute as @e[tag=<varName>,limit=1] at @e[tag=<varName>,limit=1] run clone <tempX> <tempY> <tempZ> <tempX> <tempY> <tempZ> ~ ~-1 ~\n");
 
-        st.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
-        st.add("prefix", prefix);
+        template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+        template.add("prefix", prefix);
 
-        st.add("varName", varName);
-        st.add("exprName", exprName);
+        template.add("varName", varName);
+        template.add("exprName", exprName);
 
-        st.add("tempX", tempPos.getX());
-        st.add("tempY", tempPos.getY());
-        st.add("tempZ", tempPos.getZ());
+        template.add("tempX", tempPos.getX());
+        template.add("tempY", tempPos.getY());
+        template.add("tempZ", tempPos.getZ());
 
-        output = st.render();
+        output = template.render();
     }
 
     public AssignST(String varName, Vector2 vec2, String prefix, boolean setComment){
-        ST st = new ST("<Comment><AssignX><AssignY>");
+        ST template = new ST("<Comment><AssignX><AssignY>");
 
         AssignST AssignX = new AssignST(varName + "_x", vec2.getX(), prefix, false);
         AssignST AssignY = new AssignST(varName + "_y", vec2.getY(), prefix, false);
 
-        st.add("Comment", setComment ? "#Vector2 assign\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#Vector2 assign\n" : ""); //substring to remove "class "
 
-        st.add("AssignX", AssignX.getOutput());
-        st.add("AssignY", AssignY.getOutput());
+        template.add("AssignX", AssignX.getOutput());
+        template.add("AssignY", AssignY.getOutput());
 
-        output = st.render();
+        output = template.render();
     }
 
     public AssignST(String varName, Vector3 vec3, String prefix, boolean setComment){
-        ST st = new ST("<Comment><AssignX><AssignY><AssignZ>");
+        ST template = new ST("<Comment><AssignX><AssignY><AssignZ>");
 
         AssignST AssignX = new AssignST(varName + "_x", vec3.getX(), prefix, false);
         AssignST AssignY = new AssignST(varName + "_y", vec3.getY(), prefix, false);
         AssignST AssignZ = new AssignST(varName + "_z", vec3.getZ(), prefix, false);
 
-        st.add("Comment", setComment ? "#Vector3 assign\n" : "");
+        template.add("Comment", setComment ? "#Vector3 assign\n" : "");
 
-        st.add("AssignX", AssignX.getOutput());
-        st.add("AssignY", AssignY.getOutput());
-        st.add("AssignZ", AssignZ.getOutput());
-        output = st.render();
+        template.add("AssignX", AssignX.getOutput());
+        template.add("AssignY", AssignY.getOutput());
+        template.add("AssignZ", AssignZ.getOutput());
+        output = template.render();
     }
 
     @Override
