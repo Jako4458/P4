@@ -154,10 +154,11 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     public ArrayList<Template> visitFuncBody(MinespeakParser.FuncBodyContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
         boolean hasRetval = ctx.retVal() != null;
+        boolean hasStmnts = ctx.stmnts() != null;
 
         enterScope(ctx.scope);
 
-        if (ctx.stmnts() != null)
+        if (hasStmnts)
             ret.addAll(visit(ctx.stmnts()));
 
         if (hasRetval)
