@@ -120,4 +120,7 @@ public class LogFactory {
         return new ConstantLoopExpressionWarning(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
     }
 
+    public Log createMCFuncParamsWarning(String text, ParserRuleContext ctx) {
+        return new MCFuncParamsWarning(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
+    }
 }
