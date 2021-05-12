@@ -39,7 +39,7 @@ public class EqualityExprST implements Template {
         template.add("pos2Y", pos2.getY());
         template.add("pos2Z", pos2.getZ());
 
-        template.add("operator", operator == "==" ? "if" :"unless");
+        template.add("operator", operator.equals("==") ? "if" :"unless");
 
         output = template.render();
     }
