@@ -192,7 +192,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     public ArrayList<Template> visitStmnt(MinespeakParser.StmntContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
         if (ctx.MCStmnt() != null)
-            ret.add(templateFactory.createMCStatementST(ctx.MCStmnt().getText(), getPrefix()));
+            ret.add(templateFactory.createMCStatementST(ctx.MCStmnt().getText().substring(1), getPrefix()));
         else
             ret.addAll(visit(ctx.children.get(0)));
         return ret;
