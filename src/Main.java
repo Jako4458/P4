@@ -42,21 +42,34 @@ public class Main {
         if (checkLoggerIsNotOK())
             return;
 
+        System.out.println("Builtin function insertion...");
+        MinespeakWrittenFunctionInsertionListener minespeakWrittenFunctionInsertionListener = new MinespeakWrittenFunctionInsertionListener(tokenStream);
+        ParseTree parseTree = parse(tokenStream);
+        ParseTreeWalker.DEFAULT.walk(minespeakWrittenFunctionInsertionListener, parseTree);
+        if (parseTree == null)
+            return;
+        System.out.println(minespeakWrittenFunctionInsertionListener.rewriter.getText());
+
+        System.out.println("Re-lex...");
+        CommonTokenStream modifiedTokenStream = lexFromString(minespeakWrittenFunctionInsertionListener.rewriter.getText());
+        Logger.shared.setSourceProg(minespeakWrittenFunctionInsertionListener.rewriter.getText().split(System.getProperty("line.separator")));
+
+
         // Parsing
         System.out.println("Parsing...");
-        ParseTree parseTree = parse(tokenStream);
-        if (parseTree == null)
+        ParseTree modifiedParseTree = parse(modifiedTokenStream);
+        if (modifiedParseTree == null)
             return;
 
         // Semantic analysis
         System.out.println("Semantics...");
-        semanticAnalysis(parseTree);
+        semanticAnalysis(modifiedParseTree);
         if (checkLoggerIsNotOK())
             return;
 
         // Code gen
         System.out.println("Code gene...");
-        ArrayList<Template> output = codeGeneration(parseTree);
+        ArrayList<Template> output = codeGeneration(modifiedParseTree);
         if (checkLoggerIsNotOK())
             return;
 
@@ -75,6 +88,12 @@ public class Main {
 
     private static boolean makeFiles(FileManager fManager, ArrayList<Template> output) {
         return fManager.buildCodeGen(output);
+    }
+
+    private static CommonTokenStream lexFromString(String string) {
+        CharStream charStream = CharStreams.fromString(string);
+        MinespeakLexer minespeakLexer = new MinespeakLexer(charStream);
+        return new CommonTokenStream(minespeakLexer);
     }
 
     private static CommonTokenStream lex(String file) {
