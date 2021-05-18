@@ -30,8 +30,8 @@ public class FileManager {
         if (made || folder.exists()) {
             String tempPath = new String(path);
             this.path = path + "/builtin/functions";
-            int functionsAdded = buildBuiltinFunctions();
-            System.out.println("Missed functions: " + functionsAdded);
+//            int functionsAdded = buildBuiltinFunctions();
+//            System.out.println("Missed functions: " + functionsAdded);
             this.path = tempPath;
         }
     }

@@ -51,14 +51,13 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     private List<Template> makeProgramFooters() {
         ArrayList<Template> ret = new ArrayList<>();
 
-        if (VariableMode.equals(VariableMode.delete))
+        if (VariableMode.equals(VariableMode.delete)){
             ret.add(templateFactory.deleteVariables());
-
-        if (!debug){
             ret.add(new BlankST("execute as @e[tag=variable] at @e[tag=variable] run setblock ~ ~-1 ~ air", "remove all block variables" ,setTemplateComments));
-            ret.add(new BlankST("kill @e[tag=MineSpeak]", "kill all stands" ,setTemplateComments));
             ret.add(templateFactory.resetExpressions());
         }
+        if (!debug)
+            ret.add(new BlankST("kill @e[tag=MineSpeak]", "kill all non-variable armor stands" ,setTemplateComments));
 
         return ret;
     }
@@ -84,7 +83,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
             }
         }
 
-        printOutput(templates);
         return templates;
     }
 
@@ -658,12 +656,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
     private String generateValidFileName() {
         return UUID.randomUUID().toString().toLowerCase();
-    }
-
-    private void printOutput(ArrayList<Template> templateList) {
-        for (Template t:templateList) {
-            System.out.println(t.getOutput());
-        }
     }
 
     private ArrayList<Template> calcLogicalExpr(MinespeakParser.ExprContext e1, MinespeakParser.ExprContext e2, String operator) {

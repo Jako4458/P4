@@ -7,10 +7,14 @@ public class MCFuncCallST implements Template{
     public MCFuncCallST(String funcName, boolean setComment){
         ST template = new ST("<Comment>execute run <funcName>");
 
-        template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#"+ this.getTemplateName() +"\n" : "");
         template.add("funcName", funcName);
 
         output = template.render();
+    }
+
+    private String getTemplateName(){
+        return this.getClass().toString().substring(6); //substring to remove "class "
     }
 
     @Override

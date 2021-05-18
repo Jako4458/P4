@@ -34,7 +34,7 @@ public class DclST implements Template {
             template = new ST(    "<Comment><prefix>scoreboard objectives add <varName> dummy \n" +
                                     "<prefix>scoreboard players set @s <varName> 0\n");
 
-            template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+            template.add("Comment", setComment ? "#"+ this.getTemplateName() +"\n" : "");
 
             template.add("prefix", prefix);
             template.add("varName", varName);
@@ -51,7 +51,7 @@ public class DclST implements Template {
                 "<prefix>summon armor_stand <posX> <posStandY> <posZ> {Tags:[\"<varName>\", \"variable\"],NoGravity:1}"
         );
 
-        template.add("Comment", setComment ? "#block "+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#block "+ this.getTemplateName() +"\n" : "");
         template.add("prefix", prefix);
 
         template.add("varName", varName);
@@ -60,6 +60,10 @@ public class DclST implements Template {
         template.add("posZ", pos.getZ());
 
         output = template.render();
+    }
+
+    private String getTemplateName(){
+        return this.getClass().toString().substring(6); //substring to remove "class "
     }
 
     @Override
