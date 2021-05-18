@@ -124,8 +124,4 @@ public class BuiltinFuncs {
         return new CFile("tp", content);
     }
 
-
-
-
-
 }

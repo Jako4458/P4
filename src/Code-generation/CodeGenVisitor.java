@@ -253,7 +253,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         if (!debug){
             for (TerminalNode ID: ctx.instan().ID()) {
                 SymEntry lookup = currentScope.lookup(ID.getText());
-                ret.add(new BlankST(getPrefix() + " scoreboard objectives remove " + lookup.getVarName(useReadableVariableNames) + "\n", "", false));
+                ret.add(new BlankST(getPrefix() + "scoreboard objectives remove " + lookup.getVarName(useReadableVariableNames) + "\n", "", false));
             }
         }
 
