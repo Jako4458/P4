@@ -11,13 +11,17 @@ public class RelationExprST implements Template {
                         "<prefix>execute if score @s <aID> <operator> @s <bID> run scoreboard players set @s <exprID> 1\n"
         );
 
-        template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#"+ this.getTemplateName() +"\n" : "");
         template.add("prefix", prefix);
         template.add("aID", a);
         template.add("bID", b);
         template.add("exprID", exprID);
         template.add("operator", operator);
         this.output = template.render();
+    }
+
+    private String getTemplateName(){
+        return this.getClass().toString().substring(6); //substring to remove "class "
     }
 
     @Override

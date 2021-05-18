@@ -2,7 +2,6 @@ package logging.logs;
 
 import logging.ANSI_COLORS;
 import logging.LogType;
-import logging.logs.Log;
 
 /**
  * A generic warning log class.

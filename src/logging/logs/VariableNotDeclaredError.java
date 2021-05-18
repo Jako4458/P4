@@ -1,7 +1,5 @@
 package logging.logs;
 
-import logging.logs.ErrorLog;
-
 public class VariableNotDeclaredError extends ErrorLog {
 
     public VariableNotDeclaredError(String text, int line, int characterIndex) {

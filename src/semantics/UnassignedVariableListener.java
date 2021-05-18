@@ -22,7 +22,6 @@ public class UnassignedVariableListener extends MinespeakBaseListener {
     public void exitProg(MinespeakParser.ProgContext ctx) {
 
         for (Map.Entry<SymEntry, Boolean> entry : declaredVariables.entrySet()) {
-            int i = 0;
             boolean assigned = entry.getValue();
             SymEntry symEntry = entry.getKey();
             if(assigned)

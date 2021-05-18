@@ -22,7 +22,7 @@ public class LogicalExprST implements Template {
                         "<prefix>scoreboard objectives remove <tempID>\n"
         );
 
-        template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+" And\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#"+ this.getTemplateName() +" And\n" : "");
         template.add("prefix", prefix);
         template.add("exprID", exprID);
         template.add("tempID", tempID);
@@ -43,13 +43,17 @@ public class LogicalExprST implements Template {
                         "<prefix>scoreboard objectives remove <tempID>\n"
         );
 
-        template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+" Or\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#"+ this.getTemplateName() +" Or\n" : "");
         template.add("prefix", prefix);
         template.add("exprID", exprID);
         template.add("tempID", tempID);
         template.add("aID", a);
         template.add("bID", b);
         return template;
+    }
+
+    private String getTemplateName(){
+        return this.getClass().toString().substring(6); //substring to remove "class "
     }
 
     @Override

@@ -2,7 +2,9 @@ import logging.Logger;
 import logging.logs.Log;
 
 import java.util.ArrayList;
-
+/*
+  Does not work. Replaced by InfiniteLoopDetectionVisitor
+* */
 public class InfiniteLoopDetectionListener extends ScopeEnterExitListener {
     ArrayList<ArrayList<SymEntry>> valueNotAssigned = new ArrayList<>();
     LogFactory LogFactory = new LogFactory();

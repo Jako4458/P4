@@ -1,9 +1,7 @@
 import logging.*;
-import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,12 +15,6 @@ public class ScopeListener extends MinespeakBaseListener {
     private final LogFactory logFac = new LogFactory();
     private boolean isInvalidFunc = false;
     private Map<String, FuncEntry> builtinFunctions;
-
-    public ScopeListener() {
-        enterScope(null);
-        this.functions = new HashMap<>();
-        this.builtinFunctions = new HashMap<>();
-    }
 
     public ScopeListener(Map<String, FuncEntry> funcSignatures) {
         enterScope(null);
@@ -505,12 +497,6 @@ public class ScopeListener extends MinespeakBaseListener {
 
     @Override
     public void exitFuncCall(MinespeakParser.FuncCallContext ctx) {
-        if (ctx.parent instanceof MinespeakParser.StmntContext) {
-            if(ctx.type != Type._void){
-                Logger.shared.add(logFac.createResultIgnoredWarning(ctx.getText(), ctx));
-            }
-        }
-
         FuncEntry function = functions.get(ctx.ID().getText());
         if (function == null)
             function = this.builtinFunctions.get(ctx.ID().getText());
@@ -518,6 +504,12 @@ public class ScopeListener extends MinespeakBaseListener {
         if (function == null) {
             Logger.shared.add(logFac.createVariableNotDeclaredLog(ctx.ID().getText(), ctx));
             return;
+        }
+
+        if (ctx.parent instanceof MinespeakParser.StmntContext) {
+            if(function.getType() != Type._void){
+                Logger.shared.add(logFac.createResultIgnoredWarning(ctx.getText(), ctx));
+            }
         }
 
         List<SymEntry> formalParams = function.getParams();

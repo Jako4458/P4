@@ -7,8 +7,6 @@ public class STemplateFactory {
     private Integer exprCounter = 0;
     private boolean setComments = Main.setup.commenting;
     private ArrayList<String> variableNames = new ArrayList<>();
-    public String factor1UUID = generateValidUUID();
-    public String factor2UUID = generateValidUUID();
     public Vector3 blockFactor1Pos = new Vector3(0, 255, 0); // is dependant on dcl before block var uses
     public Vector3 blockFactor2Pos = new Vector3(1, 255, 0); // is dependant on dcl before block var uses
     public String BlockFactor1 = "BlockFactor1";
@@ -43,23 +41,15 @@ public class STemplateFactory {
              tempString.append("scoreboard objectives remove ").append(name).append("\n");
         }
         exprCounter = 0;
-        tempString.append("scoreboard objectives remove ").append(factor1UUID).append("\n");
-        tempString.append("scoreboard objectives remove ").append(factor2UUID).append("\n");
-        tempString.append("scoreboard objectives remove ").append(factor1UUID).append("_x\n");
-        tempString.append("scoreboard objectives remove ").append(factor1UUID).append("_y\n");
-        tempString.append("scoreboard objectives remove ").append(factor1UUID).append("_z\n");
-        tempString.append("scoreboard objectives remove ").append(factor2UUID).append("_x\n");
-        tempString.append("scoreboard objectives remove ").append(factor2UUID).append("_y\n");
-        tempString.append("scoreboard objectives remove ").append(factor2UUID).append("_z\n");
 
-         return new BlankST(tempString.toString(), "remove expressions",setComments);
+        return new BlankST(tempString.toString(), "remove expressions",setComments);
     }
 
     public Template deleteVariables(){
         StringBuilder tempString = new StringBuilder();
 
         for (String name: variableNames) {
-            if (!name.startsWith("expr_") && !(name.startsWith(factor1UUID) || name.startsWith(factor2UUID)))
+            if (!name.startsWith("expr_"))
                 tempString.append("scoreboard objectives remove ").append(name).append("\n");
         }
         return new BlankST(tempString.toString(), "delete variables",setComments);
@@ -85,13 +75,14 @@ public class STemplateFactory {
 
     // ArithmeticExprST
     public ArithmeticExprST createArithmeticExprST (String expr1Name, String expr2Name, String operator, Type type1, Type type2, String prefix) {
-        boolean isVector = type1 == Type._vector2 || type1 == Type._vector3 || type2 == Type._vector2 || type2 == Type._vector3;
+        boolean isVector = eitherIsVector(type1, type2);
         return new ArithmeticExprST(expr1Name, expr2Name, operator, getNewExprCounterString(isVector), type1, type2, prefix, setComments);
     }
 
+
     // ArithmeticExprST
     public ArithmeticExprST createArithmeticExprST (String expr1Name, String operator, Type type1, Type type2, String prefix) {
-        boolean isVector = type1 == Type._vector2 || type1 == Type._vector3 || type2 == Type._vector2 || type2 == Type._vector3;
+        boolean isVector = eitherIsVector(type1, type2);
         return new ArithmeticExprST(expr1Name, getExprCounterString(), operator, getNewExprCounterString(isVector), type1, type2, prefix, setComments);
     }
 
@@ -214,5 +205,7 @@ public class STemplateFactory {
 
     public static String generateValidUUID() {return UUID.randomUUID().toString().replace("-", "").substring(0,14);}
     public static String generateValidUUID(int stringLength) {return UUID.randomUUID().toString().replace("-", "").substring(0,stringLength);}
-
+    private boolean eitherIsVector(Type type1, Type type2) {
+        return type1 == Type._vector2 || type1 == Type._vector3 || type2 == Type._vector2 || type2 == Type._vector3;
+    }
 }

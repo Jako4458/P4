@@ -1,4 +1,4 @@
-import exceptions.CompileTimeException;
+import exceptions.NotImplementedException;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
@@ -34,15 +34,9 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         if (true) //TODO CHANGE TO (debug)
             ret.add(templateFactory.createMCStatementST("scoreboard players reset @s", "")); // for debug
 
-        int defaultNum = Value.value(msValueFactory.getDefaultValue(Type._num).getCasted(NumValue.class));
-        Vector3Value defaultVector3 = msValueFactory.getDefaultValue(Type._vector3).getCasted(Vector3Value.class);
-        BlockValue defaultBlock = msValueFactory.getDefaultValue(Type._block).getCasted(BlockValue.class);
+        BlockValue defaultBlock = msValueFactory.getDefaultBlock();
 
         ret.add(templateFactory.createMCStatementST(String.format("tag @s add %s", STemplateFactory.getPlayerTag()), ""));
-        ret.add(templateFactory.createInstanST(templateFactory.factor1UUID, defaultNum, ""));
-        ret.add(templateFactory.createInstanST(templateFactory.factor2UUID, defaultNum, ""));
-        ret.add(templateFactory.createInstanST(templateFactory.factor1UUID, defaultVector3, ""));
-        ret.add(templateFactory.createInstanST(templateFactory.factor2UUID, defaultVector3, ""));
         ret.add(templateFactory.createInstanST(templateFactory.BlockFactor1, defaultBlock, templateFactory.blockFactor1Pos, ""));
         ret.add(templateFactory.createInstanST(templateFactory.BlockFactor2, defaultBlock, templateFactory.blockFactor2Pos, ""));
         return ret;
@@ -51,14 +45,13 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     private List<Template> makeProgramFooters() {
         ArrayList<Template> ret = new ArrayList<>();
 
-        if (VariableMode.equals(VariableMode.delete))
+        if (VariableMode.equals(VariableMode.delete)){
             ret.add(templateFactory.deleteVariables());
-
-        if (!debug){
             ret.add(new BlankST("execute as @e[tag=variable] at @e[tag=variable] run setblock ~ ~-1 ~ air", "remove all block variables" ,setTemplateComments));
-            ret.add(new BlankST("kill @e[tag=MineSpeak]", "kill all stands" ,setTemplateComments));
             ret.add(templateFactory.resetExpressions());
         }
+        if (!debug)
+            ret.add(new BlankST("kill @e[tag=MineSpeak]", "kill all non-variable armor stands" ,setTemplateComments));
 
         return ret;
     }
@@ -77,14 +70,9 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         }
 
         for (FuncEntry func:this.funcSignature.values()) {
-            try {
-                templates.addAll(visit(func.getCtx().parent.parent));
-            } catch (CompileTimeException e) {
-                return null;
-            }
+            templates.addAll(visit(func.getCtx().parent.parent));
         }
 
-        printOutput(templates);
         return templates;
     }
 
@@ -154,10 +142,11 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     public ArrayList<Template> visitFuncBody(MinespeakParser.FuncBodyContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
         boolean hasRetval = ctx.retVal() != null;
+        boolean hasStmnts = ctx.stmnts() != null;
 
         enterScope(ctx.scope);
 
-        if (ctx.stmnts() != null)
+        if (hasStmnts)
             ret.addAll(visit(ctx.stmnts()));
 
         if (hasRetval)
@@ -191,7 +180,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     public ArrayList<Template> visitStmnt(MinespeakParser.StmntContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
         if (ctx.MCStmnt() != null)
-            ret.add(templateFactory.createMCStatementST(ctx.MCStmnt().getText(), getPrefix()));
+            ret.add(templateFactory.createMCStatementST(ctx.MCStmnt().getText().substring(1), getPrefix()));
         else
             ret.addAll(visit(ctx.children.get(0)));
         return ret;
@@ -254,7 +243,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         if (!debug){
             for (TerminalNode ID: ctx.instan().ID()) {
                 SymEntry lookup = currentScope.lookup(ID.getText());
-                ret.add(new BlankST(getPrefix() + " scoreboard objectives remove " + lookup.getVarName(useReadableVariableNames) + "\n", "", false));
+                ret.add(new BlankST(getPrefix() + "scoreboard objectives remove " + lookup.getVarName(useReadableVariableNames) + "\n", "", false));
             }
         }
 
@@ -308,23 +297,24 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
             switch (ctx.primaryType(i).type.getTypeAsInt()) {
                 case Type.NUM:
-                    int valueNum = Value.value(msValueFactory.getDefaultValue(Type._num).getCasted(NumValue.class));
+                    int valueNum = msValueFactory.getDefaultNum();
                     ret.add(templateFactory.createInstanST(ID, valueNum, getPrefix())); break;
                 case Type.BLOCK:
-                    BlockValue valueBlock = msValueFactory.getDefaultValue(Type._block).getCasted(BlockValue.class);
+                    BlockValue valueBlock = msValueFactory.getDefaultBlock();
                     ret.add(templateFactory.createInstanST(ID, valueBlock, templateFactory.getNewBlockPos(), ""));
                     break;
                 case Type.BOOL:
-                    boolean boolValue = Value.value(msValueFactory.getDefaultValue(Type._bool).getCasted(BoolValue.class));
+                    boolean boolValue = msValueFactory.getDefaultBool();
                     ret.add(templateFactory.createInstanST(ID, boolValue ? 1 : 0, getPrefix()));
                     break;
                 case Type.VECTOR2:
                 case Type.VECTOR3:
-                    Vector3Value valueVec3 = msValueFactory.getDefaultValue(Type._vector3).getCasted(Vector3Value.class);
+                    Vector3Value valueVec3 = msValueFactory.getDefaultVector3();
                     ret.add(templateFactory.createInstanST(ID, valueVec3, getPrefix()));
                     break;
                 case Type.STRING:
-                    break;  //Don't
+                    throw new NotImplementedException();
+                    //break;
                 default:
                     Error("visitDcl");
             }
@@ -568,7 +558,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         ArrayList<Template> ret = new ArrayList<>();
         switch (ctx.type.getTypeAsInt()) {
             case Type.BLOCK:
-                BlockValue block = (BlockValue)msValueFactory.createValue(ctx.BlockLiteral().getText(), Type._block);
+                BlockValue block = msValueFactory.createBlockValue(ctx.BlockLiteral().getText());
                 ret.add(templateFactory.createInstanST(templateFactory.getNewExprCounterString(false), block, templateFactory.getNewBlockPos(), getPrefix()));
                 break;
             case Type.NUM:
@@ -616,6 +606,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         ret.add(templateFactory.createInstanST(retExpr + "_x", factorNameTable.get(ctx.expr(0)), getPrefix()));
         ret.add(templateFactory.createInstanST(retExpr + "_y", factorNameTable.get(ctx.expr(1)), getPrefix()));
+        ret.add(templateFactory.createInstanST(retExpr + "_z", msValueFactory.getDefaultNum(), getPrefix()));
 
         return ret;
     }
@@ -657,12 +648,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
     private String generateValidFileName() {
         return UUID.randomUUID().toString().toLowerCase();
-    }
-
-    private void printOutput(ArrayList<Template> templateList) {
-        for (Template t:templateList) {
-            System.out.println(t.getOutput());
-        }
     }
 
     private ArrayList<Template> calcLogicalExpr(MinespeakParser.ExprContext e1, MinespeakParser.ExprContext e2, String operator) {

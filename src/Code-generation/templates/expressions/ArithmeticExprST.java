@@ -35,7 +35,7 @@ public class ArithmeticExprST implements Template {
     private ST createArithmeticVector3Template(String a, String b, String operator, String exprID, String prefix, boolean setComment) {
         ST template = new ST("<Comment><X><Y><Z>");
 
-        template.add("Comment", setComment ? "#Vector3 "+this.getClass().toString().substring(6)+"+ or -\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#Vector3 "+ this.getTemplateName() +"+ or -\n" : "");
         template.add("X", createArithmeticTemplate(a + "_x", b + "_x", operator, exprID + "_x", prefix, false).render());
         template.add("Y", createArithmeticTemplate(a + "_y", b + "_y", operator, exprID + "_y", prefix, false).render());
         template.add("Z", createArithmeticTemplate(a + "_z", b + "_z", operator, exprID + "_z", prefix, false).render());
@@ -44,39 +44,24 @@ public class ArithmeticExprST implements Template {
 
     // Assumes both operands are vector2 and that the operator is either + or -
     private ST createArithmeticVector2Template(String a, String b, String operator, String exprID, String prefix, boolean setComment) {
-        ST template = new ST("<Comment><X><Y>");
-
-        template.add("Comment", setComment ? "#Vector2 "+this.getClass().toString().substring(6)+" + or -\n" : ""); //substring to remove "class "
-        template.add("X", createArithmeticTemplate(a + "_x", b + "_x", operator, exprID + "_x", prefix, false).render());
-        template.add("Y", createArithmeticTemplate(a + "_y", b + "_y", operator, exprID + "_y", prefix, false).render());
-        return template;
+        return createArithmeticVector3Template(a, b, operator, exprID, prefix, setComment);
     }
 
     // Assumes first operand is number and second operand is vector2 and operator is *
     private ST createArithmeticScaleVector2Template(String a, String b, String operator, String exprID, String prefix, boolean setComment) {
-        ST template = new ST("<Comment><X><Y>");
-
-        template.add("Comment", setComment ? "#Vector2 scale "+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
-        template.add("X", createArithmeticTemplate(a, b + "_x", operator, exprID + "_x", prefix, false).render());
-        template.add("Y", createArithmeticTemplate(a, b + "_y", operator, exprID + "_y", prefix, false).render());
-        return template;
+        return createArithmeticScaleVector3Template(a, b, operator, exprID, prefix, setComment);
     }
 
     // Assumes first operand is vector2 and second operand is number and operator is *
     private ST createArithmeticVector2ScaleTemplate(String a, String b, String operator, String exprID, String prefix, boolean setComment) {
-        ST template = new ST("<Comment><X><Y>");
-
-        template.add("Comment", setComment ? "#Vector2 scale "+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
-        template.add("X", createArithmeticTemplate(a + "_x", b, operator, exprID + "_x", prefix, false).render());
-        template.add("Y", createArithmeticTemplate(a + "_y", b, operator, exprID + "_y", prefix, false).render());
-        return template;
+        return createArithmeticVector3ScaleTemplate(a, b, operator, exprID, prefix, setComment);
     }
 
     // Assumes first operand is vector3 and second operand is number and operator is *
     private ST createArithmeticVector3ScaleTemplate(String a, String b, String operator, String exprID, String prefix, boolean setComment) {
         ST template = new ST("<Comment><X><Y><Z>");
 
-        template.add("Comment", setComment ? "#Vector3 scale "+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#Vector3 scale "+ this.getTemplateName() +"\n" : "");
         template.add("X", createArithmeticTemplate(a + "_x", b, operator, exprID + "_x", prefix, false).render());
         template.add("Y", createArithmeticTemplate(a + "_y", b, operator, exprID + "_y", prefix, false).render());
         template.add("Z", createArithmeticTemplate(a + "_z", b, operator, exprID + "_z", prefix, false).render());
@@ -87,7 +72,7 @@ public class ArithmeticExprST implements Template {
     private ST createArithmeticScaleVector3Template(String a, String b, String operator, String exprID, String prefix, boolean setComment) {
         ST template = new ST("<Comment><X><Y><Z>");
 
-        template.add("Comment", setComment ? "#Vector3 scale "+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#Vector3 scale "+ this.getTemplateName() +"\n" : "");
         template.add("X", createArithmeticTemplate(a, b + "_x", operator, exprID + "_x", prefix, false).render());
         template.add("Y", createArithmeticTemplate(a, b + "_y", operator, exprID + "_y", prefix, false).render());
         template.add("Z", createArithmeticTemplate(a, b + "_z", operator, exprID + "_z", prefix, false).render());
@@ -100,7 +85,7 @@ public class ArithmeticExprST implements Template {
                         "<prefix>scoreboard players operation @s <exprID> = @s <aID>\n" +
                         "<prefix>scoreboard players operation @s <exprID> <op>= @s <bID>\n"
         );
-        template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+" " + operator + "\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#"+ this.getTemplateName() +" " + operator + "\n" : "");
         template.add("prefix", prefix);
         template.add("aID", a);
         template.add("bID", b);
@@ -160,6 +145,10 @@ public class ArithmeticExprST implements Template {
         template.add("funcCall", funcCall );
 
         return new ArithmeticExprST(template);
+    }
+
+    private String getTemplateName(){
+        return this.getClass().toString().substring(6); //substring to remove "class "
     }
 
     @Override
