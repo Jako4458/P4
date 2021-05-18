@@ -23,7 +23,7 @@ public class EqualityExprST implements Template {
                         "run scoreboard players set @s <exprID> 1\n"
         );
 
-        template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#"+ this.getTemplateName() +"\n" : "");
 
         template.add("prefix", prefix);
 
@@ -39,14 +39,10 @@ public class EqualityExprST implements Template {
         template.add("pos2Y", pos2.getY());
         template.add("pos2Z", pos2.getZ());
 
-        template.add("operator", operator == "==" ? "if" :"unless");
+        template.add("operator", operator.equals("==") ? "if" :"unless");
 
         output = template.render();
     }
-
-//    public EqualityExprST(String a, String b, String operator, String exprID, Type t1, Type t2, int size, String prefix) {
-//        this.output = createArrayEqualityST(a, b, operator, exprID, size, prefix).render();
-//    }
 
     private ST createNumEqualityST(String a, String b, String operator, String exprID, String prefix, boolean setComment) {
         ST template = new ST("<Comment>" +
@@ -55,7 +51,7 @@ public class EqualityExprST implements Template {
                         "<prefix>execute <condition> score @s <aID> = @s <bID> run scoreboard players set @s <exprID> 1\n"
         );
 
-        template.add("Comment", setComment ? "#Num "+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#Num "+ this.getTemplateName() +"\n" : "");
         template.add("prefix", prefix);
         template.add("aID", a);
         template.add("bID", b);
@@ -80,7 +76,7 @@ public class EqualityExprST implements Template {
     private ST createVector2EqualityST(String a, String b, String operator, String exprID, String prefix, boolean setComment) {
         ST template = new ST("<Comment><start><X><Y>");
 
-        template.add("Comment", setComment ? "#Vector2 "+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#Vector2 "+ this.getTemplateName() +"\n" : "");
         template.add("start", new InstanST(exprID, 1, prefix, false).getOutput());
         template.add("X", String.format("%sexecute %s score @s %s = @s %s run scoreboard players set @s %s 0",
                 prefix, operator.equals("==") ? "unless" : "if", a + "_x", b + "_x", exprID));
@@ -93,12 +89,16 @@ public class EqualityExprST implements Template {
     private ST createVector3EqualityST(String a, String b, String operator, String exprID, String prefix, boolean setComment) {
         ST template = new ST("<Comment><start><Z>");
 
-        template.add("Comment", setComment ? "#Vector3 "+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#Vector3 "+ this.getTemplateName() +"\n" : "");
         template.add("start", createVector2EqualityST(a, b, operator, exprID, prefix, false));
         template.add("Z", String.format("%sexecute %s score @s %s = @s %s run scoreboard players set @s %s 0",
                 prefix, operator.equals("==") ? "unless" : "if", a + "_z", b + "_z", exprID));
 
         return template;
+    }
+
+    private String getTemplateName(){
+        return this.getClass().toString().substring(6); //substring to remove "class "
     }
 
     @Override

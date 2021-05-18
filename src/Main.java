@@ -68,8 +68,10 @@ public class Main {
             return;
 
         // Code gen
-        System.out.println("Code gene...");
+
+        System.out.println("Code generation...");
         ArrayList<Template> output = codeGeneration(modifiedParseTree);
+
         if (checkLoggerIsNotOK())
             return;
 
@@ -77,6 +79,7 @@ public class Main {
         System.out.println("Making files...");
         makeFiles(fManager, output);
 
+        System.out.println("\nCompilation complete!");
     }
 
     private static boolean checkLoggerIsNotOK() {

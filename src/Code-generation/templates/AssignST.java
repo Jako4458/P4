@@ -32,7 +32,7 @@ public class AssignST implements Template {
         template.add("varName", varName);
         template.add("exprName", exprName);
 
-        template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#"+ this.getTemplateName() +"\n" : "");
         template.add("prefix", prefix);
 
         output = template.render();
@@ -42,7 +42,7 @@ public class AssignST implements Template {
         ST template = new ST( "<Comment>" +
                                 "<prefix>scoreboard players set @s <varName> <exprVal> \n");
 
-        template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#"+ this.getTemplateName() +"\n" : "");
 
         template.add("prefix", prefix);
         template.add("varName", varName);
@@ -56,7 +56,7 @@ public class AssignST implements Template {
                                 "<prefix>execute as @e[tag=<exprName>,limit=1] at @e[tag=<exprName>,limit=1] run clone ~ ~-1 ~ ~ ~-1 ~ <tempX> <tempY> <tempZ>\n" +
                                 "<prefix>execute as @e[tag=<varName>,limit=1] at @e[tag=<varName>,limit=1] run clone <tempX> <tempY> <tempZ> <tempX> <tempY> <tempZ> ~ ~-1 ~\n");
 
-        template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#"+ this.getTemplateName() +"\n" : "");
         template.add("prefix", prefix);
 
         template.add("varName", varName);
@@ -96,6 +96,10 @@ public class AssignST implements Template {
         template.add("AssignY", AssignY.getOutput());
         template.add("AssignZ", AssignZ.getOutput());
         output = template.render();
+    }
+
+    private String getTemplateName(){
+        return this.getClass().toString().substring(6); //substring to remove "class "
     }
 
     @Override
