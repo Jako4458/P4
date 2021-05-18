@@ -32,17 +32,9 @@ public class NegationExprST implements Template {
     }
 
     private ST generateNegativeVec2Template(String a, String prefix, String exprID, boolean setComment) {
-        ST template = new ST("<Comment><NegX><NegY>");
-
-        NegationExprST negX = new NegationExprST(a + "_x", "-", prefix, exprID, Type._num, false);
-        NegationExprST negY = new NegationExprST(a + "_y", "-", prefix, exprID, Type._num, false);
-
-        template.add("Comment", setComment ? "#Vector2 "+ this.getTemplateName() +"\n" : "");
-        template.add("NegX", negX.output);
-        template.add("NegY", negY.output);
-
-        return template;
+        return generateNegativeVec3Template(a, prefix, exprID, setComment);
     }
+    
     private ST generateNegativeVec3Template(String a, String prefix, String exprID, boolean setComment) {
         ST template = new ST("<Comment><NegX><NegY>");
 

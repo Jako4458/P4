@@ -1,9 +1,7 @@
 import logging.*;
-import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,12 +15,6 @@ public class ScopeListener extends MinespeakBaseListener {
     private final LogFactory logFac = new LogFactory();
     private boolean isInvalidFunc = false;
     private Map<String, FuncEntry> builtinFunctions;
-
-    public ScopeListener() {
-        enterScope(null);
-        this.functions = new HashMap<>();
-        this.builtinFunctions = new HashMap<>();
-    }
 
     public ScopeListener(Map<String, FuncEntry> funcSignatures) {
         enterScope(null);

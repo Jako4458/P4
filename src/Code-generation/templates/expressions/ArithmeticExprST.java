@@ -44,32 +44,17 @@ public class ArithmeticExprST implements Template {
 
     // Assumes both operands are vector2 and that the operator is either + or -
     private ST createArithmeticVector2Template(String a, String b, String operator, String exprID, String prefix, boolean setComment) {
-        ST template = new ST("<Comment><X><Y>");
-
-        template.add("Comment", setComment ? "#Vector2 "+ this.getTemplateName() +" + or -\n" : "");
-        template.add("X", createArithmeticTemplate(a + "_x", b + "_x", operator, exprID + "_x", prefix, false).render());
-        template.add("Y", createArithmeticTemplate(a + "_y", b + "_y", operator, exprID + "_y", prefix, false).render());
-        return template;
+        return createArithmeticVector3Template(a, b, operator, exprID, prefix, setComment);
     }
 
     // Assumes first operand is number and second operand is vector2 and operator is *
     private ST createArithmeticScaleVector2Template(String a, String b, String operator, String exprID, String prefix, boolean setComment) {
-        ST template = new ST("<Comment><X><Y>");
-
-        template.add("Comment", setComment ? "#Vector2 scale "+ this.getTemplateName() +"\n" : "");
-        template.add("X", createArithmeticTemplate(a, b + "_x", operator, exprID + "_x", prefix, false).render());
-        template.add("Y", createArithmeticTemplate(a, b + "_y", operator, exprID + "_y", prefix, false).render());
-        return template;
+        return createArithmeticScaleVector3Template(a, b, operator, exprID, prefix, setComment);
     }
 
     // Assumes first operand is vector2 and second operand is number and operator is *
     private ST createArithmeticVector2ScaleTemplate(String a, String b, String operator, String exprID, String prefix, boolean setComment) {
-        ST template = new ST("<Comment><X><Y>");
-
-        template.add("Comment", setComment ? "#Vector2 scale "+ this.getTemplateName() +"\n" : "");
-        template.add("X", createArithmeticTemplate(a + "_x", b, operator, exprID + "_x", prefix, false).render());
-        template.add("Y", createArithmeticTemplate(a + "_y", b, operator, exprID + "_y", prefix, false).render());
-        return template;
+        return createArithmeticVector3ScaleTemplate(a, b, operator, exprID, prefix, setComment);
     }
 
     // Assumes first operand is vector3 and second operand is number and operator is *

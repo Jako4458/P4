@@ -11,9 +11,7 @@ public class InstanST implements Template {
     public InstanST(String varName, String exprName, Type type, String prefix, boolean setComment) {
         if (type == Type._vector2 || type == Type._vector3)
             this.output =  createVectorInstant(varName, exprName, type, prefix, setComment).render();
-        else if (type == Type._block)
-            return;
-        else {
+        else if (type != Type._block) {
             ST template = new ST( "<Comment><prefix>scoreboard objectives add <varName> dummy \n" +
                     "<prefix>execute as @s store result score @s <varName> run scoreboard players get @s <exprName> \n");
 
@@ -88,25 +86,20 @@ public class InstanST implements Template {
 
 
     private ST createVectorInstant(String varName, String exprName, Type type, String prefix, boolean setComment) {
-        ST template;
+        ST template = new ST("<Comment><X><Y><Z>");
+        
         if (type == Type._vector2)
-            template = new ST("<Comment><X><Y>");
-        else
-            template = new ST("<Comment><X><Y><Z>");
+            template.add("Comment", setComment ? "#Vector2 Instan\n" : "");
+        if (type == Type._vector3)
+            template.add("Comment", setComment ? "#Vector3 Instan\n" : "");
 
         InstanST X = new InstanST(varName + "_x", exprName + "_x", Type._num, prefix, false);
         InstanST Y = new InstanST(varName + "_y", exprName + "_y", Type._num, prefix, false);
-
+        InstanST Z = new InstanST(varName + "_z", exprName + "_z", Type._num, prefix, false);
         template.add("X", X.getOutput());
         template.add("Y", Y.getOutput());
+        template.add("Z", Z.getOutput());
 
-        if (type == Type._vector2)
-            template.add("Comment", setComment ? "#Vector2 Instan\n" : ""); //substring to remove "class "
-        if (type == Type._vector3){
-            template.add("Comment", setComment ? "#Vector3 Instan\n" : ""); //substring to remove "class "
-            InstanST Z = new InstanST(varName + "_z", exprName + "_z", Type._num, prefix, false);
-            template.add("Z", Z.getOutput());
-        }
         return template;
     }
 
@@ -122,24 +115,10 @@ public class InstanST implements Template {
         output = template.render();
     }
 
-    public InstanST(String varName, Vector2Value vec2, String prefix, boolean setComment) {
-        ST template = new ST("<Comment><InstanX><InstanY>");
-
-        template.add("Comment", setComment ? "#Vector2 instan\n" : ""); //substring to remove "class "
-
-        InstanST InstanX = new InstanST(varName + "_x", vec2.getValue().getX(), prefix, false);
-        InstanST InstanY = new InstanST(varName + "_y", vec2.getValue().getY(), prefix, false);
-
-        template.add("InstanX", InstanX.getOutput());
-        template.add("InstanY", InstanY.getOutput());
-
-        output = template.render();
-    }
-
     public InstanST(String varName, Vector3Value vec3, String prefix, boolean setComment) {
         ST template = new ST("<Comment><InstanX><InstanY><InstanZ>");
 
-        template.add("Comment", setComment ? "#Vector3 instan\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#Vector3 instan\n" : "");
         InstanST InstanX = new InstanST(varName + "_x", vec3.getValue().getX(), prefix, false);
         InstanST InstanY = new InstanST(varName + "_y", vec3.getValue().getY(), prefix, false);
         InstanST InstanZ = new InstanST(varName + "_z", vec3.getValue().getZ(), prefix, false);

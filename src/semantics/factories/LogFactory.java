@@ -1,3 +1,5 @@
+import exceptions.NotImplementedException;
+import jdk.jshell.spi.ExecutionControl;
 import logging.logs.*;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -56,7 +58,8 @@ public class LogFactory {
     }
 
     public Log createVarNotArrayLog(String name, ParserRuleContext ctx) {
-        return null;//return new VariableIsNotArrayError(name, ctx.start.getLine(), ctx.start.getCharPositionInLine());
+        throw new NotImplementedException();
+        //return new VariableIsNotArrayError(name, ctx.start.getLine(), ctx.start.getCharPositionInLine());
     }
 
     public Log createMCFuncWrongReturnType(String text, ParserRuleContext ctx, Type actual, Type expected) {

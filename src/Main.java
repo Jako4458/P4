@@ -48,7 +48,6 @@ public class Main {
         ParseTreeWalker.DEFAULT.walk(minespeakWrittenFunctionInsertionListener, parseTree);
         if (parseTree == null)
             return;
-        System.out.println(minespeakWrittenFunctionInsertionListener.rewriter.getText());
 
         System.out.println("Re-lex...");
         CommonTokenStream modifiedTokenStream = lexFromString(minespeakWrittenFunctionInsertionListener.rewriter.getText());
@@ -169,7 +168,6 @@ public class Main {
 
 class Configuration {
     public File source_file;
-    public String filePath = System.getProperty("user.dir");
 
     public Configuration(String[] args) {
         parse_args(args);

@@ -12,7 +12,6 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
     private boolean nextIsMCFunc = false;
     public Map<String, FuncEntry> functionSignatures = new HashMap<>();
     private List<SymEntry> currentParameters = new ArrayList<>();
-    private SymEntry currentRetval;
     private final LogFactory logFac = new LogFactory();
     private final EntryFactory entryFac = new EntryFactory();
 

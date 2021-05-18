@@ -3,7 +3,7 @@ import org.stringtemplate.v4.ST;
 import java.util.ArrayList;
 
 public class MinespeakWrittenBuiltinFunctions {
-    private ArrayList<ST> functions;
+    private final ArrayList<ST> functions;
 
     public MinespeakWrittenBuiltinFunctions() {
         functions = new ArrayList<>();

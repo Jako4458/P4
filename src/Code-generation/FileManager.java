@@ -1,4 +1,3 @@
-import javax.xml.xpath.XPathException;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -7,13 +6,11 @@ import java.util.List;
 import java.util.Stack;
 
 public class FileManager {
-    private final String originalPath;
     private String path;
     private final ArrayList<MSFile> builtinFunctions = FileManager.initFunctions();
 
     public FileManager(String path) {
         this.path = path;
-        this.originalPath = new String(path);
     }
 
     private void buildBuiltin() {
@@ -22,7 +19,7 @@ public class FileManager {
         boolean made;
         try {
             made = folder.mkdir();
-            made = folder2.mkdir();
+            made = made && folder2.mkdir();
         } catch (SecurityException e) {
             return;
         }
@@ -30,7 +27,7 @@ public class FileManager {
         if (made || folder.exists()) {
             String tempPath = new String(path);
             this.path = path + "/builtin/functions";
-            int functionsAdded = buildBuiltinFunctions();
+            buildBuiltinFunctions();
             this.path = tempPath;
         }
     }
@@ -97,17 +94,15 @@ public class FileManager {
                         continue;
                     }
                     writers.push(new FileWriter(fileName, true));
-                } else if (template instanceof ExitFileST) {
+                } else if (template instanceof ExitFileST && currentWriter != null) {
                     currentFileExists = false;
                     currentWriter.close();
                     writers.pop();
                 } else {
-                    if (!currentFileExists)
+                    if (!currentFileExists && currentWriter != null)
                         currentWriter.write(template.getOutput());
                 }
-            } catch (IOException e) {
-                return false;
-            } catch (NullPointerException e) {
+            } catch (IOException | NullPointerException e) {
                 return false;
             }
         }

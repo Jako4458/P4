@@ -1,10 +1,8 @@
 import java.util.HashMap;
 
-public class
-Scope {
+public class Scope {
     private Scope parent;
     private HashMap<String, SymEntry> variables;
-    private boolean isFunction;
 
     // Used for global scope
     public Scope() {
@@ -14,13 +12,11 @@ Scope {
     // Used for any scope
     public Scope(Scope parent) {
         this.parent = parent;
-        this.isFunction = false;
         this.variables = new HashMap<>();
     }
 
     public Scope(Scope parent, boolean isFunction) {
         this.parent = parent;
-        this.isFunction = isFunction;
         this.variables = new HashMap<>();
     }
 
@@ -29,7 +25,6 @@ Scope {
         this.variables = variables;
     }
 
-    // Not good
     public boolean addVariable(String key, SymEntry var) {
         return variables.putIfAbsent(key, var) == null;
     }

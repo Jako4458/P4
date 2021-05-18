@@ -60,9 +60,6 @@ public class Logger implements ILogger {
         if (logMessage.equals(""))
             throw new NullPointerException("Cannot format empty message");
 
-        if (log.type == null)
-            throw new NullPointerException("Cannot format null type.");
-
         message = String.format("%s%s:%s:%s\u001B[0m %s\n", log.getColour(), log.type.toString(), log.getLineNum(), log.getCharacterIndex(), logMessage);
         message += " ".repeat(indentations) + this.sourceProg[log.getLineNum() - 1] + "\n";
         message += " ".repeat(indentations + log.getCharacterIndex()) + "↑\n";
