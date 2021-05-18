@@ -8,12 +8,16 @@ public class MCStatementST implements Template{
         ST template = new ST("<Comment><prefix><Command>\n");
 
 
-        template.add("Comment", setComment ? "#" + this.getClass().toString().substring(6) + "\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#" + this.getTemplateName() + "\n" : "");
 
         template.add("prefix", prefix);
         template.add("Command", command);
 
         output = template.render();
+    }
+
+    private String getTemplateName(){
+        return this.getClass().toString().substring(6); //substring to remove "class "
     }
 
     @Override

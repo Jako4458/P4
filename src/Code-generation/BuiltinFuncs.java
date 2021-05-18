@@ -2,7 +2,6 @@ import org.stringtemplate.v4.ST;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 public class BuiltinFuncs {
     public static HashMap<String, FuncEntry> paramMap = new HashMap<>();
@@ -123,9 +122,5 @@ public class BuiltinFuncs {
 
         return new CFile("tp", content);
     }
-
-
-
-
 
 }

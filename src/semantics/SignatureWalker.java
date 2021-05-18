@@ -1,5 +1,6 @@
 import exceptions.MCFuncWrongReturnTypeException;
 import logging.Logger;
+import logging.logs.Log;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.ArrayList;
@@ -11,7 +12,6 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
     private boolean nextIsMCFunc = false;
     public Map<String, FuncEntry> functionSignatures = new HashMap<>();
     private List<SymEntry> currentParameters = new ArrayList<>();
-    private SymEntry currentRetval;
     private final LogFactory logFac = new LogFactory();
     private final EntryFactory entryFac = new EntryFactory();
 
@@ -75,10 +75,15 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
         if (ctx.primaryType() != null)
             type = visit(ctx.primaryType());
 
+        if(this.nextIsMCFunc && params.size() > 0) {
+            Logger.shared.add(logFac.createMCFuncParamsWarning(ctx.ID().getText(),ctx));
+        }
+
         if (this.nextIsMCFunc && ctx.primaryType() != null) {
             Logger.shared.add(logFac.createMCFuncWrongReturnType(ctx.ID().getText(), ctx, type, Type._void));
             throw new MCFuncWrongReturnTypeException();
         }
+
 
         if (!functionSignatures.containsKey(ctx.ID().getText())) {
             functionSignatures.put(ctx.ID().getText(), new FuncEntry(

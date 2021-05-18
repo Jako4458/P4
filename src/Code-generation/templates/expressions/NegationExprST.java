@@ -23,7 +23,7 @@ public class NegationExprST implements Template {
                         "<prefix>scoreboard players operation @s <exprID> -= @s <aID>\n"
         );
 
-        template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#"+ this.getTemplateName() +"\n" : "");
         template.add("prefix", prefix);
         template.add("exprID", exprID);
         template.add("aID", a);
@@ -32,21 +32,13 @@ public class NegationExprST implements Template {
     }
 
     private ST generateNegativeVec2Template(String a, String prefix, String exprID, boolean setComment) {
-        ST template = new ST("<Comment><NegX><NegY>");
-
-        NegationExprST negX = new NegationExprST(a + "_x", "-", prefix, exprID, Type._num, false);
-        NegationExprST negY = new NegationExprST(a + "_y", "-", prefix, exprID, Type._num, false);
-
-        template.add("Comment", setComment ? "#Vector2 "+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
-        template.add("NegX", negX.output);
-        template.add("NegY", negY.output);
-
-        return template;
+        return generateNegativeVec3Template(a, prefix, exprID, setComment);
     }
+    
     private ST generateNegativeVec3Template(String a, String prefix, String exprID, boolean setComment) {
         ST template = new ST("<Comment><NegX><NegY>");
 
-        template.add("Comment", setComment ? "#Vector3 "+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#Vector3 "+ this.getTemplateName() +"\n" : "");
         NegationExprST negX = new NegationExprST(a + "_x", "-", prefix, exprID, Type._num, false);
         NegationExprST negY = new NegationExprST(a + "_y", "-", prefix, exprID, Type._num, false);
         NegationExprST negZ = new NegationExprST(a + "_z", "-", prefix, exprID, Type._num, false);
@@ -65,11 +57,15 @@ public class NegationExprST implements Template {
                         "<prefix>execute if score @s <aID> matches 0 run scoreboard players set @s <exprID> 1\n"
         );
 
-        template.add("Comment", setComment ? "#"+this.getClass().toString().substring(6)+"\n" : ""); //substring to remove "class "
+        template.add("Comment", setComment ? "#"+ this.getTemplateName() +"\n" : "");
         template.add("prefix", prefix);
         template.add("exprID", exprID);
         template.add("aID", a);
         return template;
+    }
+
+    private String getTemplateName(){
+        return this.getClass().toString().substring(6); //substring to remove "class "
     }
 
     @Override
