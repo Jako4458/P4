@@ -31,9 +31,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     private List<Template> makeProgramHeaders() {
         ArrayList<Template> ret = new ArrayList<>();
 
-        if (true) //TODO CHANGE TO (debug)
-            ret.add(templateFactory.createMCStatementST("scoreboard players reset @s", "")); // for debug
-
         BlockValue defaultBlock = msValueFactory.getDefaultBlock();
 
         ret.add(templateFactory.createMCStatementST(String.format("tag @s add %s", STemplateFactory.getPlayerTag()), ""));
