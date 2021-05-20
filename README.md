@@ -34,5 +34,5 @@ After doing the above, right click `Minespeak.g4` and select `Generate ANTLR Rec
 
 To give the compiler an input file, inside IDEA, select `Run -> Edit Configurations`. In program arguments (Hold ALT for field hints), write the location of a file. Example: `./examples/Pyramid.ms`.
 
-#### Compiler setup (optinal)
-test test
+## Compiler setup (optional)
+To specify compile arguments, a setup file is used. A template file called `setupTemplate.json` is included in the project. Create a file called `setup.json`. When running from source, place this file at the project root. When running from binaries, place the file in the same directory as the binary. Documentation for the setup file can be found in [`documentation/`](./docs/SETUPDOC.md).
