@@ -36,3 +36,7 @@ To give the compiler an input file, inside IDEA, select `Run -> Edit Configurati
 
 ## Compiler setup (optional)
 To specify compile arguments, a setup file is used. A template file called `setupTemplate.json` is included in the project. Create a file called `setup.json`. When running from source, place this file at the project root. When running from binaries, place the file in the same directory as the binary. Documentation for the setup file can be found in [`documentation/`](./docs/SETUPDOC.md).
+
+If no setup file is used, default values are used instead.
+
+Now, run `main` to compile.
