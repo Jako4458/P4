@@ -89,7 +89,7 @@ public class FileManager {
                     EnterNewFileST currentTemplate = (EnterNewFileST) template;
                     String pathExtension = currentTemplate.isMcfunction ? "/mcfuncs/functions/" : "/bin/functions/";
                     String fileName = this.path + pathExtension + currentTemplate.fileName + ".mcfunction";
-                    if ((new File(fileName)).exists() && Main.setup.fileMode.equals(FileMode.cleanup)) {
+                    if ((new File(fileName)).exists() && Main.setup.fileMode.equals(FileMode.keep)) {
                         currentFileExists = true;
                         continue;
                     }
@@ -178,7 +178,7 @@ class CFile implements MSFile {
     @Override
     public String write(String folderPath) {
         FileWriter fw;
-        if ((new File(folderPath + "/" + this.name + ".mcfunction")).exists() && Main.setup.fileMode.equals(FileMode.cleanup))
+        if ((new File(folderPath + "/" + this.name + ".mcfunction")).exists() && Main.setup.fileMode.equals(FileMode.keep))
             return this.name;
         try {
             fw = new FileWriter(folderPath + "/" + this.name + ".mcfunction", false);
