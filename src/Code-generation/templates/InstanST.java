@@ -66,7 +66,8 @@ public class InstanST implements Template {
     public InstanST(String varName, String exprName, Vector3 newBlockPos, Vector3 blockFactor1Pos, String prefix, boolean setComment, String funcName) {
         ST template = new ST("<Comment><prefix><summon><prefix><assign>");
 
-        ST summonTemplate = new ST("summon armor_stand <x> <y> <z> {Tags:[\"<varName>\",\"<func>\",\"variable\"],NoGravity:1}\n");
+        ST summonTemplate = new ST( "kill @e[tag=<varName>]\n" +
+                                            "summon armor_stand <x> <y> <z> {Tags:[\"<varName>\",\"<func>\",\"variable\"],NoGravity:1}\n");
         template.add("Comment", setComment ? "#"+ this.getTemplateName() +"\n" : "");
 
         summonTemplate.add("x", newBlockPos.getX());

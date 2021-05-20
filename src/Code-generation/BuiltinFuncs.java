@@ -24,7 +24,7 @@ public class BuiltinFuncs {
         ST fileCall = new ST("execute store result entity @s Pos[0] double 1 run scoreboard players get @p[tag=<playerTag>] <X>_temp\n" +
                 "execute store result entity @s Pos[1] double 1 run scoreboard players get @p[tag=<playerTag>] <Y>_temp\n" +
                 "execute store result entity @s Pos[2] double 1 run scoreboard players get @p[tag=<playerTag>] <Z>_temp\n" +
-                "execute at @s as @p[tag=<playerTag>] run forceload add ~-10 ~-10 ~10 ~10\n" +
+                //"execute at @s as @p[tag=<playerTag>] run forceload add ~-10 ~-10 ~10 ~10\n" +
                 "execute as @p[tag=<playerTag>] run scoreboard objectives remove <X>_temp\n" +
                 "execute as @p[tag=<playerTag>] run scoreboard objectives remove <Y>_temp\n" +
                 "execute as @p[tag=<playerTag>] run scoreboard objectives remove <Z>_temp\n");
