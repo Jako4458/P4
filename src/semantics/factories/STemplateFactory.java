@@ -57,7 +57,7 @@ public class STemplateFactory {
         for (String name: exprNames) {
              tempString.append("scoreboard objectives remove ").append(name).append("\n");
         }
-        exprCounter = 0;
+        exprNames = new ArrayList<>();
 
         return new BlankST(tempString.toString(), "remove expressions",setComments);
     }

@@ -8,6 +8,7 @@ public class FuncEntry implements SymEntry {
     private final MinespeakParser.FuncSignatureContext ctx;
     public Scope scope;
     public SymEntry retVal;
+    public Template cleanupTemplate;
 
     public FuncEntry(boolean isMCFunction, String name, Type retType, List<SymEntry> params, MinespeakParser.FuncSignatureContext ctx) {
         this.isMCFunction = isMCFunction;
