@@ -22,23 +22,35 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     private ArrayList<String> prefixs = new ArrayList<>();
     //endregion
 
+    /**
+     * Setup of the CodeGenVisitor
+     * @param funcSignature hashMap with function signatures as <String, FuncEntry>
+     * @param builtinFunctions hashMap with builtin function as <String, FuncEntry>
+     */
     public CodeGenVisitor(Map<String, FuncEntry> funcSignature, Map<String, FuncEntry> builtinFunctions) {
         this.funcSignature = funcSignature;
         this.builtinFunctions = builtinFunctions;
     }
 
     //region program header + footer
+
+    /**
+     * Generates headers for @mc functions
+     * @return Ordered list of templates to be used as header in @mc functions
+     */
     private List<Template> makeProgramHeaders() {
         ArrayList<Template> ret = new ArrayList<>();
 
-        BlockValue defaultBlock = msValueFactory.getDefaultBlock();
-
         ret.add(templateFactory.createMCStatementST(String.format("tag @s add %s", STemplateFactory.getPlayerTag()), ""));
-        ret.add(templateFactory.createInstanST(templateFactory.BlockFactor1, defaultBlock, templateFactory.blockFactor1Pos, ""));
-        ret.add(templateFactory.createInstanST(templateFactory.BlockFactor2, defaultBlock, templateFactory.blockFactor2Pos, ""));
+//        ret.add(templateFactory.createInstanST(templateFactory.BlockFactor1, defaultBlock, templateFactory.blockFactor1Pos, ""));
+//        ret.add(templateFactory.createInstanST(templateFactory.BlockFactor2, defaultBlock, templateFactory.blockFactor2Pos, ""));
         return ret;
     }
 
+    /**
+     * Generates footers for @mc functions
+     * @return Ordered list of templates to be used as footer in @mc functions
+     */
     private List<Template> makeProgramFooters() {
         ArrayList<Template> ret = new ArrayList<>();
 
@@ -54,11 +66,17 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     }
     //endregion
 
+    /**
+     * Walks through a ParseTree of a Minespeak program
+     * @param ctx ParseTree Node of type ProgContext to visit
+     * @return List of templates resulting from compilation of a Minespeak (.ms) file
+     */
     @Override
     public ArrayList<Template> visitProg(MinespeakParser.ProgContext ctx) {
         enterScope(ctx.scope);
         ArrayList<Template> templates = new ArrayList<>();
 
+        // generates names for the non-mc functions
         for (FuncEntry func:this.funcSignature.values()) {
             if (!func.isMCFunction()) {
                 String generatedName = generateValidFileName();
@@ -66,6 +84,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
             }
         }
 
+        // visit all functions
         for (FuncEntry func:this.funcSignature.values()) {
             templates.addAll(visit(func.getCtx().parent.parent));
         }
@@ -73,10 +92,12 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         return templates;
     }
 
+
     @Override
     public ArrayList<Template> visitBlocks(MinespeakParser.BlocksContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
 
+        // visit all blocks
         for (MinespeakParser.BlockContext child : ctx.block()) {
             ret.addAll(visit(child));
         }
@@ -88,6 +109,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     public ArrayList<Template> visitBlock(MinespeakParser.BlockContext ctx) {
         enterScope(ctx.scope);
         ArrayList<Template> ret = new ArrayList<>();
+
+        // visit underlying func or mc-func
         ret.addAll(visit(ctx.func() != null ? ctx.func() : ctx.mcFunc()));
         exitScope();
         return ret;
@@ -105,19 +128,23 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         ArrayList<Template> ret = new ArrayList<>();
         enterScope(ctx.scope);
 
-        // New file here
+        // create new file with correct name
         if (!(ctx.parent instanceof MinespeakParser.McFuncContext)) {
             String funcName = funcSignature.get(ctx.funcSignature().ID().getText()).getName();
             ret.add(templateFactory.createEnterNewFileST(funcName, false));
         } else {
             ret.add(templateFactory.createEnterNewFileST(ctx.funcSignature().ID().getText().toLowerCase(), true));
+            // if function is mc -> insert headers
             ret.addAll(makeProgramHeaders());
         }
 
         ret.addAll(visit(ctx.funcSignature()));
         ret.addAll(visit(ctx.funcBody()));
+
+        // if function is mc -> insert footers
         if (ctx.parent instanceof MinespeakParser.McFuncContext)
             ret.addAll(makeProgramFooters());
+
         ret.add(templateFactory.createExitFileST());
         exitScope();
         return ret;

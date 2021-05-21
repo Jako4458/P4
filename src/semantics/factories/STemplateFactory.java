@@ -4,19 +4,27 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 public class STemplateFactory {
-    private Integer exprCounter = 0;
-    private boolean setComments = Main.setup.commenting;
-    private ArrayList<String> variableNames = new ArrayList<>();
-    public Vector3 blockFactor1Pos = new Vector3(0, 255, 0); // is dependant on dcl before block var uses
-    public Vector3 blockFactor2Pos = new Vector3(1, 255, 0); // is dependant on dcl before block var uses
-    public String BlockFactor1 = "BlockFactor1";
-    public String BlockFactor2 = "BlockFactor2";
-    private Vector3 blockPos = new Vector3(2, 255, 0);
-    private ArrayList<String> exprNames = new ArrayList<>();
+    private Integer exprCounter = 0;                                    // Counter used for naming expression variables
+    private boolean setComments = Main.setup.commenting;                // Boolean if comments should be used in templates
+    private ArrayList<String> variableNames = new ArrayList<>();        // List of variable names, used for cleanup
+    public Vector3 blockFactor1Pos = new Vector3(0, 255, 0);    // Known position to be used for block operations
+    public Vector3 blockFactor2Pos = new Vector3(1, 255, 0);    // Known position to be used for block operations
+    private Vector3 blockPos = new Vector3(2, 255, 0);          // Stating position of block variables
+    private ArrayList<String> exprNames = new ArrayList<>();            // List of expression names, used for cleanup
+    // Prefix for expressions names
     private String exprString = Main.setup.nameMode.equals(NamingMode.readable) ? "expr_" : generateValidUUID(5);
 
+    /**
+     * Increments expression counter
+     * @return New expression count
+     */
     private Integer newExprCounter() {return ++exprCounter; }
 
+    /**
+     * Increments expression counter and adds the variable to exprString for cleanup
+     * @param isVector Whether or not the expression represents a vector
+     * @return New expression name
+     */
     public String getNewExprCounterString(boolean isVector) {
         String exprName = exprString + newExprCounter();
         if(isVector) {
@@ -28,12 +36,24 @@ public class STemplateFactory {
         return exprName;
     }
 
+    /**
+     * Get last generated expression name as (without any _x, _y, or _z)
+     * @return Last generated expression name
+     */
     public String getExprCounterString() {return exprString + exprCounter; }
 
+    /**
+     * Get the tag for the player
+     * @return The player tag
+     */
     public static String getPlayerTag() {
         return "active";
     }
 
+    /**
+     * Reset all expresions and set the counter to 0
+     * @return Template for reseting expressions in MCFunction
+     */
     public Template resetExpressions(){
         StringBuilder tempString = new StringBuilder();
 
@@ -45,30 +65,46 @@ public class STemplateFactory {
         return new BlankST(tempString.toString(), "remove expressions",setComments);
     }
 
+    /**
+     * Delete and reset all variables
+     * @return Templae for reseting variables in MCFunction
+     */
     public Template deleteVariables(){
         StringBuilder tempString = new StringBuilder();
 
         for (String name: variableNames) {
-            if (!name.startsWith("expr_"))
+            // if variable name is not an expression
+            if (!name.startsWith(exprString))
                 tempString.append("scoreboard objectives remove ").append(name).append("\n");
         }
         return new BlankST(tempString.toString(), "delete variables",setComments);
     }
 
 
-
+    /**
+     * Sets the new empty block pos for the next block variable
+     * @return Vector to be used for new block variable
+     */
     public Vector3 getNewBlockPos() {
         Vector3 retPos = blockPos;
         blockPos = new Vector3(blockPos.getX()+1, blockPos.getY(), blockPos.getZ());
         return retPos;
     }
 
-    // EnterNewFileST
+    /**
+     * Generate template for a new file
+     * @param fileName Name of the new file
+     * @param isMcfunction Whether or not the file should include an MCFunction
+     * @return Template for generating the new file
+     */
     public EnterNewFileST createEnterNewFileST (String fileName, boolean isMcfunction) {
         return new EnterNewFileST(fileName, isMcfunction, setComments);
     }
 
-    // ExitFileST
+    /**
+     * Generate template for exiting previously entered file
+     * @return Template for file exit
+     */
     public ExitFileST createExitFileST () {
         return new ExitFileST(setComments);
     }
@@ -203,7 +239,18 @@ public class STemplateFactory {
         return new AssignST(varName, exprName, type, prefix, setComments);
     }
 
+    /**
+     * Generate a UUID that is valid for use on MCFunctions scoreboard
+     * Will always have length 14 to support vectors (postfix of _x, _y, _z can be appended)
+     * @return Unique UUID of length 14
+     */
     public static String generateValidUUID() {return UUID.randomUUID().toString().replace("-", "").substring(0,14);}
+
+    /**
+     * Generate a UUID that is valid for use on MCFunctions scoreboard if length is 16 or under
+     * @param stringLength The length of the UUID to generate (Must be 16 or under to be valid)
+     * @return Unique UUID
+     */
     public static String generateValidUUID(int stringLength) {return UUID.randomUUID().toString().replace("-", "").substring(0,stringLength);}
     private boolean eitherIsVector(Type type1, Type type2) {
         return type1 == Type._vector2 || type1 == Type._vector3 || type2 == Type._vector2 || type2 == Type._vector3;
