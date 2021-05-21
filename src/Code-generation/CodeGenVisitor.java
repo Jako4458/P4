@@ -42,8 +42,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         ArrayList<Template> ret = new ArrayList<>();
 
         ret.add(templateFactory.createMCStatementST(String.format("tag @s add %s", STemplateFactory.getPlayerTag()), ""));
-//        ret.add(templateFactory.createInstanST(templateFactory.BlockFactor1, defaultBlock, templateFactory.blockFactor1Pos, ""));
-//        ret.add(templateFactory.createInstanST(templateFactory.BlockFactor2, defaultBlock, templateFactory.blockFactor2Pos, ""));
         return ret;
     }
 
@@ -57,6 +55,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         if (variableMode.equals(VariableMode.delete)){
             ret.add(templateFactory.deleteVariables());
             ret.add(new BlankST("execute as @e[tag=variable] at @e[tag=variable] run setblock ~ ~-1 ~ air", "remove all block variables", setTemplateComments));
+            ret.add(new BlankST("setblock 0 255 0 air", "remove blockfactor1", false));
+            ret.add(new BlankST("setblock 1 255 0 air", "remove blockfactor2", false));
             ret.add(new BlankST("kill @e[tag=variable]", "remove variable and expr armor stands", setTemplateComments));
             ret.add(templateFactory.resetExpressions());
         }
@@ -154,7 +154,10 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     @Override
     public ArrayList<Template> visitFuncSignature(MinespeakParser.FuncSignatureContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
+
+        // get function from ID
         FuncEntry func = funcSignature.get(ctx.ID().getText());
+
         for (SymEntry param : func.getParams()) {
             SymEntry sl = currentScope.lookup(param.getName());
             ret.add(templateFactory.createInstanST(sl.getVarName(useReadableVariableNames), param.getVarName(useReadableVariableNames), param.getType(), getPrefix()));
@@ -326,7 +329,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
                     ret.add(templateFactory.createInstanST(ID, valueNum, getPrefix())); break;
                 case Type.BLOCK:
                     BlockValue valueBlock = msValueFactory.getDefaultBlock();
-                    ret.add(templateFactory.createInstanST(ID, valueBlock, templateFactory.getNewBlockPos(), ""));
+                    ret.add(templateFactory.createInstanST(ID, valueBlock, ""));
                     break;
                 case Type.BOOL:
                     boolean boolValue = msValueFactory.getDefaultBool();
@@ -584,7 +587,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         switch (ctx.type.getTypeAsInt()) {
             case Type.BLOCK:
                 BlockValue block = msValueFactory.createBlockValue(ctx.BlockLiteral().getText());
-                ret.add(templateFactory.createInstanST(templateFactory.getNewExprCounterString(false), block, templateFactory.getNewBlockPos(), getPrefix()));
+                ret.add(templateFactory.createInstanST(templateFactory.getNewExprCounterString(false), block, getPrefix()));
                 break;
             case Type.NUM:
                 ret.addAll(visit(ctx.numberLiteral())); break;
@@ -629,9 +632,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         String retExpr = templateFactory.getNewExprCounterString(true);
 
-        ret.add(templateFactory.createInstanST(retExpr + "_x", factorNameTable.get(ctx.expr(0)), getPrefix()));
-        ret.add(templateFactory.createInstanST(retExpr + "_y", factorNameTable.get(ctx.expr(1)), getPrefix()));
-        ret.add(templateFactory.createInstanST(retExpr + "_z", msValueFactory.getDefaultNum(), getPrefix()));
+        ret.add(templateFactory.createInstanST(retExpr + "_x", factorNameTable.get(ctx.expr(0)), Type._num,getPrefix()));
+        ret.add(templateFactory.createInstanST(retExpr + "_y", factorNameTable.get(ctx.expr(1)), Type._num, getPrefix()));
 
         return ret;
     }
@@ -646,9 +648,9 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         String retExpr = templateFactory.getNewExprCounterString(true);
 
-        ret.add(templateFactory.createInstanST(retExpr + "_x", factorNameTable.get(ctx.expr(0)), getPrefix()));
-        ret.add(templateFactory.createInstanST(retExpr + "_y", factorNameTable.get(ctx.expr(1)), getPrefix()));
-        ret.add(templateFactory.createInstanST(retExpr + "_z", factorNameTable.get(ctx.expr(2)), getPrefix()));
+        ret.add(templateFactory.createInstanST(retExpr + "_x", factorNameTable.get(ctx.expr(0)), Type._num, getPrefix()));
+        ret.add(templateFactory.createInstanST(retExpr + "_y", factorNameTable.get(ctx.expr(1)), Type._num, getPrefix()));
+        ret.add(templateFactory.createInstanST(retExpr + "_z", factorNameTable.get(ctx.expr(2)), Type._num, getPrefix()));
 
         return ret;
     }
