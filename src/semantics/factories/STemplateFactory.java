@@ -59,7 +59,7 @@ public class STemplateFactory {
         }
         exprNames = new ArrayList<>();
 
-        return new BlankST(tempString.toString(), "remove expressions",setComments);
+        return new BlankST(tempString.toString(), "remove expressions", false);
     }
 
     /**
@@ -74,7 +74,9 @@ public class STemplateFactory {
             if (!name.startsWith(exprString))
                 tempString.append("scoreboard objectives remove ").append(name).append("\n");
         }
-        return new BlankST(tempString.toString(), "delete variables",setComments);
+        variableNames = new ArrayList<>();
+
+        return new BlankST(tempString.toString(), "delete variables", false);
     }
 
 

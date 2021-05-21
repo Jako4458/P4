@@ -152,7 +152,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         ret.addAll(visit(ctx.funcSignature()));
         ret.addAll(visit(ctx.funcBody()));
-        func.cleanupTemplate = templateFactory.resetExpressions();
+        func.cleanupTemplate = new BlankST(templateFactory.resetExpressions().getOutput() + templateFactory.deleteVariables().getOutput(), "Garbage collection: " + funcName, true);
 
         // if function is mc -> cleanup and insert footers
         if (func.isMCFunction()){
