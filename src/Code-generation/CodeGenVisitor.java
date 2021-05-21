@@ -163,6 +163,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
                     ret.add(funcToCleanup.cleanupTemplate);
             }
             // insert footer
+            ret.add(func.cleanupTemplate);
             ret.addAll(makeProgramFooters());
         }
 
