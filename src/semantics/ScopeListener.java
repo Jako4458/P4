@@ -16,51 +16,109 @@ public class ScopeListener extends MinespeakBaseListener {
     private boolean isInvalidFunc = false;
     private Map<String, FuncEntry> builtinFunctions;
 
+    /**
+     * Constructor for only function signatures.
+     * Will create an empty hash-map for built-in functions.
+     * @param funcSignatures The function signatures found by the signature walker
+     * @see SignatureWalker
+     */
     public ScopeListener(Map<String, FuncEntry> funcSignatures) {
         enterScope(null);
         this.functions = funcSignatures;
         this.builtinFunctions = new HashMap<>();
     }
 
+    /**
+     * Constructor for function signatures and built-in functions
+     * @param funcSignatures The function signatures found by the signature walker
+     * @see SignatureWalker
+     * @param builtinFunctions The built-in functions written in MCFunction determined by the builtinfuncs
+     * @see BuiltinFuncs
+     */
     public ScopeListener(Map<String, FuncEntry> funcSignatures, Map<String, FuncEntry> builtinFunctions) {
         enterScope(null);
         this.functions = funcSignatures;
         this.builtinFunctions = builtinFunctions;
     }
 
+    /**
+     * Entry point for the listener.
+     * Will prepare a global scope used only by functions
+     * @see Scope
+     * @param ctx The prog specific parse tree
+     */
     @Override
     public void enterProg(MinespeakParser.ProgContext ctx) {
         ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
+    /**
+     * Exit point for the listener.
+     * Will simply the global scope made by the enterProg method
+     * @see Scope
+     * @param ctx The prog specific parse tree
+     */
     @Override
     public void exitProg(MinespeakParser.ProgContext ctx) {
         exitScope();
     }
 
+    /**
+     * Entry point for the block structure.
+     * Will create a new scope and then enter newly created scope
+     * @see Scope
+     * @param ctx A block parse tree
+     */
     @Override
     public void enterBlock(MinespeakParser.BlockContext ctx) {
         ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
+    /**
+     * Exit point for the block structure
+     * Will exit the scope made by the entry point for block
+     * @see Scope
+     * @param ctx A block parse tree
+     */
     @Override
     public void exitBlock(MinespeakParser.BlockContext ctx) {
         exitScope();
     }
 
+    /**
+     * Will set the next seen function to be an mcfunc
+     * @see EntryFactory
+     * @param ctx A parse tree of mcfunc type
+     */
     @Override
     public void enterMcFunc(MinespeakParser.McFuncContext ctx) {
         entryFac.setMCFunction();
     }
 
+    /**
+     * Will create a new scope for the function and enter the scope
+     * @see Scope
+     * @param ctx The parse tree for a func structure
+     */
     @Override
     public void enterFunc(MinespeakParser.FuncContext ctx) {
         ctx.scope = scopeFac.createFuncScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
+    /**
+     * Exiting a func first make a check to see if it is a valid func (not a duplicate).
+     * It will then check the return types (mcfuncs cannot have any).
+     * The declared return type must be coherent with the return type of the return statement of the body.
+     * If any error is found it is logged.
+     * Finally, the scope of the function is saved on the function, and the scope is exited.
+     * @see Logger
+     * @see Scope
+     * @see Type
+     * @param ctx The func parse tree
+     */
     @Override
     public void exitFunc(MinespeakParser.FuncContext ctx) {
         String name = ctx.funcSignature().ID().getText();
@@ -84,12 +142,28 @@ public class ScopeListener extends MinespeakBaseListener {
         exitScope();
     }
 
+    /**
+     * Marks the function as invalid if the signature walker has marked it as a duplicate function.
+     * @see SignatureWalker
+     * @param ctx The func signature parse tree
+     */
     @Override
     public void enterFuncSignature(MinespeakParser.FuncSignatureContext ctx) {
         if (ctx.isDuplicate)
             this.isInvalidFunc = true;
     }
 
+    /**
+     * First, checks the return type an denotes it on the parse tree.
+     * Checks if the function is valid.
+     * If it is valid, the names and types of parameters are saved in a new entry.
+     * The name of the function is also saved on the entry.
+     * The entry is finally saved on the current scope.
+     * @see FuncEntry
+     * @see Scope
+     * @see Type
+     * @param ctx A parse tree for func signature
+     */
     @Override
     public void exitFuncSignature(MinespeakParser.FuncSignatureContext ctx) {
         if (ctx.primaryType() != null)
@@ -113,6 +187,15 @@ public class ScopeListener extends MinespeakBaseListener {
         }
     }
 
+    /**
+     * Denotes the parse tree with the type of the parameter.
+     * If the type is void or invalid an error is reported.
+     * If not, the parameter is added to the current scope
+     * @see Logger
+     * @see Scope
+     * @see Type
+     * @param ctx The CST node of a parameter
+     */
     @Override
     public void exitParam(MinespeakParser.ParamContext ctx) {
         String name = ctx.ID().getText();
@@ -124,31 +207,64 @@ public class ScopeListener extends MinespeakBaseListener {
         }
     }
 
+    /**
+     * Entering the function body creates a new scope and enters newly created scope.
+     * @see Scope
+     * @param ctx The CST node of the function body
+     */
     @Override
     public void enterFuncBody(MinespeakParser.FuncBodyContext ctx) {
         ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
-
     }
 
+    /**
+     * Leaving the function body denotes the type of the return statement.
+     * If there is no return statement, the type is <i>void</i>.
+     * Finally, exits the current scope.
+     * @see Scope
+     * @see Type
+     * @param ctx The CST node of the function body
+     */
     @Override
     public void exitFuncBody(MinespeakParser.FuncBodyContext ctx) {
         ctx.type = ctx.retVal() != null ? ctx.retVal().type : Type._void;
         exitScope();
     }
 
+    /**
+     * Leaving the return statement denotes the parse tree with the type of the expression.
+     * It also adds the expression to the scope under the name <i>return</i>.
+     * @see Type
+     * @see Scope
+     * @param ctx The CST node for the return statement in a function
+     */
     @Override
     public void exitRetVal(MinespeakParser.RetValContext ctx) {
         ctx.type = ctx.expr().type;
         this.addToScope(ctx, "return", entryFac.createFromType("return", ctx.type, ctx, MinespeakParser.CONST));
     }
 
+    /**
+     * Entering a do-while loop creates a new scope and enters it.
+     * @see Scope
+     * @param ctx The CST node for the do-while loop
+     */
     @Override
     public void enterDoWhile(MinespeakParser.DoWhileContext ctx) {
         ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
+    /**
+     * When exiting a do-while loop the loop condition must be checked to be a boolean.
+     * If it is not a boolean, an error is logged.
+     * Finally, the current scope of the do-while loop must be exited.
+     * @see Scope
+     * @see Type
+     * @see Logger
+     * @param ctx The CST node for the do-while loop
+     */
     @Override
     public void exitDoWhile(MinespeakParser.DoWhileContext ctx) {
         if(ctx.expr().type != Type._bool){
@@ -158,12 +274,26 @@ public class ScopeListener extends MinespeakBaseListener {
         exitScope();
     }
 
+    /**
+     * Entering a while-loop creates a new scope and enters it.
+     * @see Scope
+     * @param ctx The CST node for the while-loop
+     */
     @Override
     public void enterWhileStmnt(MinespeakParser.WhileStmntContext ctx) {
         ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
+    /**
+     * When exiting a while-loop the loop condition must be checked to be a boolean.
+     * If it is not a boolean, an error is logged.
+     * Finally, the current scope of the while-loop must be exited.
+     * @see Type
+     * @see Scope
+     * @see Logger
+     * @param ctx The CST node for the while-loop
+     */
     @Override
     public void exitWhileStmnt(MinespeakParser.WhileStmntContext ctx) {
         if(ctx.expr().type != Type._bool){
@@ -173,12 +303,27 @@ public class ScopeListener extends MinespeakBaseListener {
         exitScope();
     }
 
+    /**
+     * Entering a foreach loop creates a new scope and enters it.
+     * @see Scope
+     * @param ctx The CST node for the foreach loop
+     */
     @Override
     public void enterForeach(MinespeakParser.ForeachContext ctx) {
         ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
+    /**
+     * Initialising a foreach loop requires adding the ID to the scope.
+     * The type of the expression must also be an <i>arraytype</i> otherwise the foreach loop is type incorrect.
+     * If the type is incorrect, an error is logged.
+     * Finally, the parse tree is denoted with the type of the ID node.
+     * @see ArrayType
+     * @see Logger
+     * @see Scope
+     * @param ctx The CST node for the foreach initialisation
+     */
     @Override
     public void exitForeachInit(MinespeakParser.ForeachInitContext ctx) {
         String name = ctx.ID().getText();
@@ -196,17 +341,40 @@ public class ScopeListener extends MinespeakBaseListener {
         ctx.type = type;
     }
 
+    /**
+     * Exits the current scope which is that of the foreach loop.
+     * @see Scope
+     * @param ctx The CST node for the foreach loop
+     */
     @Override
     public void exitForeach(MinespeakParser.ForeachContext ctx) {
         exitScope();
     }
 
+    /**
+     * Entering a for-loop creates a new scope and enters it.
+     * @see Scope
+     * @param ctx The CST node for the for-loop
+     */
     @Override
     public void enterForStmnt(MinespeakParser.ForStmntContext ctx) {
         ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
+    /**
+     * Exiting the for-loop requires checking all the instantiations.
+     * If an instantiation is not a of type <i>num</i>, a warning is issued,
+     * since it is likely a mistake to instantiate something which cannot be an iterator.
+     * The expr must be a bool. Otherwise an error is logged.
+     * The assignment in the for-loop must be a number type, as it is not an iterator otherwise.
+     * If it is not, an error is logged.
+     * Finally, the current scope which is the scope for the for-loop is exited.
+     * @see Scope
+     * @see Type
+     * @see Logger
+     * @param ctx The CST node for the for-loop
+     */
     @Override
     public void exitForStmnt(MinespeakParser.ForStmntContext ctx) {
         int length = ctx.instan().primaryType().size();
@@ -233,12 +401,27 @@ public class ScopeListener extends MinespeakBaseListener {
         exitScope();
     }
 
+    /**
+     * Entering an if-statement creates a new scope and enters it.
+     * @see Scope
+     * @param ctx The CST node for the if-statement
+     */
     @Override
     public void enterIfStmnt(MinespeakParser.IfStmntContext ctx) {
         ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
+    /**
+     * Exiting the if.statement, all expressions in the if, elif, and else must be type checked.
+     * If they are not of boolean type, they are not valid logical expressions, which an if-statement requires.
+     * An error is logged if this is the case.
+     * Finally, the current scope is exited.
+     * @see Scope
+     * @see Type
+     * @see Logger
+     * @param ctx The CST node for the if-statement
+     */
     @Override
     public void exitIfStmnt(MinespeakParser.IfStmntContext ctx) {
         List<MinespeakParser.ExprContext> ifExprs = ctx.expr();
@@ -250,22 +433,49 @@ public class ScopeListener extends MinespeakBaseListener {
         exitScope();
     }
 
+    /**
+     * Entering any body creates a new scope and enters it.
+     * @see Scope
+     * @param ctx The CST node for the body
+     */
     @Override
     public void enterBody(MinespeakParser.BodyContext ctx) {
         ctx.scope = scopeFac.createScope(this.currentScope);
         enterScope(ctx.scope);
     }
 
+    /**
+     * Exiting any body is simply exiting the current scope which is that of the body.
+     * @see Scope
+     * @param ctx The CST node for the body
+     */
     @Override
     public void exitBody(MinespeakParser.BodyContext ctx) {
         exitScope();
     }
 
+    /**
+     * Visiting declarations adds all the declared variables to the current scope,
+     * using the method <i>addMultipleToScope</i>.
+     * @param ctx The CST node for declarations
+     */
     @Override
     public void exitDcls(MinespeakParser.DclsContext ctx) {
         addMultipleToScope(ctx);
     }
 
+    /**
+     * Exiting instantiations requires type checking that the declared type and the
+     * type of the expression on the right hand side match.
+     * If they do not, and error is logged.
+     * Finally, all the variables declared are added to the current scope using
+     * the method <i>addMultipleToScope</i>.
+     * The values of the expressions are not considered here, but rather during code generation.
+     * @see Type
+     * @see Logger
+     * @see CodeGenVisitor
+     * @param ctx The CST node for instantiations
+     */
     @Override
     public void exitInstan(MinespeakParser.InstanContext ctx) {
         int instanLength = ctx.primaryType().size();
@@ -292,6 +502,18 @@ public class ScopeListener extends MinespeakBaseListener {
         addMultipleToScope(ctx);
     }
 
+    /**
+     * Exiting an array access node requires type checking.
+     * First, the type of the index is found.
+     * If it is not a number, it is an invalid index and an error is logged.
+     * Next, the supposed array given by ID must be checked.
+     * If it is not an array then a type error is logged.
+     * If it is, the parse tree is denoted with the base type of the array.
+     * @see Type
+     * @see ArrayType
+     * @see Logger
+     * @param ctx The CST node for array access
+     */
     @Override
     public void exitArrayAccess(MinespeakParser.ArrayAccessContext ctx) {
         Type tempType = this.lookupTypeInScope(ctx, ctx.ID().getText());
@@ -304,6 +526,17 @@ public class ScopeListener extends MinespeakBaseListener {
             ctx.type = ((ArrayType)tempType).type;
     }
 
+    /**
+     * rArray is a right hand side array expression.
+     * Checks whether all expressions are of same type.
+     * If they are not, an error is logged for each expression not matching
+     * the type of the first expression.
+     * The parse tree is denoted with the type of the array.
+     * @see Type
+     * @see ArrayType
+     * @see Logger
+     * @param ctx The CST node for rArray
+     */
     @Override
     public void exitRArray(MinespeakParser.RArrayContext ctx) {
         if (ctx.expr().isEmpty())
@@ -317,11 +550,25 @@ public class ScopeListener extends MinespeakBaseListener {
         ctx.type = new ArrayType(ctx, baseType);
     }
 
+    /**
+     * Seeing a variable ID the parse tree must simply
+     * be denoted with the type of the variable as found by the scope entry.
+     * @see Scope
+     * @see SimpleEntry
+     * @see Type
+     * @param ctx The CST node for the rValue
+     */
     @Override
     public void enterRvalue(MinespeakParser.RvalueContext ctx) {
         ctx.type = this.lookupTypeInScope(ctx, ctx.ID().getText());
     }
 
+    /**
+     * Exiting a primary type is simply denoting the parse tree with the type specified.
+     * @see Type
+     * @see ArrayType
+     * @param ctx The CST node for primary types
+     */
     @Override
     public void exitPrimaryType(MinespeakParser.PrimaryTypeContext ctx) {
         Type type = ctx.primitiveType().type;
@@ -332,6 +579,15 @@ public class ScopeListener extends MinespeakBaseListener {
         }
     }
 
+    /**
+     * Exiting a primitive type is denoting the parse tree with the type.
+     * Must check all the possible types as given by the parser and type system.
+     * If the type is not recoqnised an error is logged.
+     * @see Type
+     * @see MinespeakParser
+     * @see Logger
+     * @param ctx The CST node for primitive types
+     */
     @Override
     public void exitPrimitiveType(MinespeakParser.PrimitiveTypeContext ctx) {
         if (ctx.BOOL() != null)
@@ -352,6 +608,13 @@ public class ScopeListener extends MinespeakBaseListener {
         }
     }
 
+    /**
+     * Exiting an addition or subtraction expressions requires type checking the operands and the operation.
+     * The type is determined by the type system, and the parse tree is denoted by the resulting type.
+     * If the type checking yields invalid, the type denoted by is the <i>error</i> type.
+     * @see Type
+     * @param ctx The CST node for an addition or subtraction expressions
+     */
     @Override
     public void exitAddSub(MinespeakParser.AddSubContext ctx) {
         int left = ctx.expr(0).type.getTypeAsInt();
@@ -360,9 +623,7 @@ public class ScopeListener extends MinespeakBaseListener {
         if(ctx.ADD() != null){
             ctx.type = Type.inferType(left, MinespeakParser.ADD, right);
         } else if (ctx.SUB() != null) {
-            if (isArrayType(ctx.expr(0).type) &&
-                    isArrayType((ctx.expr(1).type))) {
-
+            if (isArrayType(ctx.expr(0).type) && isArrayType((ctx.expr(1).type))) {
                 ctx.type = Type._error;
                 return;
             }
@@ -371,11 +632,15 @@ public class ScopeListener extends MinespeakBaseListener {
         }
     }
 
+    /**
+     * Exiting the exponent expressions requires type checking of operands and operation.
+     * The resulting type is denoted on the parse tree; it is <i>error</i> if it is type invalid.
+     * @see Type
+     * @param ctx The CST node for an exponent expression
+     */
     @Override
     public void exitPow(MinespeakParser.PowContext ctx) {
-        if (isArrayType(ctx.expr(0).type) &&
-                isArrayType((ctx.expr(1).type))) {
-
+        if (isArrayType(ctx.expr(0).type) && isArrayType((ctx.expr(1).type))) {
             ctx.type = Type._error;
             return;
         }
@@ -386,11 +651,15 @@ public class ScopeListener extends MinespeakBaseListener {
         ctx.type = Type.inferType(left, MinespeakParser.POW, right);
     }
 
+    /**
+     * Exiting an or expression requires type checking the operand and the operation using the type system.
+     * The parse tree is denoted the resulting type; if type invalid, the denoted type is <i>error</i>.
+     * @see Type
+     * @param ctx The CST node for an or expression
+     */
     @Override
     public void exitOr(MinespeakParser.OrContext ctx) {
-        if (isArrayType(ctx.expr(0).type) &&
-                isArrayType((ctx.expr(1).type))) {
-
+        if (isArrayType(ctx.expr(0).type) && isArrayType((ctx.expr(1).type))) {
             ctx.type = Type._error;
             return;
         }
@@ -401,6 +670,12 @@ public class ScopeListener extends MinespeakBaseListener {
         ctx.type = Type.inferType(left, MinespeakParser.OR, right);
     }
 
+    /**
+     * Exiting an and expression requires type checking the operand and the operation using the type system.
+     * The parse tree is denoted the resulting type; if type invalid, the denoted type is <i>error</i>.
+     * @see Type
+     * @param ctx The CST node for an and expression
+     */
     @Override
     public void exitAnd(MinespeakParser.AndContext ctx) {
         if (isArrayType(ctx.expr(0).type) &&
@@ -416,6 +691,12 @@ public class ScopeListener extends MinespeakBaseListener {
         ctx.type = Type.inferType(left, MinespeakParser.AND, right);
     }
 
+    /**
+     * Exiting an equality or inequality expression requires type checking the operand and the operation using the type system.
+     * The parse tree is denoted the resulting type; if type invalid, the denoted type is <i>error</i>.
+     * @see Type
+     * @param ctx The CST node for an equality or inequality expression
+     */
     @Override
     public void exitEquality(MinespeakParser.EqualityContext ctx) {
         int left = ctx.expr(0).type.getTypeAsInt();
@@ -429,13 +710,15 @@ public class ScopeListener extends MinespeakBaseListener {
 
     }
 
-
-
+    /**
+     * Exiting an relation expression requires type checking the operand and the operation using the type system.
+     * The parse tree is denoted the resulting type; if type invalid, the denoted type is <i>error</i>.
+     * @see Type
+     * @param ctx The CST node for an relation expression
+     */
     @Override
     public void exitRelations(MinespeakParser.RelationsContext ctx) {
-        if (isArrayType(ctx.expr(0).type) &&
-            isArrayType((ctx.expr(1).type))) {
-
+        if (isArrayType(ctx.expr(0).type) && isArrayType((ctx.expr(1).type))) {
             ctx.type = Type._error;
             return;
         }
@@ -454,11 +737,15 @@ public class ScopeListener extends MinespeakBaseListener {
         }
     }
 
+    /**
+     * Exiting an multiplication, division, or modulus expression requires type checking the operand and the operation using the type system.
+     * The parse tree is denoted the resulting type; if type invalid, the denoted type is <i>error</i>.
+     * @see Type
+     * @param ctx The CST node for an multiplication, division, or modulus expression
+     */
     @Override
     public void exitMulDivMod(MinespeakParser.MulDivModContext ctx) {
-        if (isArrayType(ctx.expr(0).type) &&
-                isArrayType((ctx.expr(1).type))) {
-
+        if (isArrayType(ctx.expr(0).type) && isArrayType((ctx.expr(1).type))) {
             ctx.type = Type._error;
             return;
         }
@@ -476,6 +763,12 @@ public class ScopeListener extends MinespeakBaseListener {
 
     }
 
+    /**
+     * Exiting a factor node is just denoting the parse tree with the type of the appropriate child.
+     * @see Type
+     * @param ctx The CST node for factor
+     * @throws RuntimeException if none of the children are valid
+     */
     @Override
     public void exitFactor(MinespeakParser.FactorContext ctx) {
         if (ctx.rvalue() != null) {
@@ -495,6 +788,18 @@ public class ScopeListener extends MinespeakBaseListener {
         }
     }
 
+    /**
+     * First, determines whether the function for the call exists.
+     * If it does not, an error is logged.
+     * Next, checks if the return value of the function is used (if function returns).
+     * If it is unused, logs a warning.
+     * Next, checks that every actual parameter matches the corresponding formal parameter in type.
+     * If not, an error is logged.
+     * Finally, denotes the parse tree with the return type of the function.
+     * @see Type
+     * @see Logger
+     * @param ctx The CST node for the function call
+     */
     @Override
     public void exitFuncCall(MinespeakParser.FuncCallContext ctx) {
         FuncEntry function = functions.get(ctx.ID().getText());
@@ -537,6 +842,17 @@ public class ScopeListener extends MinespeakBaseListener {
         ctx.type = function.getType();
     }
 
+    /**
+     * Overall, searches for the ID of the left hand side, and ensures it is not a constant.
+     * Then type checks to see whether expression and variable are same type.
+     * Finally, checks whether the assignment operator is valid for the types of the variable and expression.
+     * If at any point an error is found, and error is logged.
+     * @see Scope
+     * @see SymEntry
+     * @see Type
+     * @see Logger
+     * @param ctx The CST node for assign statement
+     */
     @Override
     public void exitAssign(MinespeakParser.AssignContext ctx) {
         SymEntry entry = this.currentScope.lookup(ctx.ID().getText());
@@ -590,6 +906,12 @@ public class ScopeListener extends MinespeakBaseListener {
         }
     }
 
+    /**
+     * Exiting a literal node is simply denoting the parse tree with the type of the appropriate literal.
+     * @see Type
+     * @param ctx The CST node for literals
+     * @throws RuntimeException if all literals are invalid
+     */
     @Override
     public void exitLiteral(MinespeakParser.LiteralContext ctx) {
         if (ctx.booleanLiteral() != null) {
@@ -609,6 +931,16 @@ public class ScopeListener extends MinespeakBaseListener {
         }
     }
 
+    /**
+     * Starts by denoting the parse tree with the type of the factor.
+     * If other the not expression is used or the subtract expression is used,
+     * these are type checked.
+     * For not, if the type of the factor is not a boolean, an error is logged.
+     * For sub, if the type of the factor is not a vector or a num, an error is logged.
+     * @see Type
+     * @see Logger
+     * @param ctx The CST node for the negation expression
+     */
     @Override
     public void exitNotNegFac(MinespeakParser.NotNegFacContext ctx) {
         ctx.type = ctx.factor().type;
@@ -627,6 +959,13 @@ public class ScopeListener extends MinespeakBaseListener {
         }
     }
 
+    /**
+     * Determines whether two types are equal.
+     * @see Type
+     * @param t1 The type for the first argument
+     * @param t2 The type for the second argument
+     * @return True if the types are equal, and false if they are not
+     */
     private boolean typesAreEqual(Type t1, Type t2) {
         if (t1 instanceof ArrayType && t2 instanceof ArrayType) {
             return ((ArrayType)t1).equalTypes((ArrayType)t2);
@@ -635,14 +974,32 @@ public class ScopeListener extends MinespeakBaseListener {
         }
     }
 
+    /**
+     * Exits the current scope by entering the parent of the current scope.
+     * @see Scope
+     */
     private void exitScope() {
         enterScope(this.currentScope.getParent());
     }
 
+    /**
+     * Enters a scope given by parameter by setting the current scope to the parameter.
+     * @see Scope
+     * @param scope The scope to enter
+     */
     private void enterScope(Scope scope) {
         this.currentScope = scope;
     }
 
+    /**
+     * Adds a variable by a key in the current scope.
+     * If the key is already used, an error is logged.
+     * @see Scope
+     * @see Logger
+     * @param ctx Currently unused. Previously used for logging.
+     * @param key The key for the variable to add
+     * @param var The entry to add with the key
+     */
     private void addToScope(ParserRuleContext ctx, String key, SymEntry var) {
         if (!this.currentScope.addVariable(key, var)) {
             Logger.shared.add(logFac.createVariableAlreadyDeclaredLog(key, var.getCtx()));
@@ -650,6 +1007,13 @@ public class ScopeListener extends MinespeakBaseListener {
         }
     }
 
+    /**
+     * Searches for the type of a variable in the current scope.
+     * An error is logged if there is no variable by the key in the current scope.
+     * @param ctx The parse tree for the node which requested the lookup. Used for generating the error log
+     * @param key The key of the variable to lookup
+     * @return The type of the variable in the entry if found, otherwise returns the type <i>error</i>
+     */
     private Type lookupTypeInScope(ParserRuleContext ctx, String key) {
         SymEntry entry = this.currentScope.lookup(key);
 
@@ -659,6 +1023,10 @@ public class ScopeListener extends MinespeakBaseListener {
         return entry == null ? Type._error : entry.getType();
     }
 
+    /**
+     * Adds the variables from the parse tree to the current scope.
+     * @param ctx Either a declaration node or an instantiation node. Used to find the variables to add to scope
+     */
     private void addMultipleToScope(ParserRuleContext ctx) {
         List<TerminalNode> ids;
         List<MinespeakParser.PrimaryTypeContext> types;
@@ -683,10 +1051,20 @@ public class ScopeListener extends MinespeakBaseListener {
         }
     }
 
+    /**
+     * Returns all functions
+     * @see FuncEntry
+     * @return functions to return
+     */
     public Map<String, FuncEntry> getFunctions() {
         return this.functions;
     }
 
+    /**
+     * Determines whether a given type is an array type
+     * @param type The type of the parameter
+     * @return True if the type is an array type. False if the type is not an array type
+     */
     private boolean isArrayType(Type type) {
         return (type instanceof ArrayType);
     }
