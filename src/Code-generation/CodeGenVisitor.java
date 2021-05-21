@@ -36,6 +36,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
     /**
      * Generates headers for @mc functions
+     * Adds active tag to player
      * @return Ordered list of templates to be used as header in @mc functions
      */
     private List<Template> makeProgramHeaders() {
@@ -47,6 +48,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
     /**
      * Generates footers for @mc functions
+     * Removes variables and expressions based on debug and variableMode
      * @return Ordered list of templates to be used as footer in @mc functions
      */
     private List<Template> makeProgramFooters() {
@@ -77,19 +79,26 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         enterScope(ctx.scope);
         ArrayList<Template> templates = new ArrayList<>();
 
+        ArrayList<FuncEntry> nonMcFuncs = new ArrayList<>();
+        ArrayList<FuncEntry> mcFuncs = new ArrayList<>();
+
         // generates names for the non-mc functions
         for (FuncEntry func:this.funcSignature.values()) {
             if (!func.isMCFunction()) {
                 String generatedName = generateValidFileName();
                 func.setName(generatedName);
+                nonMcFuncs.add(func);
+            }else {
+                mcFuncs.add(func);
             }
         }
 
         // visit all functions
-        for (FuncEntry func:this.funcSignature.values()) {
+        for (FuncEntry func:nonMcFuncs)
             templates.addAll(visit(func.getCtx().parent.parent));
 
-        }
+        for (FuncEntry func:mcFuncs)
+            templates.addAll(visit(func.getCtx().parent.parent));
 
         return templates;
     }
@@ -128,13 +137,14 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     @Override
     public ArrayList<Template> visitFunc(MinespeakParser.FuncContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
+        FuncEntry func = funcSignature.get(ctx.funcSignature().ID().getText());
+        String funcName = func.getName();
         enterScope(ctx.scope);
 
         // create new file with correct name
-        if (!(ctx.parent instanceof MinespeakParser.McFuncContext)) {
-            String funcName = funcSignature.get(ctx.funcSignature().ID().getText()).getName();
+        if (!(ctx.parent instanceof MinespeakParser.McFuncContext))
             ret.add(templateFactory.createEnterNewFileST(funcName, false));
-        } else {
+        else {
             ret.add(templateFactory.createEnterNewFileST(ctx.funcSignature().ID().getText().toLowerCase(), true));
             // if function is mc -> insert headers
             ret.addAll(makeProgramHeaders());
@@ -142,10 +152,19 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         ret.addAll(visit(ctx.funcSignature()));
         ret.addAll(visit(ctx.funcBody()));
+        func.cleanupTemplate = templateFactory.resetExpressions();
 
-        // if function is mc -> insert footers
-        if (ctx.parent instanceof MinespeakParser.McFuncContext)
+        // if function is mc -> cleanup and insert footers
+        if (func.isMCFunction()){
+
+            // do cleanup for all non-mcfunctions
+            for (FuncEntry funcToCleanup: funcSignature.values()){
+                if (!funcToCleanup.isMCFunction())
+                    ret.add(funcToCleanup.cleanupTemplate);
+            }
+            // insert footer
             ret.addAll(makeProgramFooters());
+        }
 
         ret.add(templateFactory.createExitFileST());
         exitScope();
@@ -159,6 +178,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         // get function from ID
         FuncEntry func = funcSignature.get(ctx.ID().getText());
 
+        // Instantiate scope with values in parameters
         for (SymEntry param : func.getParams()) {
             SymEntry sl = currentScope.lookup(param.getName());
             ret.add(templateFactory.createInstanST(sl.getVarName(useReadableVariableNames), param.getVarName(useReadableVariableNames), param.getType(), getPrefix()));
@@ -167,6 +187,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         return ret;
     }
 
+    //TODO Comment from here
     @Override
     public ArrayList<Template> visitFuncBody(MinespeakParser.FuncBodyContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
