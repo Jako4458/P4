@@ -95,6 +95,30 @@ public class InfiniteLoopDetectionVisitor extends MinespeakBaseVisitor<ArrayList
     }
 
     @Override
+    public ArrayList<SymEntry> visitIfStmnt(MinespeakParser.IfStmntContext ctx) {
+        enterScope(ctx.scope);
+        super.visitIfStmnt(ctx);
+        exitScope();
+        return new ArrayList<>();
+    }
+
+    @Override
+    public ArrayList<SymEntry> visitFunc(MinespeakParser.FuncContext ctx) {
+        enterScope(ctx.scope);
+        super.visitFunc(ctx);
+        exitScope();
+        return new ArrayList<>();
+    }
+
+    @Override
+    public ArrayList<SymEntry> visitFuncBody(MinespeakParser.FuncBodyContext ctx) {
+        enterScope(ctx.scope);
+        super.visitFuncBody(ctx);
+        exitScope();
+        return new ArrayList<>();
+    }
+
+    @Override
     public ArrayList<SymEntry> visitForStmnt(MinespeakParser.ForStmntContext ctx) {
         enterScope(ctx.scope);
         ArrayList<SymEntry> exprRValues = visit(ctx.expr());
