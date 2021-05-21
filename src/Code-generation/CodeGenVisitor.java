@@ -44,11 +44,12 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         if (variableMode.equals(VariableMode.delete)){
             ret.add(templateFactory.deleteVariables());
-            ret.add(new BlankST("execute as @e[tag=variable] at @e[tag=variable] run setblock ~ ~-1 ~ air", "remove all block variables" ,setTemplateComments));
+            ret.add(new BlankST("execute as @e[tag=variable] at @e[tag=variable] run setblock ~ ~-1 ~ air", "remove all block variables", setTemplateComments));
+            ret.add(new BlankST("kill @e[tag=variable]", "remove variable and expr armor stands", setTemplateComments));
             ret.add(templateFactory.resetExpressions());
         }
         if (!debug)
-            ret.add(new BlankST("kill @e[tag=MineSpeak]", "kill all non-variable armor stands" ,setTemplateComments));
+            ret.add(new BlankST("kill @e[tag=MineSpeak]", "kill all non-variable armor stands", setTemplateComments));
 
         return ret;
     }
