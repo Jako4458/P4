@@ -514,6 +514,19 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         }
 
         ret.add(templateFactory.createFuncCallST(func.getName().toLowerCase(), func.isMCFunction(), isBuiltin, getPrefix()));
+
+        Type retType = func.retVal.getType();
+        String retName = func.retVal.getVarName(useReadableVariableNames);
+        ret.add(templateFactory.createInstanST(
+                templateFactory.getNewExprCounterString(
+                        retType.getTypeAsInt() == Type.VECTOR3 || retType.getTypeAsInt() == Type.VECTOR2
+                ),
+                retName,
+                retType,
+                getPrefix())
+        );
+        factorNameTable.put(ctx, retName);
+
         return ret;
     }
 
