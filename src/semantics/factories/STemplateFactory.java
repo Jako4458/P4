@@ -1,5 +1,3 @@
-import org.stringtemplate.v4.ST;
-
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -107,7 +105,7 @@ public class STemplateFactory {
     public ExitFileST createExitFileST () {
         return new ExitFileST(setComments);
     }
-    
+
     /**
      * Generate template for arithmetic operations (not including Pow and negation)
      * @param expr1Name Name of left operand
