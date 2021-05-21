@@ -13,6 +13,12 @@ import java.io.IOException;
 public class SetupReader {
     private static final String jsonPath = System.getProperty("user.dir") + "/setup.json";
 
+    /**
+     * Tries to load the settings from a json file.
+     * The path for the file is the variable jsonPath.
+     * If an error occurs, a default setup is returned instead.
+     * @return the setup object
+     */
     public Setup readSetupJSON() {
         try {
             File file = new File(jsonPath);
