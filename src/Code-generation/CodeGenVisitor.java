@@ -211,6 +211,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         ArrayList<Template> ret;
         FuncEntry func = funcSignature.get(((MinespeakParser.FuncContext)ctx.parent.parent).funcSignature().ID().getText());
         ret = visit(ctx.expr());
+        ret.add(new BlankST("", "RETval ADDED ABOVE", true));
         ret.add(templateFactory.createInstanST(func.retVal.getVarName(useReadableVariableNames), factorNameTable.get(ctx.expr()), ctx.expr().type, getPrefix()));
         return ret;
     }
@@ -379,7 +380,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         for (int i = 0; i < ctx.ID().size(); i++) {
             String ID = ctx.ID(i).getText();
 
-            var expr = ctx.initialValue(i).expr();
+            MinespeakParser.ExprContext expr = ctx.initialValue(i).expr();
             ret.addAll(visit(expr));
             SymEntry lookup = currentScope.lookup(ID);
             String exprName = factorNameTable.get(expr);
@@ -567,6 +568,19 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         }
 
         ret.add(templateFactory.createFuncCallST(func.getName().toLowerCase(), func.isMCFunction(), isBuiltin, getPrefix()));
+
+        Type retType = func.retVal.getType();
+        String retName = func.retVal.getVarName(useReadableVariableNames);
+        ret.add(templateFactory.createInstanST(
+                templateFactory.getNewExprCounterString(
+                        retType.getTypeAsInt() == Type.VECTOR3 || retType.getTypeAsInt() == Type.VECTOR2
+                ),
+                retName,
+                retType,
+                getPrefix())
+        );
+        factorNameTable.put(ctx, retName);
+
         return ret;
     }
 
