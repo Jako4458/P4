@@ -55,7 +55,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         ArrayList<Template> ret = new ArrayList<>();
 
         if (variableMode.equals(VariableMode.delete)){
-            ret.add(templateFactory.deleteVariables());
+            ret.add(templateFactory.resetVariables());
             ret.add(new BlankST("execute as @e[tag=variable] at @e[tag=variable] run setblock ~ ~-1 ~ air", "remove all block variables", setTemplateComments));
             ret.add(new BlankST("setblock 0 255 0 air", "remove blockfactor1", false));
             ret.add(new BlankST("setblock 1 255 0 air", "remove blockfactor2", false));
@@ -152,7 +152,13 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         ret.addAll(visit(ctx.funcSignature()));
         ret.addAll(visit(ctx.funcBody()));
-        func.cleanupTemplate = new BlankST(templateFactory.resetExpressions().getOutput() + templateFactory.deleteVariables().getOutput(), "Garbage collection: " + funcName, true);
+
+        // if debug -> delete expressions
+        func.cleanupTemplate = debug ? templateFactory.resetExpressions() : new BlankST("", "", false);
+
+        // if variableMode is delete -> delete variables
+        String cleanupString = variableMode.equals(VariableMode.delete) ? func.cleanupTemplate.getOutput() + templateFactory.resetVariables().getOutput() : func.cleanupTemplate.getOutput();
+        func.cleanupTemplate = new BlankST(cleanupString,"Garbage collection: " + funcName, true);
 
         // if function is mc -> cleanup and insert footers
         if (func.isMCFunction()){

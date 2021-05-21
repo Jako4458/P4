@@ -59,14 +59,14 @@ public class STemplateFactory {
         }
         exprNames = new ArrayList<>();
 
-        return new BlankST(tempString.toString(), "remove expressions", false);
+        return new BlankST(tempString.toString(), "delete expressions", false);
     }
 
     /**
      * Delete and reset all variables
      * @return Templae for reseting variables in MCFunction
      */
-    public Template deleteVariables(){
+    public Template resetVariables(){
         StringBuilder tempString = new StringBuilder();
 
         for (String name: variableNames) {
