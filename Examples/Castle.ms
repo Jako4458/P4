@@ -35,15 +35,15 @@ minespeak
 
 
         //build walls
-        fill(true, NSWallSP1, wallSize, wallHeight, 1, mat)
-        fill(true, NSWallSP2, wallSize, wallHeight, 1, mat)
-        fill(true, NSWallSP3, wallSize, wallHeight, 1, mat)
-        fill(true, NSWallSP4, wallSize, wallHeight, 1, mat)
+        fill(NSWallSP1, wallSize, wallHeight, 1, mat, true)
+        fill(NSWallSP2, wallSize, wallHeight, 1, mat, true)
+        fill(NSWallSP3, wallSize, wallHeight, 1, mat, true)
+        fill(NSWallSP4, wallSize, wallHeight, 1, mat, true)
 
-        fill(true, EWWallSP1, 1, wallHeight, wallSize, mat)
-        fill(true, EWWallSP2, 1, wallHeight, wallSize, mat)
-        fill(true, EWWallSP3, 1, wallHeight, wallSize, mat)
-        fill(true, EWWallSP4, 1, wallHeight, wallSize, mat)
+        fill(EWWallSP1, 1, wallHeight, wallSize, mat, true)
+        fill(EWWallSP2, 1, wallHeight, wallSize, mat, true)
+        fill(EWWallSP3, 1, wallHeight, wallSize, mat, true)
+        fill(EWWallSP4, 1, wallHeight, wallSize, mat, true)
 
 
         // build wall towers
@@ -72,21 +72,11 @@ minespeak
         endif
 
         //build walls
-        fill(true, NSWallRPos1, wallSize, wallHeight, 1, mat)
-        fill(true, NSWallRPos2, wallSize, wallHeight, 1, mat)
-        fill(true, EWWallRPos1, 1, wallHeight, wallSize, mat)
-        fill(true, EWWallRPos2, 1, wallHeight, wallSize, mat)
+        fill(NSWallRPos1, wallSize, wallHeight, 1, mat, true)
+        fill(NSWallRPos2, wallSize, wallHeight, 1, mat, true)
+        fill(EWWallRPos1, 1, wallHeight, wallSize, mat, true)
+        fill(EWWallRPos2, 1, wallHeight, wallSize, mat, true)
 
     endfunc
-
-    func fill(isRelative: bool, offset: vector3, length: num, height: num, depth: num, material: block) do
-        for var i: num = 0 until i == length where i += 1 do
-            for var j: num = 0 until j == height where j += 1 do
-                for var k: num = 0 until k == depth where k += 1 do
-                    setB(offset + <i, j, k>, material, isRelative)
-                endfor
-            endfor
-        endfor
-   endfunc
 
 closespeak
