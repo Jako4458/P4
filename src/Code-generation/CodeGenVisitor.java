@@ -10,7 +10,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
     private final boolean useReadableVariableNames = Main.setup.nameMode.equals(NamingMode.readable);
     private boolean setTemplateComments = Main.setup.commenting;
-    private final VariableMode VariableMode = Main.setup.variableMode;
+    private final VariableMode variableMode = Main.setup.variableMode;
 
     private Scope currentScope;
     private final Map<String, FuncEntry> funcSignature;
@@ -54,13 +54,14 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     private List<Template> makeProgramFooters() {
         ArrayList<Template> ret = new ArrayList<>();
 
-        if (VariableMode.equals(VariableMode.delete)){
+        if (variableMode.equals(VariableMode.delete)){
             ret.add(templateFactory.deleteVariables());
-            ret.add(new BlankST("execute as @e[tag=variable] at @e[tag=variable] run setblock ~ ~-1 ~ air", "remove all block variables" ,setTemplateComments));
+            ret.add(new BlankST("execute as @e[tag=variable] at @e[tag=variable] run setblock ~ ~-1 ~ air", "remove all block variables", setTemplateComments));
+            ret.add(new BlankST("kill @e[tag=variable]", "remove variable and expr armor stands", setTemplateComments));
             ret.add(templateFactory.resetExpressions());
         }
         if (!debug)
-            ret.add(new BlankST("kill @e[tag=MineSpeak]", "kill all non-variable armor stands" ,setTemplateComments));
+            ret.add(new BlankST("kill @e[tag=MineSpeak]", "kill all non-variable armor stands", setTemplateComments));
 
         return ret;
     }
