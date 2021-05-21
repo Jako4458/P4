@@ -93,7 +93,7 @@ public class FileManager {
                         currentFileExists = true;
                         continue;
                     }
-                    writers.push(new FileWriter(fileName, true));
+                    writers.push(new FileWriter(fileName, !currentTemplate.isMcfunction));
                 } else if (template instanceof ExitFileST && currentWriter != null) {
                     currentFileExists = false;
                     currentWriter.close();
