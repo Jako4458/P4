@@ -13,6 +13,7 @@ public class MinespeakWrittenBuiltinFunctions {
 
     public ST minespeakFill(String lineSeparator) {
         ST st = new ST("func fill(from:vector3, x:num, y:num, z:num, b:block, relative:bool) -> vector3 do<l>" +
+                                 "$#fill function<l>" +
                                  "var current:vector3 = <def><l>" +
                                  "if not(x<OP>0 or y<OP>0 or z<OP>0) do<l>" +
                                    "for var i:num=0 until i==x where i+=1 do<l>" +
@@ -35,6 +36,7 @@ public class MinespeakWrittenBuiltinFunctions {
 
     public ST minespeakDig(String lineSeparator) {
         ST st = new ST("func dig(from:vector3, x:num, y:num, z:num, relative:bool) -> vector3 do<l>" +
+                "$#DIG<l>" +
                 "return fill(from, x, y, z, #air, relative)" +
                 "<l>endfunc<l>");
 
