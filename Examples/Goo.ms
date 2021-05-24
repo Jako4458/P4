@@ -1,5 +1,6 @@
 minespeak
 // Builds a big 2-D goo monster near the player
+func goo() do
 var rel:bool = true
 var black_wool:block = #black_wool
 var blue_wool:block = #blue_wool
