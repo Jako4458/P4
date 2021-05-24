@@ -63,7 +63,7 @@ Prerequisites needed before building are as follows:
 - [IntelliJ IDEA](https://www.jetbrains.com/idea/). (version 2021.1.1)
 - The [ANTLR v4](https://plugins.jetbrains.com/plugin/7358-antlr-v4) IntelliJ IDEA plugin
 
-Download the ANTLR 4 binaries from the ANTLR website [here](https://www.antlr.org/download/antlr-4.9.2-complete.jar). Place this file inside the folder `lib/`. Create the folder if it does not exist and place the file inside it.
+Download the ANTLR 4 binaries from the ANTLR website [here](https://www.antlr.org/download/antlr-4.9.1-complete.jar). Place this file inside the folder `lib/`. Create the folder if it does not exist and place the file inside it.
 
 Open the project inside IDEA. Before compiling, the ANTLR recognizer has to be generated. Inside IDEA, right click the file called `Minespeak.g4` located inside `parser/` and select the option `Configure ANTLR`. Ensure the following:
 - Output directory is `./parser/gen/`
