@@ -9,10 +9,17 @@ public class FileManager {
     private String path;
     private final ArrayList<MSFile> builtinFunctions = FileManager.initFunctions();
 
+    /**
+     * Constructor for the file manager.
+     * @param path the initial path to output to
+     */
     public FileManager(String path) {
         this.path = path;
     }
 
+    /**
+     * Builds the entire builtin functions folder.
+     */
     private void buildBuiltin() {
         File folder = new File(path + "/builtin");
         File folder2 = new File(path + "/builtin/functions");
@@ -32,6 +39,10 @@ public class FileManager {
         }
     }
 
+    /**
+     * Builds all builtin functions using their MSFILEs.
+     * @return number of missed functions
+     */
     private int buildBuiltinFunctions() {
         int missed = 0;
         for (MSFile func : builtinFunctions) {
@@ -50,7 +61,9 @@ public class FileManager {
         return missed;
     }
 
-
+    /**
+     * Builds all necessary folders before code generation.
+     */
     public void buildBeforeCodeGen() {
         if (Main.setup.containerMode == ContainerMode.auto)
             buildContainer();
@@ -60,10 +73,18 @@ public class FileManager {
         buildBuiltin();
     }
 
+    /**
+     * Builds the default container if the mode is "auto"
+     * @see ContainerMode
+     */
     private void buildContainer() {
         buildContainer("result");
     }
 
+    /**
+     * Builds the container folder.
+     * @param containerName The name of the container
+     */
     private void buildContainer(String containerName) {
         File folder = new File(path + "/" + containerName);
         boolean made;
@@ -77,6 +98,14 @@ public class FileManager {
             this.path = path + "/" + containerName;
     }
 
+    /**
+     * Uses the templates from code generation to generate all necessary files.
+     * If a newFile template is seen, a new file is created.
+     * If a endFile template is seen, the current file is exited.
+     * Otherwise the contents of the template is simply inserted into the file currently on the top of the stack.
+     * @param templates The templates for which files should be generated
+     * @return true if successfully built the output, false if unsuccessful
+     */
     public boolean buildCodeGen(List<Template> templates) {
         buildFolders();
         Stack<FileWriter> writers = new Stack<>();
@@ -110,6 +139,9 @@ public class FileManager {
         return true;
     }
 
+    /**
+     * Builds the folders for the output except the builtin folder.
+     */
     private void buildFolders() {
         ArrayList<File> folders = new ArrayList<>() {{
             add(new File(path + "/bin"));
@@ -132,6 +164,10 @@ public class FileManager {
         }
     }
 
+    /**
+     * Initialises the functions list.
+     * @return the list of functions
+     */
     private static ArrayList<MSFile> initFunctions() {
         return new ArrayList<>() {
             {
@@ -150,16 +186,30 @@ class FFile implements MSFile {
     public String name;
     public String content;
 
+    /**
+     * Constructor for FFILE (Final FILE, meaning it cannot contain other files).
+     * @param name The name of the file
+     * @param content The content of the file, which is the string to insert into the file
+     */
     public FFile(String name, String content) {
         this.name = name;
         this.content = content;
     }
 
+    /**
+     * Returns the name of the file
+     * @return the name of the file
+     */
     @Override
     public String getName() {
         return this.name;
     }
 
+    /**
+     * Returns the content of this file, which is simply a string.
+     * @param folderPath The path for the output. Not used, but most be here, by the interface
+     * @return the content of this file
+     */
     @Override
     public String write(String folderPath) {
         return this.content;
@@ -170,11 +220,22 @@ class CFile implements MSFile {
     public String name;
     public List<MSFile> content;
 
+    /**
+     * The constructor of CFILE (short for Composite FILE).
+     * @param name The name of the file
+     * @param content The content of the file given as a list of files
+     */
     public CFile(String name, List<MSFile> content) {
         this.name = name;
         this.content = content;
     }
 
+    /**
+     * Creates the file and fills the content.
+     * Calls itself on all files in the content of the file, until all of the content has been created and filled.
+     * @param folderPath The path for the output
+     * @return the name of the file
+     */
     @Override
     public String write(String folderPath) {
         FileWriter fw;
@@ -197,6 +258,10 @@ class CFile implements MSFile {
         return this.name;
     }
 
+    /**
+     * Returns the name of the file.
+     * @return the name of the file
+     */
     @Override
     public String getName() {
         return this.name;

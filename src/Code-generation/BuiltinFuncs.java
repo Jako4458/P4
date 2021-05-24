@@ -6,6 +6,16 @@ import java.util.HashMap;
 public class BuiltinFuncs {
     public static HashMap<String, FuncEntry> paramMap = new HashMap<>();
 
+    /**
+     * Generates the MSFILE for the builtin function setB.
+     * The generated code sets a single specified block at a specified position.
+     * @see MSFile
+     * @param playerTag The id of the player tag
+     * @param destIDName The name of the variable used for destination
+     * @param blockIDName The name of the variable which holds the block to be placed
+     * @param relativeIDName The name of the variable used for determining whether it is relative or not
+     * @return a single MSFILE with all content needed
+     */
     public static MSFile createSetB(String playerTag, String destIDName, String blockIDName, String relativeIDName) {
         ST start = new ST("execute as @p[tag=<playerTag>] run summon minecraft:armor_stand ~ ~ ~ {Tags:[\"tpID\",\"setb\"],NoGravity:1} \n" +
                 "execute as @p[tag=<playerTag>] run scoreboard objectives add <X>_temp dummy\n" +
@@ -67,6 +77,15 @@ public class BuiltinFuncs {
         return new CFile("setb", content);
     }
 
+    /**
+     * Generates the builtin tp function using MSFILEs.
+     * The generated code will teleport the player to a specified location.
+     * @see MSFile
+     * @param playerTag The id of the player tag
+     * @param destIDName The name of the variable used for destination
+     * @param relativeIDName The name of the variable used for determining whether it is relative or not
+     * @return a single MSFILE with all content needed
+     */
     public static MSFile createTP(String playerTag, String destIDName, String relativeIDName) {
         ST start = new ST("execute as @p[tag=<playerTag>] run summon minecraft:armor_stand ~ ~ ~ {Tags:[\"tpID\",\"tp\"],NoGravity:1} \n" +
                 "execute as @p[tag=<playerTag>] run scoreboard objectives add <X>_temp dummy\n" +

@@ -16,6 +16,11 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
     private final EntryFactory entryFac = new EntryFactory();
 
 
+    /**
+     * Visits the blocks node of the program if it is not empty.
+     * @param ctx The CST node the program
+     * @return the <i>void</i> type
+     */
     @Override
     public Type visitProg(MinespeakParser.ProgContext ctx) {
 
@@ -29,6 +34,11 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
         return Type._void;
     }
 
+    /**
+     * Visits all blocks
+     * @param ctx The CST node for blocks
+     * @return the <i>void</i> type
+     */
     @Override
     public Type visitBlocks(MinespeakParser.BlocksContext ctx) {
         for (ParseTree block : ctx.block()) {
@@ -39,6 +49,11 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
         return Type._void;
     }
 
+    /**
+     * Visits either the function or mcfunction in the block.
+     * @param ctx The CST node for block
+     * @return the <i>void</i> type
+     */
     @Override
     public Type visitBlock(MinespeakParser.BlockContext ctx) {
         if (ctx.mcFunc() != null) {
@@ -50,6 +65,11 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
         return Type._void;
     }
 
+    /**
+     * Sets the nextIsMCFunc variable to true, visits the func node, and then sets the nextIsMCFunc to false again.
+     * @param ctx The CST node for mcfunc
+     * @return the <i>void</i> type
+     */
     @Override
     public Type visitMcFunc(MinespeakParser.McFuncContext ctx) {
         this.nextIsMCFunc = true;
@@ -58,6 +78,13 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
         return Type._void;
     }
 
+    /**
+     * First visits the function signature, then the body.
+     * The body is only visited for the return statement.
+     * Finally, resets the current parameters, since the current function declaration is handled.
+     * @param ctx The CST node for the function
+     * @return the <i>void</i> type
+     */
     @Override
     public Type visitFunc(MinespeakParser.FuncContext ctx) {
         visit(ctx.funcSignature());
@@ -66,6 +93,15 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
         return Type._void;
     }
 
+    /**
+     * Logs a warning if the declared function is an mcfunc with parameters.
+     * Logs an error if the declared function is an mcfunc with a return type.
+     * Adds the func signature to the list of func signatures if it is not already there.
+     * If it is already in the list, it logs an error, and sets the parse tree to being a duplicate.
+     * @param ctx The CST node for the function signature
+     * @return the <i>void</i> type
+     * @throws MCFuncWrongReturnTypeException if the function is an mcfunc and declares a return type
+     */
     @Override
     public Type visitFuncSignature(MinespeakParser.FuncSignatureContext ctx) throws MCFuncWrongReturnTypeException {
         visit(ctx.params());
@@ -97,6 +133,11 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
         return Type._void;
     }
 
+    /**
+     * Only visits the return statement, since the body is irrelevant for signatures.
+     * @param ctx The CST node for function body
+     * @return the <i>void</i> type
+     */
     @Override
     public Type visitFuncBody(MinespeakParser.FuncBodyContext ctx) {
         if (ctx.retVal() != null) {
@@ -106,6 +147,13 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
         return Type._void;
     }
 
+    /**
+     * Searches for the function, where after it saves the return type declared by the function.
+     * Adds the return entry to the function and then saves it in the list of functions.
+     * Finally, returns the return type of the function.
+     * @param ctx The CST node for return statement
+     * @return the return type of the declared function
+     */
     @Override
     public Type visitRetVal(MinespeakParser.RetValContext ctx) {
         FuncEntry func = functionSignatures.get(((MinespeakParser.FuncContext)ctx.parent.parent).funcSignature().ID().getText());
@@ -116,6 +164,11 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
         return type;
     }
 
+    /**
+     * Visits each parameter and adds them to the list of current parameters.
+     * @param ctx The CST node for params
+     * @return the <i>void</i> type
+     */
     @Override
     public Type visitParams(MinespeakParser.ParamsContext ctx) {
         for (MinespeakParser.ParamContext param : ctx.param()) {
@@ -130,11 +183,22 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
         return Type._void;
     }
 
+    /**
+     * Determines the type for the parameter.
+     * @param ctx The CST node for param
+     * @return the type of the node
+     */
     @Override
     public Type visitParam(MinespeakParser.ParamContext ctx) {
         return visit(ctx.primaryType());
     }
 
+    /**
+     * Determines the type for the node by visiting the primitive type,
+     * and determining whether it is an array type.
+     * @param ctx The CST node for the primary type
+     * @return the type of the node
+     */
     @Override
     public Type visitPrimaryType(MinespeakParser.PrimaryTypeContext ctx) {
         Type primType = visit(ctx.primitiveType());
@@ -144,6 +208,11 @@ public class SignatureWalker extends MinespeakBaseVisitor<Type> {
         return primType;
     }
 
+    /**
+     * Determines the type for the node by looking at the children of the node.
+     * @param ctx The CST node for the primitive type
+     * @return the type of the node
+     */
     @Override
     public Type visitPrimitiveType(MinespeakParser.PrimitiveTypeContext ctx) {
         if (ctx.NUM() != null)
