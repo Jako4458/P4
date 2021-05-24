@@ -534,8 +534,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
             return ret;
         } else if (ctx.funcCall() != null) {
             ret.addAll(visit(ctx.funcCall()));
-            String funcRetName = funcSignature.get(ctx.funcCall().ID().getText()).retVal.getVarName(useReadableVariableNames);
-            factorNameTable.put(ctx, funcRetName);
+            factorNameTable.put(ctx, factorNameTable.get(ctx.funcCall()));
             return ret;
         } else if (ctx.rArray() != null) {
             return visit(ctx.rArray());
@@ -586,7 +585,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
                     retType,
                     getPrefix())
             );
-            factorNameTable.put(ctx, retName);
+            factorNameTable.put(ctx, templateFactory.getExprCounterString());
         }
 
         return ret;
