@@ -31,4 +31,4 @@ Use the template below for easy setup. Make sure to change the output directory.
 | `variableMode`  | `keep`, `delete`    | `delete` | Either keeps or deletes the variables in Minecraft.  |
 | `containerMode` | `named`, `auto`, `none`| `auto` | Specifies whether the output should be contained in a named or auto-generated folder, or whether the output should not be contained in any folder.  |
 | `containerName` | directory name | `result` | The name of the container for the output. Will only have an effect if `containerMode` is set to `auto`  |
-| `pedantic` | `true`, `false` | `false` | Toggles `pedantic`. If `pedantic` is set to `true`, the compilation will yield unsuccessful should any errors or warnings occur. If `pedantic` is set to `false`, only errors will make the compilation unsuccessful  |
+| `pedantic` | `true`, `false` | `false` | Toggles `pedantic`. If `pedantic` is set to `true`, compilation will be unsuccessful should any errors or warnings occur. If `pedantic` is set to `false`, only errors will make the compilation unsuccessful  |
