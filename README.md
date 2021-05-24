@@ -6,7 +6,7 @@ Authors: Nikolai A. Bonderup, Jakob B. Hyldgaard, Christian B. Larsen, Sebastian
 
 Hand in date: 27/05-2021
 
-Minespeak is a domain specific programming language for Minecraft. This project is a compiler for Minespeak. Minespeak is used to create MCFunctions that can be ran from inside a Minecraft client.
+Minespeak is a domain specific programming language for Minecraft. This project is a compiler for Minespeak. Minespeak is used to create MCFunctions that can be ran from inside a Minecraft client. 
 
 ## Repository Structure
 Structure
@@ -14,7 +14,7 @@ Structure
 All mentioned directories are located at the project root.
 
 ### Running from binaries
-A compiled version can be found in the [build/](./build) folder. This requires Java Runtime. Tested with version `1.8.0_291`.
+A compiled version can be found in the [build/](./build) folder. This requires Java Runtime. Tested with version Java SE 16 (version 16.0.1) which can be found [here](https://www.oracle.com/java/technologies/javase-downloads.html). 
 
 Open your shell and do:
 
@@ -35,11 +35,13 @@ minespeak
 closespeak
 ```
 
+Find the correct Java Runtime binary. Add to PATH if necessary.
 Compile using:
-
 ```shell
-
+path/to/java16/java -jar P4.jar ./example.ms
 ```
+
+If no `outputPath` was specified, output can be found in the `result` folder.
 
 ### Running from source
 The following instructions are based on how the project has been built by the authors. 
