@@ -44,11 +44,12 @@ tp(<0, 255, 0>, false)
 
 ### fill(from, x, y, z, block, relative)
 - `from` \<vector3\> The southwest most point of the fill region.
-- `x` \<num\> The number of blocks to be filled out of the x-axis.
-- `y` \<num\> The number of blocks to be filled out of the y-axis.
-- `z` \<num\> The number of blocks to be filled out of the z-axis.
+- `x` \<num\> The number of blocks to place along the x-axis.
+- `y` \<num\> The number of blocks to place along the y-axis.
+- `z` \<num\> The number of blocks to place along the z-axis.
 - `block` \<block\> The type of block to fill with.
 - `relative` \<bool\> Specify whether the fill region should be relative to the player or absolute.
+- returns: \<vector3\> The northeast most point of the fill region (the last block that is set).
 
 Fills an area with blocks.
 
@@ -65,9 +66,9 @@ fill(<0, 240, 0>, 10, 10, 10, #dirt, false)
 
 ### dig(from, x, y, z, relative)
 - `from` \<vector3\> The southwest most point of the dig region.
-- `x` \<num\> The number of blocks to be dug out along the x-axis.
-- `y` \<num\> The number of blocks to be dug out along the y-axis.
-- `z` \<num\> The number of blocks to be dug out along the z-axis.
+- `x` \<num\> The number of blocks dig along the x-axis.
+- `y` \<num\> The number of blocks dig along the y-axis.
+- `z` \<num\> The number of blocks dig along the z-axis.
 - `relative` \<bool\> Specify whether the dig region should be relative to the player or absolute.
 
 Fills an area with air blocks (nothing).

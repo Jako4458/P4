@@ -8,17 +8,41 @@ Hand in date: 27/05-2021
 
 Minespeak is a domain specific programming language for Minecraft. This project is a compiler for Minespeak. Minespeak is used to create MCFunctions that can be ran from inside a Minecraft client.
 
-## Requirements(OLD)
-To compile and run the compiler, you are required to download ANTLR4 and its associated libraries. Place the ANTLR4 libraries in the lib folder at the root of /the project. Then you are required run ANTLR4 on the file cfg.g4, which will generate the Minespeak parser and lexer.
-
 ## Repository Structure
 Structure
 ## Installation
+All mentioned directories are located at the project root.
 
 ### Running from binaries
+A compiled version can be found in the [build/](./build) folder. This requires Java Runtime. Tested with version `1.8.0_291`.
+
+Open your shell and do:
+
+```shell
+cd ./build/
+```
+
+(Optional): Create a file called `setup.json`. See the [`docs/SETUPDOC.md`](./docs/SETUPDOC.md) file for setup documentation.
+
+Create an `example.ms` file and paste the following into the file:
+
+```
+minespeak
+  @mc
+  func example() do
+    var four:num = 2 + 2
+  endfunc
+closespeak
+```
+
+Compile using:
+
+```shell
+
+```
 
 ### Running from source
-The following instructions are based on how the project has been built by the authors. All mentioned directories are located at the project root.
+The following instructions are based on how the project has been built by the authors. 
 
 Prerequisites needed before building are as follows:
 - [IntelliJ IDEA](https://www.jetbrains.com/idea/). (version 2021.1.1)
@@ -34,10 +58,10 @@ Open the project inside IDEA. Before compiling, the ANTLR recognizer has to be g
 
 After doing the above, right click `Minespeak.g4` and select `Generate ANTLR Recognizer`. This should succesfully build the grammar and place the generated files inside the folder located at `/parser/gen`.
 
-To give the compiler an input file, inside IDEA, select `Run -> Edit Configurations`. In program arguments (Hold ALT for field hints), write the location of a file. Example: `./examples/Pyramid.ms`.
+To give the compiler an input file, inside IDEA, select `Run -> Edit Configurations`. In program arguments (Hold ALT for field hints), write the location of a file. Example: `./Examples/Pyramid.ms`.
 
-## Compiler setup (optional)
-To specify compile arguments, a setup file is used. A template file called `setupTemplate.json` is included in the project. Create a file called `setup.json`. When running from source, place this file at the project root. When running from binaries, place the file in the same directory as the binary. Documentation for the setup file can be found in [`docs/SETUPDOC.md`](./docs/SETUPDOC.md) file.
+### Compiler setup (optional)
+To specify compile arguments, a setup file is used. Create a file called `setup.json`. When running from source, place this file at the project root. When running from binaries, place the file in the same directory as the binary. Documentation for the setup file can be found in [`docs/SETUPDOC.md`](./docs/SETUPDOC.md) file.
 
 If no setup file is used, default values are used instead.
 
@@ -49,4 +73,4 @@ Now, run `main` to compile the compiler and compile a Minespeak file.
 
 ## Minespeak Examples
 
-INSERT EXAMPLES
+Example programs can be found in the [examples](./Examples) folder.
