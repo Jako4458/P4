@@ -1,5 +1,5 @@
 minespeak
-
+    // Build a large castle around the player
     @mc
     func Build_Castle() do 
         const wallSize:num = 20

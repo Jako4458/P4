@@ -43,6 +43,7 @@ minespeak
   @mc
   func example() do
     var four:num = 2 + 2
+    var three:num = four - 1
   endfunc
 closespeak
 ```
@@ -72,7 +73,7 @@ Open the project inside IDEA. Before compiling, the ANTLR recognizer has to be g
 
 After doing the above, right click `Minespeak.g4` and select `Generate ANTLR Recognizer`. This should succesfully build the grammar and place the generated files inside the folder located at `/parser/gen`.
 
-To give the compiler an input file, inside IDEA, select `Run -> Edit Configurations`. In program arguments (Hold ALT for field hints), write the location of a file. Example: `./Examples/Pyramid.ms`.
+To give the compiler an input file, inside IDEA, select `Run -> Edit Configurations`. Add a new Configuration of type Application. Change the main class to `Main`. Select a JRE version 15 or higher. In program arguments (Hold ALT for field hints), write the location of a file. Example: `./Examples/Pyramid.ms`.
 
 ### Compiler setup (optional)
 To specify compile arguments, a setup file is used. Create a file called `setup.json`. When running from source, place this file at the project root. When running from binaries, place the file in the same directory as the binary. Documentation for the setup file can be found in [`docs/SETUPDOC.md`](./docs/SETUPDOC.md) file.

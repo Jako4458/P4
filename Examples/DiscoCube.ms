@@ -1,4 +1,5 @@
 minespeak
+   // Builds a gold-dirt discocube at coordinates <100, 245, 0>
    @mc
    func Test2() do
         var myBlock: block = #DIRT

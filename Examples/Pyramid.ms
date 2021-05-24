@@ -1,5 +1,5 @@
 minespeak
-
+    // Builds a pyramid at coordinates <100, 220, 100>
     @mc
     func Pyramid() do
         var max_height: num = 10, size: num = 30
