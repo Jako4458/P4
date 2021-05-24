@@ -9,7 +9,19 @@ Hand in date: 27/05-2021
 Minespeak is a domain specific programming language for Minecraft. This project is a compiler for Minespeak. Minespeak is used to create MCFunctions that can be ran from inside a Minecraft client. 
 
 ## Repository Structure
-Structure
+The repository is divided into the folders: `build`, `docs`, `Examples`, `parser`, and `src`.
+
+- [build](./build)
+  - Contains a compiled version of the Minespeak compiler.
+- [docs](./docs)
+  - Contains documentation for the built-in Minespeak functions and the setup file.
+- [Examples](./Examples)
+  - Contains Minespeak example programs.
+- [parser](./parser)
+  - Contains the Minespeak grammar and related tests.
+- [src](./src)
+  - Contains the source code for the Minespeak compiler.
+
 ## Installation
 All mentioned directories are located at the project root.
 
