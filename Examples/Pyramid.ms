@@ -11,7 +11,7 @@ minespeak
     endfunc
 
     func BuildLayer(size: num, offset: vector3, height: num, mat: block) do
-        Fill(offset, size, height, size, mat, false)
+        fill(offset, size, height, size, mat, false)
     endfunc
 
 closespeak
