@@ -84,6 +84,7 @@ Now, run `main` to compile the compiler and compile a Minespeak file.
 ## Resources
 
 - [Built-in functions](./docs/BUILTINDOC.md)
+- [Setup file](./docs/SETUPDOC.md)
 
 ## Minespeak Examples
 
