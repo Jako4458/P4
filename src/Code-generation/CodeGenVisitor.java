@@ -185,7 +185,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         // get function from ID
         FuncEntry func = funcSignature.get(ctx.ID().getText());
 
-        // Instantiate scope with values in parameters
+        // instantiate scope with values in parameters
         for (SymEntry param : func.getParams()) {
             SymEntry sl = currentScope.lookup(param.getName());
             ret.add(templateFactory.createInstanST(sl.getVarName(useReadableVariableNames), param.getVarName(useReadableVariableNames), param.getType(), getPrefix()));
@@ -194,7 +194,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         return ret;
     }
 
-    //TODO Comment from here
     @Override
     public ArrayList<Template> visitFuncBody(MinespeakParser.FuncBodyContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
@@ -216,9 +215,13 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     @Override
     public ArrayList<Template> visitRetVal(MinespeakParser.RetValContext ctx) {
         ArrayList<Template> ret;
+
+        // find function from id
         FuncEntry func = funcSignature.get(((MinespeakParser.FuncContext)ctx.parent.parent).funcSignature().ID().getText());
+
         ret = visit(ctx.expr());
-        ret.add(new BlankST("", "RETval ADDED ABOVE", true));
+
+        // instantiate the return value
         ret.add(templateFactory.createInstanST(func.retVal.getVarName(useReadableVariableNames), factorNameTable.get(ctx.expr()), ctx.expr().type, getPrefix()));
         return ret;
     }
@@ -227,6 +230,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     public ArrayList<Template> visitStmnts(MinespeakParser.StmntsContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
 
+        // visit all smtnts
         for (MinespeakParser.StmntContext child : ctx.stmnt()) {
             ret.addAll(visit(child));
         }
@@ -237,7 +241,9 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     @Override
     public ArrayList<Template> visitStmnt(MinespeakParser.StmntContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
+
         if (ctx.MCStmnt() != null)
+            // create MCStatement and cut '$' from the command
             ret.add(templateFactory.createMCStatementST(ctx.MCStmnt().getText().substring(1), getPrefix()));
         else
             ret.addAll(visit(ctx.children.get(0)));
@@ -276,11 +282,13 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         ArrayList<Template> ret = new ArrayList<>();
         String loopID = generateValidFileName();
         enterScope(ctx.scope);
+
         ret.addAll(visit(ctx.instan()));
         ret.addAll(visit(ctx.expr()));
 
         ArrayList<String> oldPrefixs = new ArrayList<>(prefixs);
 
+        // if condition is false (before the until) enter the loop
         ret.add(templateFactory.createFuncCallST(loopID, false, false,
                 getPrefix() + "execute unless score @s " + templateFactory.getExprCounterString() + " matches 1 run "));
 
@@ -290,6 +298,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         ret.addAll(visit(ctx.body()));
         ret.addAll(visit(ctx.assign()));
         ret.addAll(visit(ctx.expr()));
+
+        // if condition is still false recursively call loop
         ret.add(templateFactory.createFuncCallST(loopID, false, false,
                 getPrefix() + "execute unless score @s " + templateFactory.getExprCounterString() + " matches 1 run "));
 
@@ -298,7 +308,9 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         prefixs = new ArrayList<>(oldPrefixs);
 
+
         if (!debug){
+            // if not debug delete iterator
             for (TerminalNode ID: ctx.instan().ID()) {
                 SymEntry lookup = currentScope.lookup(ID.getText());
                 ret.add(new BlankST(getPrefix() + "scoreboard objectives remove " + lookup.getVarName(useReadableVariableNames) + "\n", "", false));
@@ -314,23 +326,30 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         ArrayList<Template> ret = new ArrayList<>();
         enterScope(ctx.scope);
 
-        prefixs.add("");
+        // for expressions change prefix
+        prefixs.add(""); // empty string to separate if-stmnts
         for (int i = 0; i < ctx.expr().size(); i++) {
+            // set previous expr to false (0)
             String currentPrefix = prefixs.get(prefixs.size() - 1);
             currentPrefix = currentPrefix.replace("matches 1", "matches 0");
             prefixs.set(prefixs.size() - 1, currentPrefix);
 
+            // set current to true (1)
             ret.addAll(visit(ctx.expr(i)));
             currentPrefix = currentPrefix.concat("execute if score @s " + templateFactory.getExprCounterString() + " matches 1 run ");
             prefixs.set(prefixs.size() - 1, currentPrefix);
+
+            // visit body with prefix
             ret.addAll(visit(ctx.body(i)));
         }
 
         if (ctx.ELSE() != null){
+            // set all to false (0)
             prefixs.set(prefixs.size() - 1, prefixs.get(prefixs.size() - 1).replace("matches 1", "matches 0"));
             ret.addAll(visit(ctx.body(ctx.body().size() - 1)));
         }
 
+        // remove if-stmnt
         prefixs.remove(prefixs.size() - 1);
         exitScope();
         return ret;
@@ -340,8 +359,11 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     public ArrayList<Template> visitBody(MinespeakParser.BodyContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
         enterScope(ctx.scope);
+
+        // visit all stmnts in body
         if (ctx.stmnts() != null)
             ret = visit(ctx.stmnts());
+
         exitScope();
         return ret;
     }
@@ -350,13 +372,16 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     public ArrayList<Template> visitDcls(MinespeakParser.DclsContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
 
+        // declare all variables in Dcl as default value
+        // vector2 and vector3 as same case
         for (int i = 0; i < ctx.ID().size(); i++){
             String ID = ctx.ID(i).getText();
 
             switch (ctx.primaryType(i).type.getTypeAsInt()) {
                 case Type.NUM:
                     int valueNum = msValueFactory.getDefaultNum();
-                    ret.add(templateFactory.createInstanST(ID, valueNum, getPrefix())); break;
+                    ret.add(templateFactory.createInstanST(ID, valueNum, getPrefix()));
+                    break;
                 case Type.BLOCK:
                     BlockValue valueBlock = msValueFactory.getDefaultBlock();
                     ret.add(templateFactory.createInstanST(ID, valueBlock, ""));
@@ -372,7 +397,6 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
                     break;
                 case Type.STRING:
                     throw new NotImplementedException();
-                    //break;
                 default:
                     Error("visitDcl");
             }
@@ -384,6 +408,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     public ArrayList<Template> visitInstan(MinespeakParser.InstanContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
 
+        // instantiate all Instans
         for (int i = 0; i < ctx.ID().size(); i++) {
             String ID = ctx.ID(i).getText();
 
@@ -405,9 +430,11 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         String exprName = factorNameTable.get(ctx.factor());
 
         if (ctx.SUB() != null) {
+            // negative expression
             ret.add(templateFactory.createNegationExprST(exprName, "-", getPrefix(), ctx.type));
             exprName = templateFactory.getExprCounterString();
         } else if (ctx.NOT() != null) {
+            // logical not operation
             ret.add(templateFactory.createNegationExprST(exprName, "not", getPrefix(), ctx.type));
             exprName = templateFactory.getExprCounterString();
         }
@@ -439,6 +466,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         String expr1Name = factorNameTable.get(ctx.expr(0));
         String expr2Name = factorNameTable.get(ctx.expr(1));
 
+        // get operator (* or / or %)
         String operator = SymbolConverter.getSymbol(ctx.op.getType());
 
         ret.add(templateFactory.createArithmeticExprST(expr1Name, expr2Name, operator,
@@ -456,6 +484,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         String expr1Name = factorNameTable.get(ctx.expr(0));
         String expr2Name = factorNameTable.get(ctx.expr(1));
 
+        // get operator (+ or -)
         String operator = SymbolConverter.getSymbol(ctx.op.getType());
 
         ret.add(templateFactory.createArithmeticExprST(expr1Name, expr2Name, operator,
@@ -477,6 +506,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         ret.add(templateFactory.createRelationExprST(
                 expr1Name, expr2Name, SymbolConverter.getSymbol(ctx.op.getType()) , getPrefix()
         ));
+
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
         return ret;
     }
@@ -491,6 +521,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         String expr2Name = factorNameTable.get(ctx.expr(1));
         Type expr1Type = ctx.expr(0).type;
 
+        // get symbol (== or !=)
         String operator = SymbolConverter.getSymbol(ctx.op.getType());
 
         ret.add(templateFactory.createEqualityExprST(expr1Name, expr2Name, operator, expr1Type, getPrefix()));
@@ -501,6 +532,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
     @Override
     public ArrayList<Template> visitAnd(MinespeakParser.AndContext ctx) {
+        // calculate expression and add it into FactorNameTable
         ArrayList<Template> ret = new ArrayList<>();
         ret.addAll(calcLogicalExpr(ctx.expr(0), ctx.expr(1), "and"));
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
@@ -509,6 +541,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
     @Override
     public ArrayList<Template> visitOr(MinespeakParser.OrContext ctx) {
+        // calculate expression and add it into FactorNameTable
         ArrayList<Template> ret = new ArrayList<>();
         ret.addAll(calcLogicalExpr(ctx.expr(0), ctx.expr(1), "or"));
         factorNameTable.put(ctx, templateFactory.getExprCounterString());
@@ -520,6 +553,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     public ArrayList<Template> visitFactor(MinespeakParser.FactorContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
 
+        // visit the factor and put it with name into the factorNameTable
         if (ctx.LPAREN() != null) {
             ret.addAll(visit(ctx.expr()));
             factorNameTable.put(ctx, factorNameTable.get(ctx.expr()));
@@ -557,15 +591,18 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         FuncEntry func = funcSignature.get(ctx.ID().getText());
         boolean isBuiltin = false;
 
+        // if not in func signature -> check builtin
         if (func == null) {
             func = this.builtinFunctions.get(ctx.ID().getText());
             isBuiltin = true;
         }
 
+        // visit parameters
         for (int i = 0; i < ctx.expr().size(); i++) {
             ret.addAll(visit(ctx.expr(i)));
         }
 
+        // instan parameters
         for (int i = 0; i < ctx.expr().size(); i++) {
             String name = isBuiltin ? func.getParams().get(i).getName() : func.getParams().get(i).getVarName(useReadableVariableNames);
             if (isBuiltin)
@@ -574,7 +611,10 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
                 ret.add(templateFactory.createInstanST(name, factorNameTable.get(ctx.expr(i)), ctx.expr(i).type, getPrefix()));
         }
 
+        // call func
         ret.add(templateFactory.createFuncCallST(func.getName().toLowerCase(), func.isMCFunction(), isBuiltin, getPrefix()));
+
+        // if not void -> instan return value
         if (!func.getType().equals(Type._void)){
             Type retType = func.retVal.getType();
             String retName = func.retVal.getVarName(useReadableVariableNames);
@@ -603,13 +643,16 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         ret.addAll(visit(ctx.expr()));
 
         Type type = ctx.expr().type;
+        // get operator as either assign or compound assign
         String operator = SymbolConverter.getSymbol( ctx.ASSIGN() != null ? MinespeakParser.ASSIGN : ctx.compAssign().op.getType());
 
         switch (type.getTypeAsInt()) {
+            // same case for bool, num, vector2, and vector3
             case Type.BOOL:
             case Type.NUM:
             case Type.VECTOR2:
             case Type.VECTOR3:
+                // if assign is compound  -> evaluate new value
                 if (ctx.ASSIGN() == null)
                     ret.add(templateFactory.createArithmeticExprST(varName, operator, var.getType(), type, getPrefix()));
                 ret.add(templateFactory.createAssignST(varName, type, getPrefix()));
@@ -618,6 +661,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
                 ret.add(templateFactory.createAssignST(varName, type, getPrefix()));
                 break;
             case Type.STRING:
+                throw new NotImplementedException();
             default:
                 Error("visitAssign");
         }
@@ -628,6 +672,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     @Override
     public ArrayList<Template> visitLiteral(MinespeakParser.LiteralContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
+
+        // visit literal
         switch (ctx.type.getTypeAsInt()) {
             case Type.BLOCK:
                 BlockValue block = msValueFactory.createBlockValue(ctx.BlockLiteral().getText());
@@ -642,6 +688,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
             case Type.VECTOR3:
                 ret.addAll(visit(ctx.vector3Literal())); break;
             case Type.STRING:
+                throw new NotImplementedException();
             default:
                 Error("VisitLiteral: Invalid type");
         }
@@ -652,8 +699,13 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     public ArrayList<Template> visitNumberLiteral(MinespeakParser.NumberLiteralContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
 
+        // get the base (10 or 16)
         int radix = ctx.DecimalDigit() != null ? 10 : 16;
-        String numText = radix == 10 ? ctx.getText(): ctx.getText().substring(2); // cut '0x' from hex
+
+        // if hexadecial (base 16) cut '0x'
+        String numText = radix == 10 ? ctx.getText(): ctx.getText().substring(2);
+
+        // parse to int
         ret.add(templateFactory.createInstanST(templateFactory.getNewExprCounterString(false), Integer.parseInt(numText, radix), getPrefix()));
 
         return ret;
@@ -662,6 +714,8 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     @Override
     public ArrayList<Template> visitBooleanLiteral(MinespeakParser.BooleanLiteralContext ctx) {
         ArrayList<Template> ret = new ArrayList<>();
+
+        // instantiate boolean as num (1 or 0)
         ret.add(templateFactory.createInstanST(templateFactory.getNewExprCounterString(false), ctx.TRUE() != null ? 1 : 0 , getPrefix()));
         return ret;
     }
@@ -676,6 +730,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         String retExpr = templateFactory.getNewExprCounterString(true);
 
+        // instantiate vectors seperate values
         ret.add(templateFactory.createInstanST(retExpr + "_x", factorNameTable.get(ctx.expr(0)), Type._num,getPrefix()));
         ret.add(templateFactory.createInstanST(retExpr + "_y", factorNameTable.get(ctx.expr(1)), Type._num, getPrefix()));
 
@@ -692,6 +747,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         String retExpr = templateFactory.getNewExprCounterString(true);
 
+        // instantiate vectors seperate values
         ret.add(templateFactory.createInstanST(retExpr + "_x", factorNameTable.get(ctx.expr(0)), Type._num, getPrefix()));
         ret.add(templateFactory.createInstanST(retExpr + "_y", factorNameTable.get(ctx.expr(1)), Type._num, getPrefix()));
         ret.add(templateFactory.createInstanST(retExpr + "_z", factorNameTable.get(ctx.expr(2)), Type._num, getPrefix()));
@@ -701,26 +757,51 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     //endregion
 
     //region Helper functions
+
+    /**
+     * Enter a new scope
+     * @param scope Which scope to enter
+     */
     private void enterScope(Scope scope) {
         this.currentScope = scope;
     }
 
+    /**
+     * Exit current scope
+     */
     private void exitScope() {
         enterScope(this.currentScope.getParent());
     }
 
+    /**
+     * Get the prefix to be used in MCFunction
+     * @return String prefix
+     */
     private String getPrefix() {
         StringBuilder builder = new StringBuilder();
+
+        // build string consisting of all prefixes in prefixs
         for (String string : prefixs) {
             builder.append(string);
         }
         return builder.toString();
     }
 
+    /**
+     * Generate a valid name for a .mcfunction file
+     * @return Generated name as a String
+     */
     private String generateValidFileName() {
         return UUID.randomUUID().toString().toLowerCase();
     }
 
+    /**
+     * Calculate logical expression with different operators
+     * @param e1 Right operand
+     * @param e2 Left operand
+     * @param operator Operator to be used
+     * @return Template to calculate logical expression
+     */
     private ArrayList<Template> calcLogicalExpr(MinespeakParser.ExprContext e1, MinespeakParser.ExprContext e2, String operator) {
         ArrayList<Template> ret = new ArrayList<>();
         ret.addAll(visit(e1));
@@ -734,6 +815,13 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         return ret;
     }
 
+    /**
+     * Generate template for while structure
+     * @param whileName Name for while (Used to in a new file)
+     * @param body Body of the while
+     * @param expr Condition of while
+     * @return Template for the generated while
+     */
     private ArrayList<Template> generateWhileTemplates(String whileName, MinespeakParser.BodyContext body, MinespeakParser.ExprContext expr) {
         ArrayList<Template> ret = new ArrayList<>();
         ArrayList<String> tempPrefix = new ArrayList<>(prefixs);
@@ -746,12 +834,15 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
 
         ret.addAll(visit(body));
         ret.addAll(visit(expr));
+
+        // make recursive call if condition is true
         ret.add(templateFactory.createFuncCallST(whileName, false, false,
                 "execute if score @s " + templateFactory.getExprCounterString() + " matches 1 run "));
 
         //exit file
         ret.add(templateFactory.createExitFileST());
 
+        // call while file if condition is true
         prefixs = new ArrayList<>(tempPrefix);
         prefixs.add("execute if score @s " + templateFactory.getExprCounterString() + " matches 1 run ");
         ret.add(templateFactory.createFuncCallST(whileName, false, false, getPrefix()));
@@ -759,6 +850,11 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
         return ret;
     }
 
+    /**
+     * When an error occurred in codegeneration
+     * Throw new RuntimeException
+     * @param errMsg String Message to display on throw
+     */
     private void Error(String errMsg){
         throw new RuntimeException(errMsg);
     }
