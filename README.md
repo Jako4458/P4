@@ -38,7 +38,7 @@ closespeak
 Find the correct Java Runtime binary. Add to PATH if necessary.
 Compile using:
 ```shell
-path/to/java16/java -jar P4.jar ./example.ms
+path/to/java16/java -jar ./P4.jar ./example.ms
 ```
 
 If no `outputPath` was specified, output can be found in the `result` folder.
