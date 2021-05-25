@@ -932,6 +932,34 @@ public class ScopeListener extends MinespeakBaseListener {
     }
 
     /**
+     * Ensures that all expressions in the vector are of num type
+     * @see Type
+     * @param ctx The CST node for vector2 literal
+     */
+    @Override
+    public void exitVector2Literal(MinespeakParser.Vector2LiteralContext ctx) {
+        for (MinespeakParser.ExprContext expr : ctx.expr()) {
+            if (!expr.type.equals(Type._num)) {
+                Logger.shared.add(logFac.createTypeError(expr.getText(), expr, expr.type, Type._num));
+            }
+        }
+    }
+
+    /**
+     * Ensures that all expressions in the vector are of num type
+     * @see Type
+     * @param ctx The CST node for vector3 literal
+     */
+    @Override
+    public void exitVector3Literal(MinespeakParser.Vector3LiteralContext ctx) {
+        for (MinespeakParser.ExprContext expr : ctx.expr()) {
+            if (!expr.type.equals(Type._num)) {
+                Logger.shared.add(logFac.createTypeError(expr.getText(), expr, expr.type, Type._num));
+            }
+        }
+    }
+
+    /**
      * Starts by denoting the parse tree with the type of the factor.
      * If other the not expression is used or the subtract expression is used,
      * these are type checked.
