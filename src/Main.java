@@ -1,6 +1,6 @@
+import exceptions.*;
 import logging.logs.ErrorLog;
 import logging.Logger;
-import logging.logs.Log;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -23,7 +23,6 @@ public class Main {
         config = new Configuration(args);
         setup = (new SetupReader()).readSetupJSON();
 
-        // Compile the file
         compile();
 
         // Dump all the logs
@@ -32,54 +31,122 @@ public class Main {
     }
 
     private static void compile() {
-        // Building builtin functions
-        FileManager fManager = new FileManager(setup.outputPath);
-        fManager.buildBeforeCodeGen();
+        try {
+            // Building builtin functions
+            FileManager fManager = new FileManager(setup.outputPath);
+            fManager.buildBeforeCodeGen();
 
-        // Lexing
-        System.out.println("Lexing...");
-        CommonTokenStream tokenStream = lex(config.source_file.toString());
-        if (checkLoggerIsNotOK())
-            return;
+            CommonTokenStream tokenStream = Lexing();
+            MinespeakWrittenFunctionInsertionListener minespeakWrittenFunctionInsertionListener = InsertBuiltInFunctions(tokenStream);
+            CommonTokenStream modifiedTokenStream = Relexing(minespeakWrittenFunctionInsertionListener);
+            ParseTree modifiedParseTree = Parsing(modifiedTokenStream);
+            SemanticAnalysis(modifiedParseTree);
+            ArrayList<Template> output = CodeGeneration(modifiedParseTree);
+            GeneratingOutputfiles(fManager, output);
 
-        System.out.println("Builtin function insertion...");
-        MinespeakWrittenFunctionInsertionListener minespeakWrittenFunctionInsertionListener = new MinespeakWrittenFunctionInsertionListener(tokenStream);
-        ParseTree parseTree = parse(tokenStream);
-        ParseTreeWalker.DEFAULT.walk(minespeakWrittenFunctionInsertionListener, parseTree);
-        if (parseTree == null)
-            return;
-
-        System.out.println("Re-lex...");
-        CommonTokenStream modifiedTokenStream = lexFromString(minespeakWrittenFunctionInsertionListener.rewriter.getText());
-        Logger.shared.setSourceProg(minespeakWrittenFunctionInsertionListener.rewriter.getText().split(System.getProperty("line.separator")));
-
-
-        // Parsing
-        System.out.println("Parsing...");
-        ParseTree modifiedParseTree = parse(modifiedTokenStream);
-        if (modifiedParseTree == null)
-            return;
-
-        // Semantic analysis
-        System.out.println("Semantics...");
-        semanticAnalysis(modifiedParseTree);
-        if (checkLoggerIsNotOK())
-            return;
-
-        // Code gen
-
-        System.out.println("Code generation...");
-        ArrayList<Template> output = codeGeneration(modifiedParseTree);
-
-        if (checkLoggerIsNotOK())
-            return;
-
-        // Outputting to files
-        System.out.println("Making files...");
-        makeFiles(fManager, output);
-
-        System.out.println("\nCompilation complete!");
+            System.out.println("\nCompilation complete!");
+        }
+        catch (RuntimeException e){
+            System.out.println(e.getMessage());
+        }
     }
+
+    //region compile phases
+    private static CommonTokenStream Lexing() {
+        CommonTokenStream tokenStream;
+        try {
+            System.out.println("Lexing...");
+            tokenStream = lex(config.source_file.toString());
+            if (checkLoggerIsNotOK())
+                throw new LexerException();
+        }
+        catch (Exception e){
+            throw new LexerException("Lexing failed: " + e.getMessage());
+        }
+        return tokenStream;
+    }
+
+    private static MinespeakWrittenFunctionInsertionListener InsertBuiltInFunctions(CommonTokenStream tokenStream) {
+        ParseTree parseTree;
+        MinespeakWrittenFunctionInsertionListener minespeakWrittenFunctionInsertionListener;
+        try {
+            System.out.println("Builtin function insertion...");
+            minespeakWrittenFunctionInsertionListener = new MinespeakWrittenFunctionInsertionListener(tokenStream);
+            parseTree = parse(tokenStream);
+            ParseTreeWalker.DEFAULT.walk(minespeakWrittenFunctionInsertionListener, parseTree);
+            if (parseTree == null)
+                throw new BuiltInFunctionInsertionException("Insertion of builtin functions failed.");
+        }
+        catch (Exception e){
+            throw new BuiltInFunctionInsertionException("Insertion of builtin functions failed: " + e.getMessage());
+        }
+        return minespeakWrittenFunctionInsertionListener;
+    }
+
+    private static CommonTokenStream Relexing(MinespeakWrittenFunctionInsertionListener minespeakWrittenFunctionInsertionListener) {
+        CommonTokenStream modifiedTokenStream;
+        try {
+            System.out.println("Re-lex...");
+            modifiedTokenStream = lexFromString(minespeakWrittenFunctionInsertionListener.rewriter.getText());
+            Logger.shared.setSourceProg(minespeakWrittenFunctionInsertionListener.rewriter.getText().split(System.getProperty("line.separator")));
+        }
+        catch (Exception e){
+            throw new LexerException("Re-lexing failed: " + e.getMessage());
+        }
+        return modifiedTokenStream;
+    }
+
+    private static ParseTree Parsing(CommonTokenStream modifiedTokenStream) {
+        ParseTree modifiedParseTree;
+        try {
+            System.out.println("Parsing...");
+            modifiedParseTree = parse(modifiedTokenStream);
+            if (modifiedParseTree == null)
+                throw new ParserException();
+        }
+        catch (Exception e) {
+            throw new ParserException("Parsing failed: " + e.getMessage());
+        }
+        return modifiedParseTree;
+    }
+
+    private static void SemanticAnalysis(ParseTree modifiedParseTree) {
+        try {
+            System.out.println("Semantics...");
+            semanticAnalysis(modifiedParseTree);
+            if (checkLoggerIsNotOK())
+                throw new SemanticAnalysisException();
+        }
+        catch (Exception e) {
+            throw new SemanticAnalysisException("Something went wrong during the semantic analysis.");
+        }
+    }
+
+    private static ArrayList<Template> CodeGeneration(ParseTree modifiedParseTree) {
+        ArrayList<Template> output;
+        try {
+            System.out.println("Code generation...");
+            output = codeGeneration(modifiedParseTree);
+
+            if (checkLoggerIsNotOK())
+                throw new CodeGenerationException();
+        }
+        catch (Exception e) {
+            throw new CodeGenerationException("Something went wrong during the code generation.");
+        }
+        return output;
+    }
+
+    private static void GeneratingOutputfiles(FileManager fManager, ArrayList<Template> output) {
+        try {
+            System.out.println("Making files...");
+            makeFiles(fManager, output);
+        }
+        catch (Exception e) {
+            throw new FileGenerationException("Something went wrong during the generation of output files.");
+        }
+    }
+    //endregion
 
     private static boolean checkLoggerIsNotOK() {
         if(setup.pedantic) {
