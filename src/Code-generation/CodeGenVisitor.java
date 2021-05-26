@@ -12,6 +12,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
     private boolean setTemplateComments = Main.setup.commenting;
     private final VariableMode variableMode = Main.setup.variableMode;
 
+    private static LogFactory logFactory = new LogFactory();
     private Scope currentScope;
     private final Map<String, FuncEntry> funcSignature;
     private final Map<String, FuncEntry> builtinFunctions;
@@ -396,7 +397,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
                     ret.add(templateFactory.createInstanST(ID, valueVec3, getPrefix()));
                     break;
                 case Type.STRING:
-                    throw new NotImplementedException();
+                    throw new NotImplementedException("The string type is not implemented.", ctx);
                 default:
                     Error("visitDcl");
             }
@@ -660,7 +661,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
                 ret.add(templateFactory.createAssignST(varName, type, getPrefix()));
                 break;
             case Type.STRING:
-                throw new NotImplementedException();
+                throw new NotImplementedException("The string type is not implemented.", ctx);
             default:
                 Error("visitAssign");
         }
@@ -687,7 +688,7 @@ public class CodeGenVisitor extends MinespeakBaseVisitor<ArrayList<Template>>{
             case Type.VECTOR3:
                 ret.addAll(visit(ctx.vector3Literal())); break;
             case Type.STRING:
-                throw new NotImplementedException();
+                throw new NotImplementedException("The string type is not implemented.", ctx);
             default:
                 Error("VisitLiteral: Invalid type");
         }

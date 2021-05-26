@@ -17,6 +17,7 @@ public class Main {
     private static Configuration config;
     private static Map<String, FuncEntry> functionSignatures;
     public static Setup setup;
+    private static LogFactory logFactory = new LogFactory();
 
     public static void main(String[] args) {
         // Configure the compiler through the compiler arguments.
@@ -130,6 +131,10 @@ public class Main {
 
             if (checkLoggerIsNotOK())
                 throw new CodeGenerationException();
+        }
+        catch (NotImplementedException e) {
+            Logger.shared.add(Main.logFactory.createNotImplementedError("String types are not implemented.", e.ctx));
+            throw new NotImplementedException("");
         }
         catch (Exception e) {
             throw new CodeGenerationException("Something went wrong during the code generation.");

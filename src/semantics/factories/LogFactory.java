@@ -3,6 +3,7 @@ import jdk.jshell.spi.ExecutionControl;
 import logging.logs.*;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 
 public class LogFactory {
@@ -125,5 +126,9 @@ public class LogFactory {
 
     public Log createMCFuncParamsWarning(String text, ParserRuleContext ctx) {
         return new MCFuncParamsWarning(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
+    }
+
+    public Log createNotImplementedError(String text, ParserRuleContext ctx) {
+        return new NotImplementedError(text, ctx.start.getLine(), ctx.start.getCharPositionInLine());
     }
 }
