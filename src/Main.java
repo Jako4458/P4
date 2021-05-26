@@ -89,7 +89,7 @@ public class Main {
         try {
             System.out.println("Re-lex...");
             modifiedTokenStream = lexFromString(minespeakWrittenFunctionInsertionListener.rewriter.getText());
-            Logger.shared.setSourceProg(minespeakWrittenFunctionInsertionListener.rewriter.getText().split(System.getProperty("line.separator")));
+            Logger.shared.setSourceProg(minespeakWrittenFunctionInsertionListener.rewriter.getText().split("\\r?\\n"));
         }
         catch (Exception e){
             throw new LexerException("Re-lexing failed: " + e.getMessage());
@@ -178,7 +178,6 @@ public class Main {
 
         try {
             CharStream cstream = CharStreams.fromFileName(file);
-            Logger.shared.setSourceProg(cstream.toString().split(System.getProperty("line.separator")));
             MinespeakLexer minespeakLexer = new MinespeakLexer(cstream);
             stream = new CommonTokenStream(minespeakLexer);
         } catch (IOException e) {
@@ -257,39 +256,3 @@ class Configuration {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
