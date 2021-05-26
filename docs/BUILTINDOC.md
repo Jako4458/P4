@@ -70,6 +70,7 @@ fill(<0, 240, 0>, 10, 10, 10, #dirt, false)
 - `y` \<num\> The number of blocks dig along the y-axis.
 - `z` \<num\> The number of blocks dig along the z-axis.
 - `relative` \<bool\> Specify whether the dig region should be relative to the player or absolute.
+- returns: \<vector3\> The northeast most point of the dig region (the last block to be removed).
 
 Fills an area with air blocks (nothing).
 
